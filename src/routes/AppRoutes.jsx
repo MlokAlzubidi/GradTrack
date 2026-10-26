@@ -1,32 +1,32 @@
-import {
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 
 import Login from "../pages/auth/Login";
+import Register from "../pages/auth/Register";
+import RoleSelection from "../pages/auth/RoleSelection";
 import PlaceholderPage from "../components/common/PlaceholderPage";
 
 function AppRoutes() {
   return (
     <Routes>
+      {/* Main page: choose account type */}
       <Route
         path="/"
-        element={<Navigate to="/login" replace />}
+        element={<RoleSelection />}
       />
 
+      {/* Student and Team Leader login */}
       <Route
         path="/login"
         element={<Login />}
       />
 
+      {/* Student registration */}
       <Route
         path="/register"
-        element={
-          <PlaceholderPage title="Student Registration" />
-        }
+        element={<Register />}
       />
 
+      {/* Password recovery */}
       <Route
         path="/forgot-password"
         element={
@@ -34,6 +34,15 @@ function AppRoutes() {
         }
       />
 
+      {/* Academic Supervisor login */}
+      <Route
+        path="/supervisor/login"
+        element={
+          <PlaceholderPage title="Academic Supervisor Login" />
+        }
+      />
+
+      {/* Student Dashboard */}
       <Route
         path="/student/dashboard"
         element={
@@ -41,6 +50,7 @@ function AppRoutes() {
         }
       />
 
+      {/* Team Leader Dashboard */}
       <Route
         path="/team-leader/dashboard"
         element={
@@ -48,6 +58,7 @@ function AppRoutes() {
         }
       />
 
+      {/* Supervisor Dashboard */}
       <Route
         path="/supervisor/dashboard"
         element={
@@ -55,9 +66,12 @@ function AppRoutes() {
         }
       />
 
+      {/* Unknown routes */}
       <Route
         path="*"
-        element={<PlaceholderPage title="Page Not Found" />}
+        element={
+          <PlaceholderPage title="Page Not Found" />
+        }
       />
     </Routes>
   );
