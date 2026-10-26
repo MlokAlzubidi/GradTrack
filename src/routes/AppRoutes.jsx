@@ -4,7 +4,7 @@ import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
 import RoleSelection from "../pages/auth/RoleSelection";
 import PlaceholderPage from "../components/common/PlaceholderPage";
-
+import SupervisorLogin from "../pages/auth/SupervisorLogin";
 function AppRoutes() {
   return (
     <Routes>
@@ -35,12 +35,10 @@ function AppRoutes() {
       />
 
       {/* Academic Supervisor login */}
-      <Route
-        path="/supervisor/login"
-        element={
-          <PlaceholderPage title="Academic Supervisor Login" />
-        }
-      />
+     <Route
+  path="/supervisor/login"
+  element={<SupervisorLogin />}
+/>
 
       {/* Student Dashboard */}
       <Route
