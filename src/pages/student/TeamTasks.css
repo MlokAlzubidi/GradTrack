@@ -1,0 +1,367 @@
+
+.team-tasks-page {
+  min-height: 100vh;
+  background: #f5f3eb;
+  color: #294638;
+}
+
+.team-tasks-content {
+  box-sizing: border-box;
+  width: min(1080px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 36px 0 32px;
+}
+
+.team-tasks-header {
+  margin-bottom: 26px;
+}
+
+.team-tasks-eyebrow {
+  margin: 0 0 10px;
+  color: #64806a;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.7px;
+}
+
+.team-tasks-header h1 {
+  margin: 0;
+  color: #294638;
+  font-size: clamp(28px, 3vw, 35px);
+  letter-spacing: -0.6px;
+}
+
+.team-tasks-header > p:last-child {
+  max-width: 640px;
+  margin: 10px 0 0;
+  color: #748075;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.team-tasks-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 34px;
+}
+
+.team-tasks-summary-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 19px;
+  border: 1px solid #e5e2d6;
+  border-radius: 14px;
+  background: #fffefa;
+}
+
+.team-tasks-summary-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 43px;
+  height: 43px;
+  border-radius: 12px;
+  background: #e8eee5;
+  color: #355b43;
+  font-size: 22px;
+}
+
+.team-tasks-summary-card p {
+  margin: 0 0 5px;
+  color: #748075;
+  font-size: 12px;
+}
+
+.team-tasks-summary-card strong {
+  color: #294638;
+  font-size: 25px;
+}
+
+.team-tasks-list-section {
+  margin-top: 28px;
+}
+
+.team-tasks-section-heading {
+  margin-bottom: 16px;
+}
+
+.team-tasks-section-heading h2 {
+  margin: 0;
+  color: #294638;
+  font-size: 21px;
+}
+
+.team-tasks-section-heading p {
+  margin: 7px 0 0;
+  color: #7a847b;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.team-tasks-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 17px;
+}
+
+.team-tasks-filter {
+  padding: 9px 13px;
+  border: 1px solid #e1e3d8;
+  border-radius: 9px;
+  background: #fffefa;
+  color: #657366;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.team-tasks-filter:hover {
+  border-color: #cbd9c7;
+}
+
+.team-tasks-filter.active {
+  border-color: #355b43;
+  background: #355b43;
+  color: #fffefa;
+}
+
+.team-tasks-list {
+  display: grid;
+  gap: 15px;
+}
+
+.team-task-card {
+  min-width: 0;
+  padding: 22px;
+  border: 1px solid #e5e2d6;
+  border-radius: 15px;
+  background: #fffefa;
+  box-shadow: 0 4px 15px rgba(41, 70, 56, 0.025);
+}
+
+.team-task-card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.team-task-card-heading h3 {
+  margin: 0;
+  color: #294638;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.team-task-card-heading > div {
+  min-width: 0;
+}
+
+.team-task-card-heading p {
+  margin: 7px 0 0;
+  color: #778276;
+  font-size: 12px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+
+.team-task-status {
+  flex-shrink: 0;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.team-task-status.todo {
+  background: #f3efdf;
+  color: #8a7137;
+}
+
+.team-task-status.in-progress {
+  background: #e5eee2;
+  color: #4e7656;
+}
+
+.team-task-status.completed {
+  background: #dce9d9;
+  color: #355b43;
+}
+
+.team-task-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  margin-top: 17px;
+  padding: 13px 0;
+  border-top: 1px solid #eeeae0;
+  color: #748075;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.team-task-meta strong {
+  color: #536356;
+}
+
+.team-task-submissions {
+  padding: 16px;
+  border-radius: 12px;
+  background: #f7f7f0;
+}
+
+.team-task-submissions h4 {
+  margin: 0 0 12px;
+  color: #355b43;
+  font-size: 12px;
+}
+
+.team-task-submission {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #e4e6da;
+  border-radius: 10px;
+  background: #fffefa;
+}
+
+.team-task-submission + .team-task-submission {
+  margin-top: 8px;
+}
+
+.team-task-file-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: #e8eee5;
+  color: #355b43;
+  font-size: 18px;
+}
+
+.team-task-file-info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.team-task-file-info strong {
+  overflow-wrap: anywhere;
+  color: #294638;
+  font-size: 12px;
+}
+
+.team-task-file-info span {
+  color: #7a847b;
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.team-task-file-link {
+  flex-shrink: 0;
+  padding: 8px 10px;
+  border: 1px solid #d5e0d2;
+  border-radius: 8px;
+  color: #355b43;
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.team-task-file-link:hover {
+  background: #e8eee5;
+}
+
+.team-task-no-submission {
+  margin: 0;
+  color: #81897e;
+  font-size: 11px;
+  line-height: 1.8;
+}
+
+.team-tasks-empty {
+  padding: 40px 20px;
+  border: 1px dashed #d6dfd1;
+  border-radius: 14px;
+  background: #fffefa;
+  text-align: center;
+}
+
+.team-tasks-empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 12px;
+  border-radius: 13px;
+  background: #e8eee5;
+  color: #355b43;
+  font-size: 22px;
+}
+
+.team-tasks-empty h3 {
+  margin: 0;
+  color: #294638;
+  font-size: 16px;
+}
+
+.team-tasks-empty p {
+  margin: 8px 0 0;
+  color: #7a847b;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.team-tasks-demo-note {
+  margin: 20px 0 0;
+  color: #899087;
+  font-size: 10px;
+  line-height: 1.8;
+  text-align: center;
+}
+
+@media (max-width: 700px) {
+  .team-tasks-content {
+    width: calc(100% - 28px);
+    padding-top: 25px;
+  }
+
+  .team-tasks-summary {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .team-tasks-summary-card {
+    padding: 15px;
+  }
+
+  .team-task-card {
+    padding: 17px;
+  }
+
+  .team-task-card-heading {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .team-task-submission {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .team-task-file-info {
+    flex-basis: calc(100% - 55px);
+  }
+
+  .team-task-file-link {
+    margin-left: 50px;
+  }
+}

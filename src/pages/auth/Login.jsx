@@ -1,12 +1,47 @@
-import { Link } from "react-router-dom";
-import "./Login.css";
 
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import "./Login.css";
+import { getAllMockStudents } from "../../data/mockData";
 
 function Login() {
+  const navigate = useNavigate();
+
+  const [universityId, setUniversityId] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
   function handleSubmit(event) {
     event.preventDefault();
+    setError("");
 
-    // Authentication will be connected to the backend later.
+   const students = getAllMockStudents();
+
+const student = students.find(
+  (student) =>
+    student.universityId === universityId.trim() &&
+    student.password === password
+);
+
+    if (!student) {
+      setError("Invalid university ID or password.");
+      return;
+    }
+
+    const currentStudent = {
+      universityId: student.universityId,
+      name: student.name,
+      role: student.role,
+      teamStatus: student.teamStatus,
+      teamId: student.teamId,
+    };
+
+    localStorage.setItem(
+      "gradtrack-current-student",
+      JSON.stringify(currentStudent)
+    );
+
+    navigate("/student/dashboard");
   }
 
   return (
@@ -34,6 +69,10 @@ function Login() {
               type="text"
               placeholder="Enter your university ID"
               autoComplete="username"
+              value={universityId}
+              onChange={(event) =>
+                setUniversityId(event.target.value)
+              }
               required
             />
           </div>
@@ -49,9 +88,19 @@ function Login() {
               type="password"
               placeholder="Enter your password"
               autoComplete="current-password"
+              value={password}
+              onChange={(event) =>
+                setPassword(event.target.value)
+              }
               required
             />
           </div>
+
+          {error && (
+            <p className="error-message" role="alert">
+              {error}
+            </p>
+          )}
 
           <div className="login-links">
             <Link to="/forgot-password">

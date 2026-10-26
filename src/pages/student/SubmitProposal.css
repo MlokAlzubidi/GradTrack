@@ -1,0 +1,199 @@
+.submit-proposal-page {
+  min-height: 100vh;
+  background: #f5f3eb;
+  color: #26372e;
+  font-family: Arial, sans-serif;
+}
+
+.submit-proposal-content {
+  width: min(900px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 48px 0;
+}
+
+.submit-proposal-header {
+  margin-bottom: 28px;
+}
+
+.submit-proposal-eyebrow {
+  margin: 0 0 12px;
+  color: #527760;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+.submit-proposal-header h1 {
+  margin: 0 0 14px;
+  color: #294638;
+  font-size: clamp(28px, 4vw, 36px);
+  line-height: 1.3;
+}
+
+.submit-proposal-header > p:last-child {
+  max-width: 680px;
+  margin: 0;
+  color: #707a71;
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+.submit-proposal-card {
+  max-width: 720px;
+  padding: 32px;
+  border: 1px solid #e7e2d7;
+  border-radius: 16px;
+  background: #fffefa;
+  box-shadow: 0 12px 35px rgba(39, 59, 49, 0.06);
+}
+
+.submit-proposal-card h2 {
+  margin: 0 0 10px;
+  color: #294638;
+  font-size: 22px;
+}
+
+.submit-proposal-card > p {
+  margin: 0 0 24px;
+  color: #707a71;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.submit-proposal-info {
+  margin-bottom: 26px;
+  padding: 16px 18px;
+  border: 1px solid #dfe8dc;
+  border-radius: 10px;
+  background: #f3f6ef;
+}
+
+.submit-proposal-info strong {
+  color: #294638;
+  font-size: 14px;
+}
+
+.submit-proposal-info p {
+  margin: 7px 0 0;
+  color: #687469;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.submit-proposal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.submit-proposal-field label {
+  color: #35463b;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.submit-proposal-field input[type="file"] {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #dcded5;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #59665c;
+  font: inherit;
+  font-size: 13px;
+}
+
+.submit-proposal-field input[type="file"]::file-selector-button {
+  margin-right: 12px;
+  padding: 9px 12px;
+  border: 1px solid #dcded5;
+  border-radius: 7px;
+  background: #f2f3ec;
+  color: #355b43;
+  cursor: pointer;
+}
+
+.submit-proposal-hint {
+  color: #7a8079;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.submit-proposal-selected-file {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin: -4px 0 22px;
+  padding: 14px 16px;
+  border: 1px solid #d5e3d4;
+  border-radius: 9px;
+  background: #edf4eb;
+  color: #355b43;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.submit-proposal-field textarea {
+  width: 100%;
+  min-height: 110px;
+  padding: 12px 14px;
+  border: 1px solid #dcded5;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #26372e;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.7;
+  resize: vertical;
+}
+
+.submit-proposal-field textarea:focus {
+  outline: none;
+  border-color: #527760;
+  box-shadow: 0 0 0 3px rgba(82, 119, 96, 0.12);
+}
+
+.submit-proposal-card form > button {
+  width: 100%;
+  min-height: 49px;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 9px;
+  background: #355b43;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.submit-proposal-card form > button:hover {
+  background: #294936;
+}
+
+.submit-proposal-message {
+  margin: 16px 0 0;
+  color: #426b50;
+  font-size: 14px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.submit-proposal-card button:focus-visible,
+.submit-proposal-field input:focus-visible,
+.submit-proposal-field textarea:focus-visible {
+  outline: 2px solid #527760;
+  outline-offset: 3px;
+}
+
+@media (max-width: 600px) {
+  .submit-proposal-content {
+    width: calc(100% - 32px);
+    padding: 32px 0;
+  }
+
+  .submit-proposal-card {
+    padding: 24px 20px;
+  }
+}

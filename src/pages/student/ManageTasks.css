@@ -1,0 +1,353 @@
+.manage-tasks-page {
+  min-height: 100vh;
+  background: #f5f3eb;
+  color: #26372e;
+  font-family: Arial, sans-serif;
+}
+
+.manage-tasks-content {
+  width: min(1000px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 48px 0;
+}
+
+.manage-tasks-header {
+  margin-bottom: 30px;
+}
+
+.manage-tasks-eyebrow {
+  margin: 0 0 12px;
+  color: #527760;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+.manage-tasks-header h1 {
+  margin: 0 0 12px;
+  color: #294638;
+  font-size: clamp(28px, 4vw, 36px);
+  line-height: 1.3;
+}
+
+.manage-tasks-header > p:last-child {
+  max-width: 680px;
+  margin: 0;
+  color: #707a71;
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+.manage-tasks-form-card,
+.manage-tasks-list-section {
+  padding: 28px;
+  border: 1px solid #e7e2d7;
+  border-radius: 16px;
+  background: #fffefa;
+  box-shadow: 0 8px 25px rgba(39, 59, 49, 0.04);
+}
+
+.manage-tasks-form-card {
+  margin-bottom: 28px;
+}
+
+.manage-tasks-form-card h2,
+.manage-tasks-list-header h2 {
+  margin: 0;
+  color: #294638;
+  font-size: 21px;
+}
+
+.manage-tasks-form-card > p {
+  margin: 10px 0 26px;
+  color: #707a71;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.manage-tasks-field {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-bottom: 20px;
+}
+
+.manage-tasks-field label {
+  color: #35463b;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.manage-tasks-field input,
+.manage-tasks-field textarea,
+.manage-tasks-field select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #dcded5;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #26372e;
+  font: inherit;
+  font-size: 14px;
+}
+
+.manage-tasks-field input,
+.manage-tasks-field select {
+  min-height: 46px;
+}
+
+.manage-tasks-field textarea {
+  min-height: 110px;
+  resize: vertical;
+  line-height: 1.7;
+}
+
+.manage-tasks-field input:focus,
+.manage-tasks-field textarea:focus,
+.manage-tasks-field select:focus {
+  outline: none;
+  border-color: #527760;
+  box-shadow: 0 0 0 3px rgba(82, 119, 96, 0.12);
+}
+
+.manage-tasks-form-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.manage-tasks-submit {
+  min-height: 47px;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 9px;
+  background: #355b43;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.manage-tasks-submit:hover {
+  background: #294936;
+}
+
+.manage-tasks-message {
+  margin: 16px 0 0;
+  color: #426b50;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.manage-tasks-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.manage-tasks-list-header > span {
+  color: #707a71;
+  font-size: 13px;
+}
+
+.manage-tasks-list {
+  display: grid;
+  gap: 16px;
+}
+
+.manage-task-card {
+  padding: 22px;
+  border: 1px solid #e7e2d7;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.manage-task-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.manage-task-card-header h3 {
+  margin: 0;
+  color: #294638;
+  font-size: 17px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.manage-task-status {
+  flex-shrink: 0;
+  padding: 7px 10px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.manage-task-status.to-do {
+  background: #f0f1e9;
+  color: #59665c;
+}
+
+.manage-task-status.in-progress {
+  background: #f8efd9;
+  color: #806321;
+}
+
+.manage-task-status.completed {
+  background: #e4eee3;
+  color: #355b43;
+}
+
+.manage-task-description {
+  margin: 12px 0 18px;
+  color: #707a71;
+  font-size: 14px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+
+.manage-task-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  padding-top: 16px;
+  border-top: 1px solid #eeeae1;
+  color: #707a71;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.manage-task-meta strong {
+  color: #35463b;
+}
+
+.manage-tasks-empty {
+  padding: 28px 16px;
+  border: 1px dashed #dcded5;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.manage-tasks-empty h3 {
+  margin: 0 0 10px;
+  color: #294638;
+}
+
+.manage-tasks-empty p {
+  margin: 0;
+  color: #707a71;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.manage-tasks-demo-note {
+  margin: 18px 0 0;
+  color: #7a8079;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.manage-tasks-page button:focus-visible {
+  outline: 2px solid #527760;
+  outline-offset: 3px;
+}
+
+@media (max-width: 650px) {
+  .manage-tasks-content {
+    width: calc(100% - 32px);
+    padding: 32px 0;
+  }
+
+  .manage-tasks-form-card,
+  .manage-tasks-list-section {
+    padding: 22px 18px;
+  }
+
+  .manage-tasks-form-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .manage-task-card-header {
+    flex-direction: column;
+  }
+
+  .manage-tasks-submit {
+    width: 100%;
+  }
+}
+
+/* Task editing actions */
+
+.manage-tasks-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.manage-tasks-form-actions .manage-tasks-submit {
+  margin-top: 0;
+}
+
+.manage-tasks-cancel,
+.manage-task-edit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 10px 16px;
+  border: 1px solid #d5e0d2;
+  border-radius: 9px;
+  background: #e8eee5;
+  color: #355b43;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+
+.manage-tasks-cancel {
+  background: #fffefa;
+  border-color: #e5e2d6;
+  color: #59665c;
+}
+
+.manage-task-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #eeeae0;
+}
+
+.manage-task-edit {
+  min-height: 36px;
+  padding: 8px 14px;
+}
+
+.manage-tasks-cancel:hover,
+.manage-task-edit:hover {
+  background: #dce7d8;
+  border-color: #b9cdb6;
+}
+
+.manage-tasks-cancel:hover {
+  color: #294638;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .manage-tasks-cancel,
+  .manage-task-edit {
+    transition: none;
+  }
+}

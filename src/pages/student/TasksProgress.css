@@ -1,0 +1,623 @@
+/* ==========================================
+   GradTrack — Tasks & Progress
+   Forest green, sage and cream
+========================================== */
+
+.tasks-progress-page {
+  min-height: 100vh;
+  background: #f5f3eb;
+  color: #294638;
+}
+
+.tasks-progress-content {
+  box-sizing: border-box;
+  width: min(1120px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 36px 0 32px;
+}
+
+/* Page header */
+
+.tasks-progress-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.tasks-progress-eyebrow {
+  margin: 0 0 10px;
+  color: #64806a;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.7px;
+}
+
+.tasks-progress-header h1 {
+  margin: 0;
+  color: #294638;
+  font-size: clamp(28px, 3vw, 36px);
+  line-height: 1.25;
+  letter-spacing: -0.7px;
+}
+
+.tasks-progress-header > div > p:last-child {
+  margin: 10px 0 0;
+  color: #748075;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.tasks-progress-role {
+  flex-shrink: 0;
+  padding: 9px 14px;
+  border: 1px solid #d8e3d5;
+  border-radius: 30px;
+  background: #e8eee5;
+  color: #355b43;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Overall completion banner */
+
+.tasks-progress-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+  box-sizing: border-box;
+  padding: 26px 30px;
+  margin-bottom: 24px;
+  border-radius: 18px;
+  background: linear-gradient(120deg, #294638, #355b43 68%, #527760);
+  box-shadow: 0 10px 24px rgba(41, 70, 56, 0.10);
+  color: #fffefa;
+}
+
+.tasks-progress-small-label {
+  margin: 0 0 10px;
+  color: #d9e7d8;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.8px;
+}
+
+.tasks-progress-hero-copy h2 {
+  margin: 0;
+  color: #fffefa;
+  font-size: 45px;
+  line-height: 1.15;
+  font-weight: 750;
+}
+
+.tasks-progress-hero-copy > p:last-child {
+  margin: 10px 0 0;
+  color: #e1e9df;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.tasks-progress-ring {
+  display: grid;
+  place-items: center;
+  flex: 0 0 116px;
+  width: 116px;
+  height: 116px;
+  border-radius: 50%;
+  background: conic-gradient(
+    #dbe8ce var(--progress-value),
+    rgba(255, 254, 250, 0.20) var(--progress-value)
+  );
+}
+
+.tasks-progress-ring-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: #355b43;
+}
+
+.tasks-progress-ring-inner strong {
+  color: #fffefa;
+  font-size: 23px;
+}
+
+.tasks-progress-ring-inner span {
+  color: #d9e7d8;
+  font-size: 10px;
+}
+
+/* Statistics cards */
+
+.tasks-progress-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 34px;
+}
+
+.tasks-progress-stat-card {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 19px;
+  border: 1px solid #e5e2d6;
+  border-radius: 15px;
+  background: #fffefa;
+  box-shadow: 0 4px 15px rgba(41, 70, 56, 0.025);
+}
+
+.tasks-progress-stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 39px;
+  height: 39px;
+  margin-bottom: 15px;
+  border-radius: 12px;
+  background: #e8eee5;
+  color: #355b43;
+  font-size: 21px;
+  font-weight: 700;
+}
+
+.tasks-progress-stat-card.active .tasks-progress-stat-icon {
+  background: #e1eadd;
+}
+
+.tasks-progress-stat-card.completed .tasks-progress-stat-icon {
+  background: #dce9d9;
+}
+
+.tasks-progress-stat-card.overdue .tasks-progress-stat-icon {
+  background: #f5e9d5;
+  color: #996731;
+}
+
+.tasks-progress-stat-card > p {
+  margin: 0;
+  color: #738075;
+  font-size: 12px;
+}
+
+.tasks-progress-stat-card h3 {
+  margin: 7px 0;
+  color: #294638;
+  font-size: 29px;
+  line-height: 1.2;
+}
+
+.tasks-progress-stat-note {
+  color: #899188;
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+/* Section headings */
+
+.tasks-progress-breakdown,
+.tasks-progress-list-section {
+  margin-top: 34px;
+}
+
+.tasks-progress-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.tasks-progress-section-heading h2 {
+  margin: 0;
+  color: #294638;
+  font-size: 20px;
+  line-height: 1.4;
+}
+
+.tasks-progress-section-heading p {
+  margin: 6px 0 0;
+  color: #7a847b;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+/* Task breakdown */
+
+.tasks-progress-breakdown {
+  box-sizing: border-box;
+  padding: 24px;
+  border: 1px solid #e5e2d6;
+  border-radius: 16px;
+  background: #fffefa;
+}
+
+.tasks-progress-breakdown-list {
+  display: grid;
+  gap: 21px;
+}
+
+.tasks-progress-breakdown-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 10px;
+  color: #536356;
+  font-size: 12px;
+}
+
+.tasks-progress-breakdown-meta > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.tasks-progress-breakdown-meta strong {
+  color: #294638;
+}
+
+.tasks-progress-breakdown-meta strong span {
+  color: #899188;
+  font-weight: 400;
+}
+
+.tasks-progress-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.tasks-progress-dot.todo {
+  background: #b6a16d;
+}
+
+.tasks-progress-dot.in-progress {
+  background: #6d9274;
+}
+
+.tasks-progress-dot.completed {
+  background: #355b43;
+}
+
+.tasks-progress-bar-track {
+  overflow: hidden;
+  width: 100%;
+  height: 8px;
+  border-radius: 20px;
+  background: #edf0e8;
+}
+
+.tasks-progress-bar-fill {
+  height: 100%;
+  border-radius: inherit;
+  transition: width 250ms ease;
+}
+
+/* Filters */
+
+.tasks-progress-task-count {
+  flex-shrink: 0;
+  padding: 7px 11px;
+  border-radius: 20px;
+  background: #e8eee5;
+  color: #355b43;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.tasks-progress-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 17px;
+}
+
+.tasks-progress-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid #e3e4d9;
+  border-radius: 9px;
+  background: #fffefa;
+  color: #667368;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+.tasks-progress-filter > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  border-radius: 6px;
+  background: #f0f1e9;
+  color: #657365;
+  font-size: 10px;
+}
+
+.tasks-progress-filter:hover {
+  border-color: #cbd9c7;
+  color: #294638;
+}
+
+.tasks-progress-filter.active {
+  border-color: #355b43;
+  background: #355b43;
+  color: #fffefa;
+}
+
+.tasks-progress-filter.active > span {
+  background: rgba(255, 254, 250, 0.18);
+  color: #fffefa;
+}
+
+/* Task list */
+
+.tasks-progress-task-list {
+  display: grid;
+  gap: 13px;
+}
+
+.tasks-progress-task-card {
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 20px;
+  border: 1px solid #e6e3d8;
+  border-radius: 14px;
+  background: #fffefa;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.tasks-progress-task-card:hover {
+  transform: translateY(-1px);
+  border-color: #cbd9c7;
+  box-shadow: 0 7px 18px rgba(41, 70, 56, 0.05);
+}
+
+.tasks-progress-task-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.tasks-progress-task-title-row h3 {
+  margin: 0;
+  color: #294638;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.tasks-progress-status {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.tasks-progress-status.todo {
+  background: #f3efdf;
+  color: #8a7137;
+}
+
+.tasks-progress-status.in-progress {
+  background: #e5eee2;
+  color: #4e7656;
+}
+
+.tasks-progress-status.completed {
+  background: #dce9d9;
+  color: #355b43;
+}
+
+.tasks-progress-task-main > p {
+  margin: 8px 0 17px;
+  color: #7a847b;
+  font-size: 12px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+
+.tasks-progress-task-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 11px 24px;
+  padding-top: 13px;
+  border-top: 1px solid #eeeae0;
+}
+
+.tasks-progress-task-meta > span {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  color: #738075;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.tasks-progress-task-meta strong {
+  color: #536356;
+  font-weight: 650;
+}
+
+.tasks-progress-due.overdue {
+  color: #a35f3d;
+}
+
+.tasks-progress-due em {
+  margin-left: 5px;
+  padding: 3px 6px;
+  border-radius: 5px;
+  background: #f6e5de;
+  color: #9c5337;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+/* Empty state */
+
+.tasks-progress-empty {
+  padding: 42px 20px;
+  border: 1px dashed #d6dfd1;
+  border-radius: 15px;
+  background: rgba(255, 254, 250, 0.75);
+  text-align: center;
+}
+
+.tasks-progress-empty-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 45px;
+  height: 45px;
+  margin: 0 auto 14px;
+  border-radius: 14px;
+  background: #e8eee5;
+  color: #355b43;
+  font-size: 23px;
+}
+
+.tasks-progress-empty h3 {
+  margin: 0;
+  color: #294638;
+  font-size: 16px;
+}
+
+.tasks-progress-empty p {
+  margin: 8px 0 0;
+  color: #7a847b;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+/* Demo notice */
+
+.tasks-progress-demo-note {
+  margin: 20px 0 0;
+  color: #899087;
+  font-size: 10px;
+  line-height: 1.8;
+  text-align: center;
+}
+
+/* Responsive */
+
+@media (max-width: 850px) {
+  .tasks-progress-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .tasks-progress-content {
+    width: calc(100% - 28px);
+    padding-top: 25px;
+  }
+
+  .tasks-progress-header {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .tasks-progress-header h1 {
+    font-size: 28px;
+  }
+
+  .tasks-progress-hero {
+    padding: 22px;
+    gap: 15px;
+  }
+
+  .tasks-progress-hero-copy h2 {
+    font-size: 37px;
+  }
+
+  .tasks-progress-ring {
+    flex-basis: 88px;
+    width: 88px;
+    height: 88px;
+  }
+
+  .tasks-progress-ring-inner {
+    width: 68px;
+    height: 68px;
+  }
+
+  .tasks-progress-ring-inner strong {
+    font-size: 19px;
+  }
+
+  .tasks-progress-ring-inner span {
+    font-size: 9px;
+  }
+
+  .tasks-progress-stats {
+    gap: 11px;
+  }
+
+  .tasks-progress-stat-card {
+    padding: 15px;
+  }
+
+  .tasks-progress-breakdown {
+    padding: 19px;
+  }
+
+  .tasks-progress-section-heading {
+    align-items: flex-start;
+  }
+
+  .tasks-progress-section-heading h2 {
+    font-size: 18px;
+  }
+
+  .tasks-progress-task-card {
+    padding: 16px;
+  }
+
+  .tasks-progress-task-title-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .tasks-progress-task-meta {
+    gap: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tasks-progress-bar-fill,
+  .tasks-progress-task-card,
+  .tasks-progress-filter {
+    transition: none;
+  }
+}
