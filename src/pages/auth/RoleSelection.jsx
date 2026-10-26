@@ -21,13 +21,14 @@ function RoleSelection() {
           <Link to="/login" className="role-option">
             <span className="role-option-icon">🎓</span>
 
-            <span className="role-option-title">
-              Student / Team Leader
-            </span>
+           <span className="role-option-title">
+  Student
+</span>
 
-            <span className="role-option-description">
-              Access your student account and team workspace.
-            </span>
+<span className="role-option-description">
+  Sign in with your student account. Your team role depends
+  on your actual team membership.
+</span>
           </Link>
 
           <Link
