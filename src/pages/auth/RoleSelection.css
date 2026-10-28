@@ -1455,6 +1455,7 @@
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
+     line-clamp: 3;
 
     min-height: 0;
     margin: 8px 0 12px;
@@ -1509,6 +1510,7 @@
 
   .role-option-content p {
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     font-size: 0.67rem;
   }
 

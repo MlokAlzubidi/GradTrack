@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { Trash2 } from "lucide-react";
 import StudentNavbar from "../../components/layout/StudentNavbar";
 import "./ManageTasks.css";
 
@@ -51,7 +52,9 @@ function getCurrentTeam(student) {
           : []),
       ].filter(Boolean);
 
-      return memberIds.includes(student.universityId);
+      return memberIds.some(
+        (id) => String(id) === String(student.universityId)
+      );
     }) ||
     null
   );
@@ -116,8 +119,9 @@ function getTeamMembers(team, currentStudent) {
   return [...membersById.values()].map((member) => ({
     ...member,
     name:
-      member.id === currentStudent?.universityId &&
-      member.id === team.leaderId
+      String(member.id) ===
+        String(currentStudent?.universityId) &&
+      String(member.id) === String(team.leaderId)
         ? `${member.name} (You — Team Leader)`
         : member.name,
   }));
@@ -150,8 +154,8 @@ function ManageTasks() {
 
   const isLeader = Boolean(
     currentTeam &&
-    currentStudentId &&
-    currentTeam.leaderId === currentStudentId
+      currentStudentId &&
+      String(currentTeam.leaderId) === String(currentStudentId)
   );
 
   const teamMembers = getTeamMembers(
@@ -202,7 +206,7 @@ function ManageTasks() {
 
     // التأكد من أن الشخص المختار عضو حالي في الفريق.
     const assignee = teamMembers.find(
-      (member) => member.id === assigneeId
+      (member) => String(member.id) === String(assigneeId)
     );
 
     if (!assignee) {
@@ -296,7 +300,7 @@ function ManageTasks() {
     setEditingTaskId(task.id);
     setTitle(task.title || "");
     setDescription(task.description || "");
-    setAssigneeId(task.assigneeId || "");
+    setAssigneeId(String(task.assigneeId || ""));
     setDueDate(task.dueDate || "");
     setMessage("");
 
@@ -306,6 +310,60 @@ function ManageTasks() {
         behavior: "smooth",
         block: "start",
       });
+  }
+
+  // حذف المهمة بعد تأكيد القائد، مع الحفاظ على مهام الفرق الأخرى.
+  function handleRemoveTask(task) {
+    setMessage("");
+
+    if (
+      !currentTeam ||
+      !isLeader ||
+      task.teamId !== currentTeam.id
+    ) {
+      setMessage("You cannot remove this task.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Are you sure you want to remove "${task.title}"? This action cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    const updatedAllTasks = allTasks.filter(
+      (item) =>
+        !(
+          item.id === task.id &&
+          item.teamId === currentTeam.id
+        )
+    );
+
+    if (updatedAllTasks.length === allTasks.length) {
+      setMessage("This task could not be found.");
+      return;
+    }
+
+    if (!saveAllTasks(updatedAllTasks)) {
+      setMessage(
+        "Could not remove the task. Please try again."
+      );
+      return;
+    }
+
+    // تحديث قائمة المهام بعد نجاح الحذف.
+    setAllTasks(updatedAllTasks);
+
+    // إذا كانت المهمة قيد التعديل، إعادة النموذج لوضع الإنشاء.
+    if (editingTaskId === task.id) {
+      setEditingTaskId(null);
+      setTitle("");
+      setDescription("");
+      setAssigneeId("");
+      setDueDate("");
+    }
+
+    setMessage(`"${task.title}" was removed successfully.`);
   }
 
   // إلغاء التعديل وإعادة النموذج إلى وضع الإنشاء.
@@ -322,7 +380,8 @@ function ManageTasks() {
   function getAssigneeName(task) {
     return (
       teamMembers.find(
-        (member) => member.id === task.assigneeId
+        (member) =>
+          String(member.id) === String(task.assigneeId)
       )?.name ||
       task.assigneeName ||
       "Team Member"
@@ -371,9 +430,9 @@ function ManageTasks() {
             <h2>Team Leader Access Required</h2>
 
             <p>
-              Only your Team Leader can create, assign, or edit
-              tasks. You can view your personal tasks and shared
-              team tasks.
+              Only your Team Leader can create, assign, edit, or
+              remove tasks. You can view your personal tasks and
+              shared team tasks.
             </p>
 
             <Link to="/student/tasks">
@@ -537,7 +596,7 @@ function ManageTasks() {
                   {tasks.map((task) => (
                     <article
                       className="manage-task-card"
-                      key={task.id}
+                      key={`${task.teamId}-${task.id}`}
                     >
                       <div className="manage-task-card-header">
                         <h3>{task.title}</h3>
@@ -577,6 +636,15 @@ function ManageTasks() {
                           onClick={() => handleEdit(task)}
                         >
                           Edit Task
+                        </button>
+
+                        <button
+                          type="button"
+                          className="manage-task-delete"
+                          onClick={() => handleRemoveTask(task)}
+                        >
+                          <Trash2 size={15} />
+                          Remove Task
                         </button>
                       </div>
                     </article>

@@ -351,3 +351,115 @@
     transition: none;
   }
 }
+
+/* Remove Task button — GradTrack style */
+
+.manage-task-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 9px;
+}
+
+.manage-task-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  min-height: 36px;
+  padding: 8px 12px;
+
+  border: 1px solid #efd8d3;
+  border-radius: 10px;
+
+  background: #fff8f6;
+  color: #a64f45;
+
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 650;
+
+  cursor: pointer;
+
+  transition:
+    background 200ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease,
+    color 200ms ease,
+    transform 200ms ease;
+}
+
+.manage-task-delete:hover {
+  border-color: #e6bdb5;
+  background: #fbedE9;
+  color: #8f392f;
+
+  box-shadow: 0 4px 12px rgba(166, 79, 69, 0.09);
+  transform: translateY(-1px);
+}
+
+.manage-task-delete:active {
+  transform: scale(0.98);
+}
+
+.manage-task-delete:focus-visible {
+  outline: 2px solid rgba(166, 79, 69, 0.35);
+  outline-offset: 3px;
+}
+
+@media (max-width: 480px) {
+  .manage-task-actions {
+    justify-content: stretch;
+  }
+
+  .manage-task-actions button {
+    flex: 1 1 auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .manage-task-delete {
+    transition: none;
+  }
+}
+/* Edit Task button — smooth hover effect */
+
+.manage-task-edit {
+  transition:
+    background 220ms ease,
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    transform 220ms ease,
+    color 220ms ease;
+}
+
+.manage-task-edit:hover {
+  background: #dce8d7;
+  border-color: #bfd2b8;
+  color: #294b38;
+
+  box-shadow: 0 5px 13px rgba(41, 75, 56, 0.10);
+  transform: translateY(-2px);
+}
+
+.manage-task-edit:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.manage-task-edit:focus-visible {
+  outline: 2px solid rgba(96, 127, 99, 0.4);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .manage-task-edit {
+    transition: none;
+  }
+
+  .manage-task-edit:hover,
+  .manage-task-edit:active {
+    transform: none;
+  }
+}

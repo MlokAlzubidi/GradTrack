@@ -1,6 +1,17 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import {
+  FileText,
+  FolderKanban,
+  UsersRound,
+  CalendarDays,
+  Download,
+  UploadCloud,
+  CheckCircle2,
+  AlertCircle,
+  ArrowRight,
+  FileCheck2,
+} from "lucide-react";
 import StudentNavbar from "../../components/layout/StudentNavbar";
 import "./SubmitProposal.css";
 
@@ -8,6 +19,8 @@ const CURRENT_STUDENT_KEY = "gradtrack-current-student";
 const TEAMS_STORAGE_KEY = "gradtrack-teams";
 const PROJECTS_STORAGE_KEY = "gradtrack-projects";
 const PROPOSALS_STORAGE_KEY = "gradtrack-proposals";
+
+const MAX_FILE_SIZE = 500 * 1024;
 
 // قراءة الحساب الحالي من التبويب الحالي فقط.
 function readCurrentStudent() {
@@ -22,9 +35,7 @@ function readCurrentStudent() {
   }
 }
 
-const MAX_FILE_SIZE = 500 * 1024;
-
-// قراءة بيانات JSON من المتصفح بأمان.
+// قراءة البيانات المحفوظة بأمان.
 function readLocalData(key, fallback) {
   try {
     const savedValue = localStorage.getItem(key);
@@ -59,12 +70,13 @@ function loadProposalPageData() {
     };
   }
 
-  // البحث عن فريق الطالب باستخدام teamId أو عضويته المحفوظة.
   let team = null;
 
   if (student.teamId) {
     team =
-      safeTeams.find((item) => item.id === student.teamId) || null;
+      safeTeams.find(
+        (item) => item.id === student.teamId
+      ) || null;
   }
 
   if (!team) {
@@ -72,21 +84,28 @@ function loadProposalPageData() {
       safeTeams.find((item) => {
         const memberIds = [
           item.leaderId,
-          ...(Array.isArray(item.memberIds) ? item.memberIds : []),
+          ...(Array.isArray(item.memberIds)
+            ? item.memberIds
+            : []),
           ...(Array.isArray(item.members)
             ? item.members.map(
-                (member) => member.universityId || member.id
+                (member) =>
+                  member.universityId || member.id
               )
             : []),
         ].filter(Boolean);
 
-        return memberIds.includes(student.universityId);
+        return memberIds.some(
+          (id) =>
+            String(id) === String(student.universityId)
+        );
       }) || null;
   }
 
   const isLeader =
     Boolean(team) &&
-    team.leaderId === student.universityId;
+    String(team.leaderId) ===
+      String(student.universityId);
 
   const teamStatus = team
     ? isLeader
@@ -94,13 +113,16 @@ function loadProposalPageData() {
       : "member"
     : student.teamStatus || "no-team";
 
-  // كل فريق يستخدم مشروعه ومقترحه الخاصين به.
   const project = team
-    ? safeProjects.find((item) => item.teamId === team.id) || null
+    ? safeProjects.find(
+        (item) => item.teamId === team.id
+      ) || null
     : null;
 
   const proposal = team
-    ? safeProposals.find((item) => item.teamId === team.id) || null
+    ? safeProposals.find(
+        (item) => item.teamId === team.id
+      ) || null
     : null;
 
   return {
@@ -113,7 +135,7 @@ function loadProposalPageData() {
   };
 }
 
-// تحويل محتوى الملف إلى Data URL حتى يمكن حفظه في تجربة المتصفح.
+// تحويل محتوى الملف إلى Data URL لحفظه في تجربة المتصفح.
 function readFileAsDataUrl(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -144,8 +166,17 @@ function formatDate(dateString) {
   }).format(date);
 }
 
+function getStatusClass(status) {
+  return (status || "Pending Review")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
 function SubmitProposal() {
-  const [pageData, setPageData] = useState(loadProposalPageData);
+  const [pageData, setPageData] = useState(
+    loadProposalPageData
+  );
 
   const [proposalFile, setProposalFile] = useState(null);
   const [notes, setNotes] = useState("");
@@ -227,7 +258,6 @@ function SubmitProposal() {
     setIsSubmitting(true);
 
     try {
-      // قراءة الملف نفسه حتى يكون متاحًا للتنزيل من صفحات الفريق.
       const fileData = await readFileAsDataUrl(proposalFile);
 
       const savedProposals = readLocalData(
@@ -245,7 +275,6 @@ function SubmitProposal() {
 
       const now = new Date().toISOString();
 
-      // نحفظ أحدث نسخة من المقترح لكل فريق.
       const updatedProposal = {
         id: existingProposal?.id || `proposal-${team.id}`,
         teamId: team.id,
@@ -259,7 +288,8 @@ function SubmitProposal() {
         submittedByName: student.name || "Team Leader",
 
         fileName: proposalFile.name,
-        fileType: proposalFile.type || "application/octet-stream",
+        fileType:
+          proposalFile.type || "application/octet-stream",
         fileSize: proposalFile.size,
         fileData,
 
@@ -279,11 +309,12 @@ function SubmitProposal() {
 
       const updatedProposals = existingProposal
         ? savedProposals.map((item) =>
-            item.teamId === team.id ? updatedProposal : item
+            item.teamId === team.id
+              ? updatedProposal
+              : item
           )
         : [...savedProposals, updatedProposal];
 
-      // نحفظ بيانات المقترح قبل عرض رسالة نجاح.
       localStorage.setItem(
         PROPOSALS_STORAGE_KEY,
         JSON.stringify(updatedProposals)
@@ -320,159 +351,322 @@ function SubmitProposal() {
 
       <main className="submit-proposal-content">
         <header className="submit-proposal-header">
-          <p className="submit-proposal-eyebrow">
-            PROJECT & PROPOSAL
-          </p>
+          <div className="submit-proposal-header-copy">
+            <p className="submit-proposal-eyebrow">
+              PROJECT WORKSPACE
+            </p>
 
-          <h1>Submit Proposal</h1>
+            <h1>Submit Proposal</h1>
 
-          <p>
-            Submit your graduation project proposal for
-            review by your academic supervisor.
-          </p>
+            <p>
+              Manage your project proposal, review its current
+              status, and submit an updated document when needed.
+            </p>
+          </div>
+
+          <div
+            className="submit-proposal-header-icon"
+            aria-hidden="true"
+          >
+            <FileCheck2 size={28} strokeWidth={1.7} />
+          </div>
         </header>
 
         {!team ? (
-          <section className="submit-proposal-card">
-            <h2>Create or join a team first</h2>
+          <section className="submit-proposal-card proposal-empty-card">
+            <div className="proposal-empty-icon">
+              <UsersRound size={25} />
+            </div>
 
-            <p>
-              A project proposal must belong to a registered team.
-            </p>
+            <div className="proposal-empty-copy">
+              <h2>Create or join a team first</h2>
+              <p>
+                A graduation project proposal must belong to a
+                registered team.
+              </p>
 
-            <Link to="/student/create-team">
-              Go to Create Team →
-            </Link>
+              <Link
+                className="submit-proposal-primary-link"
+                to="/student/create-team"
+              >
+                Go to Create Team
+                <ArrowRight size={16} />
+              </Link>
+            </div>
           </section>
         ) : !isLeader ? (
-          <section className="submit-proposal-card">
-            <h2>{project?.title || "Project Proposal"}</h2>
+          <section className="submit-proposal-card proposal-empty-card">
+            <div className="proposal-empty-icon">
+              <FileText size={25} />
+            </div>
 
-            <p>
-              Team Leader: {team.leaderName || "Team Leader"}
-            </p>
+            <div className="proposal-empty-copy">
+              <span className="proposal-section-kicker">
+                TEAM PROPOSAL
+              </span>
 
-            {proposal ? (
-              <>
-                <div className="submit-proposal-info">
-                  <strong>Proposal Status</strong>
-                  <p>{proposal.status}</p>
-                </div>
+              <h2>{project?.title || "Project Proposal"}</h2>
 
-                <p>
-                  <strong>Submitted:</strong>{" "}
-                  {formatDate(proposal.submittedAt)}
-                </p>
-
-                <p>
-                  <strong>Document:</strong> {proposal.fileName}
-                </p>
-
-                <p>
-                  Only the Team Leader can submit or update the
-                  proposal. You can review its current status here.
-                </p>
-              </>
-            ) : (
-              <p>
-                Your Team Leader has not submitted a proposal yet.
+              <p className="proposal-team-leader">
+                Team Leader: {team.leaderName || "Team Leader"}
               </p>
-            )}
 
-            <Link to="/student/proposal-status">
-              View Proposal Status & Feedback →
-            </Link>
+              {proposal ? (
+                <div className="proposal-member-summary">
+                  <div className="proposal-member-summary-row">
+                    <span>Current status</span>
+
+                    <span
+                      className={`proposal-status-pill ${getStatusClass(
+                        proposal.status
+                      )}`}
+                    >
+                      {proposal.status}
+                    </span>
+                  </div>
+
+                  <div className="proposal-member-summary-row">
+                    <span>Submitted</span>
+                    <strong>
+                      {formatDate(proposal.submittedAt)}
+                    </strong>
+                  </div>
+
+                  <div className="proposal-member-summary-row">
+                    <span>Document</span>
+                    <strong className="proposal-member-file-name">
+                      {proposal.fileName}
+                    </strong>
+                  </div>
+                </div>
+              ) : (
+                <p>
+                  Your Team Leader has not submitted a proposal yet.
+                </p>
+              )}
+
+              <p className="proposal-permission-note">
+                Only the Team Leader can submit or update the proposal.
+              </p>
+
+              <Link
+                className="submit-proposal-primary-link"
+                to="/student/proposal-status"
+              >
+                View Proposal Status
+                <ArrowRight size={16} />
+              </Link>
+            </div>
           </section>
         ) : !project ? (
-          <section className="submit-proposal-card">
-            <h2>Register Your Project First</h2>
+          <section className="submit-proposal-card proposal-empty-card">
+            <div className="proposal-empty-icon">
+              <FolderKanban size={25} />
+            </div>
 
-            <p>
-              Before submitting a proposal, register the project
-              title, domain, and description.
-            </p>
+            <div className="proposal-empty-copy">
+              <span className="proposal-section-kicker">
+                ONE MORE STEP
+              </span>
 
-            <Link to="/student/project-registration">
-              Go to Project Registration →
-            </Link>
+              <h2>Register Your Project First</h2>
+
+              <p>
+                Add your project title, domain, and description
+                before submitting its proposal.
+              </p>
+
+              <Link
+                className="submit-proposal-primary-link"
+                to="/student/project-registration"
+              >
+                Project Registration
+                <ArrowRight size={16} />
+              </Link>
+            </div>
           </section>
         ) : (
           <>
-            <section className="submit-proposal-card">
-              <h2>Project Information</h2>
+            {/* Project overview */}
+            <section className="submit-proposal-card project-overview-card">
+              <div className="proposal-section-heading">
+                <div className="proposal-section-icon">
+                  <FolderKanban size={21} />
+                </div>
 
-              <div className="submit-proposal-info">
-                <strong>{project.title}</strong>
-                <p>Domain: {project.domain}</p>
-                <p>{project.description}</p>
+                <div className="proposal-section-heading-copy">
+                  <span className="proposal-section-kicker">
+                    YOUR PROJECT
+                  </span>
 
-                <p>
-                  Team: {team.name}
-                </p>
+                  <h2>Project Information</h2>
+                </div>
+
+                <span className="proposal-team-chip">
+                  <UsersRound size={14} />
+                  {team.name}
+                </span>
               </div>
-            </section>
 
-            {proposal && (
-              <section className="submit-proposal-card">
-                <h2>Current Proposal</h2>
+              <div className="project-overview-body">
+                <div className="project-overview-main">
+                  <span className="project-overview-label">
+                    PROJECT TITLE
+                  </span>
 
-                <div className="submit-proposal-current">
-                  <div>
-                    <strong>{proposal.fileName}</strong>
+                  <h3>{project.title}</h3>
 
-                    <p>
-                      Submitted on {formatDate(proposal.submittedAt)}
-                    </p>
-
-                    <p>
-                      Status:{" "}
-                      <strong>{proposal.status}</strong>
-                    </p>
-
-                    {proposal.revisionNumber > 1 && (
-                      <p>
-                        Revision: {proposal.revisionNumber}
-                      </p>
-                    )}
-                  </div>
-
-                  {proposal.fileData && (
-                    <a
-                      href={proposal.fileData}
-                      download={proposal.fileName}
-                      className="submit-proposal-download"
-                    >
-                      Download
-                    </a>
+                  {project.description && (
+                    <p>{project.description}</p>
                   )}
                 </div>
 
-                {proposal.supervisorFeedback && (
-                  <div className="submit-proposal-info">
-                    <strong>Supervisor Feedback</strong>
-                    <p>{proposal.supervisorFeedback}</p>
-                  </div>
+                <div className="project-overview-domain">
+                  <span>Project domain</span>
+                  <strong>
+                    {project.domain || "Not specified"}
+                  </strong>
+                </div>
+              </div>
+            </section>
+
+            {/* Current proposal */}
+            <section className="submit-proposal-card current-proposal-card">
+              <div className="proposal-section-heading">
+                <div className="proposal-section-icon">
+                  <FileText size={21} />
+                </div>
+
+                <div className="proposal-section-heading-copy">
+                  <span className="proposal-section-kicker">
+                    DOCUMENT OVERVIEW
+                  </span>
+
+                  <h2>Current Proposal</h2>
+                </div>
+
+                {proposal && (
+                  <span
+                    className={`proposal-status-pill ${getStatusClass(
+                      proposal.status
+                    )}`}
+                  >
+                    {proposal.status}
+                  </span>
                 )}
-              </section>
-            )}
+              </div>
 
-            <section className="submit-proposal-card">
-              <h2>
-                {proposal ? "Submit Updated Proposal" : "Proposal Submission"}
-              </h2>
+              {!proposal ? (
+                <div className="proposal-no-document">
+                  <FileText size={22} />
 
-              <p>
-                Upload your proposal document and include any
-                additional notes for the supervisor.
+                  <div>
+                    <h3>No proposal submitted yet</h3>
+                    <p>
+                      Your first proposal will appear here after
+                      you submit it for review.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="submit-proposal-current">
+                    <div className="proposal-file-icon">
+                      <FileText size={24} />
+                    </div>
+
+                    <div className="proposal-file-details">
+                      <strong className="proposal-file-name">
+                        {proposal.fileName}
+                      </strong>
+
+                      <div className="proposal-file-meta">
+                        <span>
+                          <CalendarDays size={14} />
+                          Submitted {formatDate(proposal.submittedAt)}
+                        </span>
+
+                        {proposal.revisionNumber > 1 && (
+                          <span className="proposal-revision-label">
+                            Revision {proposal.revisionNumber}
+                          </span>
+                        )}
+                      </div>
+
+                      {typeof proposal.fileSize === "number" && (
+                        <span className="proposal-file-size">
+                          {(proposal.fileSize / 1024).toFixed(1)} KB
+                        </span>
+                      )}
+                    </div>
+
+                    {proposal.fileData && (
+                      <a
+                        href={proposal.fileData}
+                        download={proposal.fileName}
+                        className="submit-proposal-download"
+                      >
+                        <Download size={15} />
+                        Download
+                      </a>
+                    )}
+                  </div>
+
+                  {proposal.supervisorFeedback && (
+                    <div className="submit-proposal-feedback">
+                      <div className="proposal-feedback-icon">
+                        <AlertCircle size={18} />
+                      </div>
+
+                      <div>
+                        <strong>Supervisor Feedback</strong>
+                        <p>{proposal.supervisorFeedback}</p>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </section>
+
+            {/* Submission form */}
+            <section className="submit-proposal-card proposal-form-card">
+              <div className="proposal-section-heading">
+                <div className="proposal-section-icon upload-section-icon">
+                  <UploadCloud size={22} />
+                </div>
+
+                <div className="proposal-section-heading-copy">
+                  <span className="proposal-section-kicker">
+                    DOCUMENT WORKFLOW
+                  </span>
+
+                  <h2>
+                    {proposal
+                      ? "Submit Updated Proposal"
+                      : "Proposal Submission"}
+                  </h2>
+                </div>
+              </div>
+
+              <p className="proposal-form-intro">
+                {proposal
+                  ? "Upload your revised document. The latest version will replace the current proposal for your team."
+                  : "Upload your project proposal document and include any notes for your academic supervisor."}
               </p>
 
-              <div className="submit-proposal-info">
-                <strong>Before submitting</strong>
+              <div className="proposal-file-guidelines">
+                <div className="proposal-guideline-icon">
+                  <CheckCircle2 size={18} />
+                </div>
 
-                <p>
-                  Accepted formats are PDF, DOC, and DOCX.
-                  The maximum file size in this demo is 500 KB.
-                </p>
+                <div>
+                  <strong>Before you submit</strong>
+
+                  <p>
+                    Accepted formats: PDF, DOC, and DOCX.
+                    Maximum file size: 500 KB.
+                  </p>
+                </div>
               </div>
 
               <form onSubmit={handleSubmit}>
@@ -481,36 +675,62 @@ function SubmitProposal() {
                     Proposal Document
                   </label>
 
-                  <input
-                    key={fileInputKey}
-                    id="proposalFile"
-                    name="proposalFile"
-                    type="file"
-                    accept=".pdf,.doc,.docx"
-                    onChange={(event) => {
-                      setProposalFile(
-                        event.target.files?.[0] ?? null
-                      );
-                      setMessage("");
-                    }}
-                    required
-                  />
+                  <div className="proposal-upload-box">
+                    <div className="proposal-upload-icon">
+                      <UploadCloud size={24} />
+                    </div>
+
+                    <div className="proposal-upload-copy">
+                      <strong>Choose your proposal file</strong>
+                      <span>
+                        Select a PDF, DOC, or DOCX document
+                      </span>
+                    </div>
+
+                    <input
+                      key={fileInputKey}
+                      id="proposalFile"
+                      name="proposalFile"
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      onChange={(event) => {
+                        setProposalFile(
+                          event.target.files?.[0] ?? null
+                        );
+                        setMessage("");
+                      }}
+                      required
+                    />
+                  </div>
 
                   <span className="submit-proposal-hint">
-                    PDF, DOC, DOCX · Max 500 KB
+                    PDF, DOC, DOCX · Maximum 500 KB
                   </span>
                 </div>
 
                 {proposalFile && (
                   <div className="submit-proposal-selected-file">
-                    <strong>Selected file:</strong>
-                    <span>{proposalFile.name}</span>
+                    <div className="selected-file-icon">
+                      <FileText size={19} />
+                    </div>
+
+                    <div className="selected-file-copy">
+                      <strong>Selected file</strong>
+                      <span>{proposalFile.name}</span>
+                    </div>
+
+                    <span className="selected-file-size">
+                      {(proposalFile.size / 1024).toFixed(1)} KB
+                    </span>
                   </div>
                 )}
 
                 <div className="submit-proposal-field">
                   <label htmlFor="proposalNotes">
-                    Additional Notes (Optional)
+                    Additional Notes
+                    <span className="proposal-optional-label">
+                      Optional
+                    </span>
                   </label>
 
                   <textarea
@@ -521,21 +741,34 @@ function SubmitProposal() {
                       setNotes(event.target.value);
                       setMessage("");
                     }}
-                    placeholder="Add any notes for your supervisor"
+                    placeholder="Add any notes for your supervisor..."
                     rows={4}
                     maxLength={2000}
                   />
+
+                  <span className="submit-proposal-hint">
+                    You can include revision notes or important details.
+                  </span>
                 </div>
 
                 <button
                   type="submit"
+                  className="submit-proposal-submit-button"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting
-                    ? "Saving Proposal..."
-                    : proposal
-                      ? "Submit Updated Proposal"
-                      : "Submit for Review"}
+                  {isSubmitting ? (
+                    <>
+                      <span className="proposal-button-spinner" />
+                      Saving Proposal...
+                    </>
+                  ) : (
+                    <>
+                      <UploadCloud size={17} />
+                      {proposal
+                        ? "Submit Updated Proposal"
+                        : "Submit for Review"}
+                    </>
+                  )}
                 </button>
 
                 {message && (
@@ -544,7 +777,13 @@ function SubmitProposal() {
                     role="status"
                     aria-live="polite"
                   >
-                    {message}
+                    {messageType === "success" ? (
+                      <CheckCircle2 size={17} />
+                    ) : (
+                      <AlertCircle size={17} />
+                    )}
+
+                    <span>{message}</span>
                   </p>
                 )}
               </form>
@@ -553,9 +792,9 @@ function SubmitProposal() {
         )}
 
         <p className="submit-proposal-demo-note">
-          Proposal data is stored in this browser for frontend testing.
-          Supervisor review and cross-device sharing will require
-          backend integration.
+          Proposal data is stored locally in this browser.
+          Backend synchronization and supervisor review will be
+          connected during backend integration.
         </p>
       </main>
     </div>
