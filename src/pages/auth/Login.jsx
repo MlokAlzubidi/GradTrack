@@ -1,6 +1,6 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { GraduationCap, ArrowRight, LockKeyhole } from "lucide-react";
 import "./Login.css";
 import { getAllMockStudents } from "../../data/mockData";
 
@@ -15,28 +15,53 @@ function Login() {
     event.preventDefault();
     setError("");
 
-   const students = getAllMockStudents();
+    const students = getAllMockStudents();
 
-const student = students.find(
-  (student) =>
-    student.universityId === universityId.trim() &&
-    student.password === password
-);
+    const student = students.find(
+      (student) =>
+        student.universityId === universityId.trim() &&
+        student.password === password
+    );
 
     if (!student) {
       setError("Invalid university ID or password.");
       return;
     }
 
+    let savedProfileName = student.name;
+
+    try {
+      const savedOverrides = localStorage.getItem(
+        "gradtrack-student-profile-overrides"
+      );
+
+      const profileOverrides = savedOverrides
+        ? JSON.parse(savedOverrides)
+        : {};
+
+      const editedName =
+        profileOverrides?.[student.universityId]?.name;
+
+      if (
+        typeof editedName === "string" &&
+        editedName.trim()
+      ) {
+        savedProfileName = editedName.trim();
+      }
+    } catch {
+      // Use the original account name if the saved override cannot be read.
+    }
+
     const currentStudent = {
       universityId: student.universityId,
-      name: student.name,
+      name: savedProfileName,
       role: student.role,
       teamStatus: student.teamStatus,
       teamId: student.teamId,
     };
 
-    localStorage.setItem(
+    // Keep the signed-in account isolated to this browser tab.
+    sessionStorage.setItem(
       "gradtrack-current-student",
       JSON.stringify(currentStudent)
     );
@@ -46,16 +71,39 @@ const student = students.find(
 
   return (
     <main className="login-page">
+      <div className="login-background-orb login-orb-one" />
+      <div className="login-background-orb login-orb-two" />
+
       <section className="login-container">
-        <h1>GradTrack</h1>
+        <Link
+          to="/"
+          className="login-brand"
+          aria-label="Return to GradTrack home"
+        >
+          <span className="login-brand-icon">
+            <GraduationCap size={27} strokeWidth={1.8} />
+          </span>
+
+          <span className="login-brand-name">
+            Grad<span>Track</span>
+          </span>
+        </Link>
 
         <p className="login-subtitle">
           Graduation Project Management System
         </p>
 
-        <h2>Welcome Back</h2>
+        <div className="login-heading">
+          <span className="login-heading-icon">
+            <LockKeyhole size={17} />
+          </span>
 
-        <p>Sign in to continue to your account.</p>
+          <h2>Welcome Back</h2>
+        </div>
+
+        <p className="login-description">
+          Sign in to continue to your account.
+        </p>
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
@@ -108,8 +156,9 @@ const student = students.find(
             </Link>
           </div>
 
-          <button type="submit">
-            Sign In
+          <button type="submit" className="login-submit-button">
+            <span>Sign In</span>
+            <ArrowRight size={17} />
           </button>
         </form>
 
@@ -119,6 +168,11 @@ const student = students.find(
             Create an account
           </Link>
         </p>
+
+        <div className="login-card-footer">
+          <span className="login-footer-dot" />
+          Your graduation journey starts here
+        </div>
       </section>
     </main>
   );

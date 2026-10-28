@@ -149,3 +149,169 @@
     width: 100%;
   }
 }
+
+.my-team-empty {
+  padding: 32px 24px;
+}
+
+.my-team-details-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.my-team-details-heading h2 {
+  margin: 8px 0;
+  color: #294638;
+}
+
+.my-team-details-heading > div:first-child > p:last-child {
+  color: #718075;
+  font-size: 13px;
+}
+
+.my-team-capacity {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  padding: 14px 18px;
+  border-radius: 12px;
+  background: #e8eee5;
+  color: #355b43;
+}
+
+.my-team-capacity span {
+  font-size: 11px;
+}
+
+.my-team-capacity strong {
+  font-size: 22px;
+}
+
+.my-team-role-note {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #e7e2d7;
+  color: #718075;
+  font-size: 12px;
+}
+
+.my-team-role-note strong {
+  color: #355b43;
+}
+
+.my-team-members-section {
+  margin-top: 24px;
+  padding: 24px;
+  border: 1px solid #e5e2d6;
+  border-radius: 15px;
+  background: #fffefa;
+}
+
+.my-team-members-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.my-team-members-heading h2 {
+  margin: 0;
+  color: #294638;
+  font-size: 20px;
+}
+
+.my-team-members-heading > span {
+  color: #718075;
+  font-size: 12px;
+}
+
+.my-team-members-list {
+  display: grid;
+  gap: 10px;
+}
+
+.my-team-member-card {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 15px;
+  border: 1px solid #ebe7dc;
+  border-radius: 12px;
+  background: #fffefa;
+}
+
+.my-team-member-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #e8eee5;
+  color: #355b43;
+  font-weight: 700;
+}
+
+.my-team-member-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.my-team-member-info h3 {
+  margin: 0;
+  color: #294638;
+  font-size: 14px;
+}
+
+.my-team-member-info p {
+  margin: 5px 0 0;
+  color: #718075;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.my-team-member-role {
+  flex-shrink: 0;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: #f0f1e9;
+  color: #59665c;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.my-team-member-role.leader {
+  background: #e1ecdf;
+  color: #355b43;
+}
+
+.my-team-demo-note {
+  margin-top: 18px;
+  color: #899087;
+  font-size: 10px;
+  line-height: 1.7;
+}
+
+@media (max-width: 600px) {
+  .my-team-details-heading {
+    align-items: flex-start;
+  }
+
+  .my-team-members-section {
+    padding: 17px;
+  }
+
+  .my-team-member-card {
+    flex-wrap: wrap;
+  }
+
+  .my-team-member-role {
+    margin-left: 55px;
+  }
+}

@@ -197,3 +197,70 @@
     padding: 24px 20px;
   }
 }
+
+.submit-proposal-message.success {
+  color: #355b43;
+  background: #e8eee5;
+}
+
+.submit-proposal-message.error {
+  color: #914b37;
+  background: #f8e9e2;
+}
+
+.submit-proposal-current {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 15px;
+  border: 1px solid #e5e2d6;
+  border-radius: 12px;
+  background: #f8f7f0;
+}
+
+.submit-proposal-current > div {
+  min-width: 0;
+}
+
+.submit-proposal-current p {
+  color: #718075;
+  font-size: 12px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.submit-proposal-download {
+  flex-shrink: 0;
+  padding: 9px 12px;
+  border: 1px solid #d5e0d2;
+  border-radius: 8px;
+  color: #355b43;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.submit-proposal-download:hover {
+  background: #e8eee5;
+}
+
+.submit-proposal-page button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.submit-proposal-demo-note {
+  margin-top: 18px;
+  color: #899087;
+  font-size: 10px;
+  line-height: 1.8;
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  .submit-proposal-current {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

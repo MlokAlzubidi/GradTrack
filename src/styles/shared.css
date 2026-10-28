@@ -1,0 +1,29 @@
+/* ========================================
+   GradTrack — Shared Page Transitions
+   ======================================== */
+
+.gradtrack-route-shell {
+  width: 100%;
+  min-height: 100vh;
+
+  animation: gradtrackPageFadeUp 0.55s ease both;
+}
+
+@keyframes gradtrackPageFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(13px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Accessibility: respect reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .gradtrack-route-shell {
+    animation: none;
+  }
+}

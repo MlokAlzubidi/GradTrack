@@ -1,37 +1,29 @@
-
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import StudentNavbar from "../../components/layout/StudentNavbar";
 import "./ManageTasks.css";
 
-// المفتاح الذي سنستخدمه لحفظ المهام التجريبية ومشاركتها
-// بين صفحات إدارة المهام والمهام الشخصية لاحقًا.
 const TASKS_STORAGE_KEY = "gradtrack-team-tasks";
+const TEAMS_STORAGE_KEY = "gradtrack-teams";
+const CURRENT_STUDENT_KEY = "gradtrack-current-student";
 
-// مهام تجريبية أولية تظهر عند استخدام الصفحة لأول مرة.
-const initialTasks = [
-  {
-    id: 1,
-    title: "Research Project Requirements",
-    description: "Prepare the initial requirements document.",
-    assigneeId: "student-1",
-    dueDate: "2026-11-05",
-    status: "In Progress",
-  },
-  {
-    id: 2,
-    title: "Prepare Project Documentation",
-    description: "Organize the project documentation.",
-    assigneeId: "student-2",
-    dueDate: "2026-11-12",
-    status: "To Do",
-  },
-];
+// قراءة البيانات المحفوظة بأمان.
+function readLocalArray(key) {
+  try {
+    const savedValue = localStorage.getItem(key);
+    const parsedValue = savedValue ? JSON.parse(savedValue) : [];
 
-// جلب بيانات الطالب الذي سجّل دخوله.
+    return Array.isArray(parsedValue) ? parsedValue : [];
+  } catch {
+    return [];
+  }
+}
+
+// قراءة الحساب الحالي من التبويب الحالي فقط.
 function getCurrentStudent() {
   try {
-    const savedStudent = localStorage.getItem(
-      "gradtrack-current-student"
+    const savedStudent = sessionStorage.getItem(
+      CURRENT_STUDENT_KEY
     );
 
     return savedStudent ? JSON.parse(savedStudent) : null;
@@ -40,163 +32,312 @@ function getCurrentStudent() {
   }
 }
 
-// قراءة المهام المحفوظة.
-// إذا لم تكن هناك مهام محفوظة بعد، نبدأ بالبيانات التجريبية.
-function loadTasks() {
-  try {
-    const savedTasks = localStorage.getItem(TASKS_STORAGE_KEY);
+// تحديد فريق الطالب من بيانات الفريق المحفوظة.
+function getCurrentTeam(student) {
+  if (!student?.universityId) return null;
 
-    if (savedTasks !== null) {
-      const parsedTasks = JSON.parse(savedTasks);
+  const teams = readLocalArray(TEAMS_STORAGE_KEY);
 
-      if (Array.isArray(parsedTasks)) {
-        return parsedTasks;
-      }
-    }
-  } catch {
-    // نستخدم المهام الأولية إذا تعذرت قراءة البيانات المحفوظة.
+  return (
+    teams.find((team) => team.id === student.teamId) ||
+    teams.find((team) => {
+      const memberIds = [
+        team.leaderId,
+        ...(Array.isArray(team.memberIds) ? team.memberIds : []),
+        ...(Array.isArray(team.members)
+          ? team.members.map(
+              (member) => member.universityId || member.id
+            )
+          : []),
+      ].filter(Boolean);
+
+      return memberIds.includes(student.universityId);
+    }) ||
+    null
+  );
+}
+
+// تجهيز أعضاء الفريق الفعليين بدل استخدام أسماء ثابتة للتجربة.
+function getTeamMembers(team, currentStudent) {
+  if (!team) return [];
+
+  const membersById = new Map();
+
+  const storedMembers = Array.isArray(team.members)
+    ? team.members
+    : [];
+
+  storedMembers.forEach((member) => {
+    const id = member.universityId || member.id;
+
+    if (!id) return;
+
+    membersById.set(id, {
+      id,
+      name:
+        member.name ||
+        (id === team.leaderId
+          ? team.leaderName
+          : "Team Member"),
+    });
+  });
+
+  const memberIds = Array.isArray(team.memberIds)
+    ? team.memberIds
+    : [];
+
+  memberIds.forEach((id) => {
+    if (!id || membersById.has(id)) return;
+
+    membersById.set(id, {
+      id,
+      name:
+        id === currentStudent?.universityId
+          ? currentStudent.name || "Team Member"
+          : id === team.leaderId
+            ? team.leaderName || "Team Leader"
+            : "Team Member",
+    });
+  });
+
+  // التأكد من ظهور القائد حتى لو لم يكن داخل قائمة الأعضاء.
+  if (team.leaderId && !membersById.has(team.leaderId)) {
+    membersById.set(team.leaderId, {
+      id: team.leaderId,
+      name:
+        team.leaderId === currentStudent?.universityId
+          ? currentStudent.name ||
+            team.leaderName ||
+            "Team Leader"
+          : team.leaderName || "Team Leader",
+    });
   }
 
-  return initialTasks;
+  return [...membersById.values()].map((member) => ({
+    ...member,
+    name:
+      member.id === currentStudent?.universityId &&
+      member.id === team.leaderId
+        ? `${member.name} (You — Team Leader)`
+        : member.name,
+  }));
+}
+
+// قراءة المهام المشتركة دون حذف بيانات محفوظة.
+function loadAllTasks() {
+  return readLocalArray(TASKS_STORAGE_KEY);
+}
+
+// حفظ جميع المهام حتى لا تتأثر مهام الفرق الأخرى.
+function saveAllTasks(tasks) {
+  try {
+    localStorage.setItem(
+      TASKS_STORAGE_KEY,
+      JSON.stringify(tasks)
+    );
+
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function ManageTasks() {
-  // بيانات القائد الحالي تُستخدم لتعريف مهماته الشخصية.
   const currentStudent = getCurrentStudent();
+  const currentTeam = getCurrentTeam(currentStudent);
 
-  const leaderId = currentStudent?.universityId || "team-leader";
-  const leaderName = currentStudent?.name?.trim() || "Team Leader";
+  const currentStudentId = currentStudent?.universityId || "";
 
-  // القائد جزء من الفريق، ولذلك يجب أن يظهر ضمن الأشخاص
-  // الذين يمكن إسناد المهام إليهم.
-  const teamMembers = [
-    {
-      id: leaderId,
-      name: `${leaderName} (You — Team Leader)`,
-    },
-    { id: "student-1", name: "Ahmad Khalil" },
-    { id: "student-2", name: "Lina Omar" },
-    { id: "student-3", name: "Mohammad Ali" },
-  ];
+  const isLeader = Boolean(
+    currentTeam &&
+    currentStudentId &&
+    currentTeam.leaderId === currentStudentId
+  );
 
-  // قراءة المهام المحفوظة عند فتح الصفحة.
-  const [tasks, setTasks] = useState(loadTasks);
+  const teamMembers = getTeamMembers(
+    currentTeam,
+    currentStudent
+  );
 
-  // حالات الحقول الموجودة في نموذج إنشاء المهمة.
+  // تحميل المهام المحفوظة دون إنشاء مهام افتراضية.
+  const [allTasks, setAllTasks] = useState(() =>
+    loadAllTasks()
+  );
+
+  // عرض مهام الفريق الحالي فقط.
+  const tasks = currentTeam
+    ? allTasks.filter(
+        (task) => task?.teamId === currentTeam.id
+      )
+    : [];
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [assigneeId, setAssigneeId] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [message, setMessage] = useState("");
+  const [editingTaskId, setEditingTaskId] = useState(null);
 
-  // يحتفظ بمعرّف المهمة التي نعدّلها.
-// null تعني أننا ننشئ مهمة جديدة.
-const [editingTaskId, setEditingTaskId] = useState(null);
+  // إنشاء مهمة جديدة أو تعديل مهمة موجودة.
+  function handleSubmit(event) {
+    event.preventDefault();
+    setMessage("");
 
-  // إنشاء مهمة جديدة وإسنادها للشخص الذي تم اختياره.
-  
-function handleSubmit(event) {
-  event.preventDefault();
-  setMessage("");
+    if (!currentTeam || !isLeader) {
+      setMessage(
+        "Only the Team Leader can create or edit team tasks."
+      );
+      return;
+    }
 
-  if (
-    !title.trim() ||
-    !description.trim() ||
-    !assigneeId ||
-    !dueDate
-  ) {
-    setMessage("Please complete all fields.");
-    return;
-  }
+    if (
+      !title.trim() ||
+      !description.trim() ||
+      !assigneeId ||
+      !dueDate
+    ) {
+      setMessage("Please complete all fields.");
+      return;
+    }
 
-  const isEditing = editingTaskId !== null;
-
-  // نحدّث المهمة الحالية إذا كنا في وضع التعديل،
-  // أو ننشئ مهمة جديدة إذا كنا في وضع الإنشاء.
-  const newTask = {
-    id: isEditing ? editingTaskId : Date.now(),
-    title: title.trim(),
-    description: description.trim(),
-    assigneeId,
-    dueDate,
-    status: isEditing
-      ? tasks.find((task) => task.id === editingTaskId)?.status ?? "To Do"
-      : "To Do",
-    createdBy: leaderId,
-  };
-
-  const updatedTasks = isEditing
-    ? tasks.map((task) =>
-        task.id === editingTaskId
-          ? { ...task, ...newTask }
-          : task
-      )
-    : [...tasks, newTask];
-
-  // نحفظ التعديلات في نفس مكان تخزين المهام المشتركة.
-  try {
-    localStorage.setItem(
-      TASKS_STORAGE_KEY,
-      JSON.stringify(updatedTasks)
+    // التأكد من أن الشخص المختار عضو حالي في الفريق.
+    const assignee = teamMembers.find(
+      (member) => member.id === assigneeId
     );
-  } catch {
-    setMessage("Could not save the task. Please try again.");
-    return;
+
+    if (!assignee) {
+      setMessage(
+        "Please select a current member of your team."
+      );
+      return;
+    }
+
+    const existingTask =
+      editingTaskId !== null
+        ? allTasks.find(
+            (task) =>
+              task.id === editingTaskId &&
+              task.teamId === currentTeam.id
+          )
+        : null;
+
+    if (editingTaskId !== null && !existingTask) {
+      setMessage(
+        "This task could not be found in your team."
+      );
+      return;
+    }
+
+    const isEditing = Boolean(existingTask);
+
+    const updatedTask = {
+      ...(existingTask || {}),
+      id: isEditing ? existingTask.id : Date.now(),
+      teamId: currentTeam.id,
+      title: title.trim(),
+      description: description.trim(),
+      assigneeId,
+      assigneeName: assignee.name,
+      dueDate,
+      status: existingTask?.status || "To Do",
+      createdBy: existingTask?.createdBy || currentStudentId,
+      createdAt:
+        existingTask?.createdAt || new Date().toISOString(),
+
+      // المحافظة على بيانات التسليم عند تعديل المهمة.
+      submissions: Array.isArray(existingTask?.submissions)
+        ? existingTask.submissions
+        : [],
+
+      submittedFile: existingTask?.submittedFile || "",
+
+      requiresSubmission:
+        existingTask?.requiresSubmission ?? true,
+    };
+
+    const updatedAllTasks = isEditing
+      ? allTasks.map((task) =>
+          task.id === existingTask.id &&
+          task.teamId === currentTeam.id
+            ? updatedTask
+            : task
+        )
+      : [...allTasks, updatedTask];
+
+    if (!saveAllTasks(updatedAllTasks)) {
+      setMessage(
+        "Could not save the task. Browser storage may be full."
+      );
+      return;
+    }
+
+    setAllTasks(updatedAllTasks);
+
+    setTitle("");
+    setDescription("");
+    setAssigneeId("");
+    setDueDate("");
+    setEditingTaskId(null);
+
+    setMessage(
+      isEditing
+        ? "Task updated successfully."
+        : "Task created and saved for your team."
+    );
   }
 
-  setTasks(updatedTasks);
+  // تعبئة النموذج ببيانات المهمة المطلوب تعديلها.
+  function handleEdit(task) {
+    if (!isLeader || task.teamId !== currentTeam?.id) {
+      setMessage("You cannot edit this task.");
+      return;
+    }
 
-  // إعادة ضبط الفورم بعد نجاح العملية.
-  setTitle("");
-  setDescription("");
-  setAssigneeId("");
-  setDueDate("");
-  setEditingTaskId(null);
+    setEditingTaskId(task.id);
+    setTitle(task.title || "");
+    setDescription(task.description || "");
+    setAssigneeId(task.assigneeId || "");
+    setDueDate(task.dueDate || "");
+    setMessage("");
 
-  setMessage(
-    isEditing
-      ? "Task updated successfully in this demo."
-      : "Task created successfully in this demo."
-  );
-}
+    document
+      .querySelector(".manage-tasks-form-card")
+      ?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+  }
 
-function handleEdit(task) {
-  // تعبئة الفورم ببيانات المهمة التي اختارها القائد.
-  setEditingTaskId(task.id);
-  setTitle(task.title);
-  setDescription(task.description);
-  setAssigneeId(task.assigneeId);
-  setDueDate(task.dueDate);
-  setMessage("");
+  // إلغاء التعديل وإعادة النموذج إلى وضع الإنشاء.
+  function handleCancelEdit() {
+    setEditingTaskId(null);
+    setTitle("");
+    setDescription("");
+    setAssigneeId("");
+    setDueDate("");
+    setMessage("");
+  }
 
-  // نقل المستخدم إلى الفورم حتى يبدأ التعديل مباشرة.
-  document
-    .querySelector(".manage-tasks-form-card")
-    ?.scrollIntoView({ behavior: "smooth", block: "start" });
-}
-
-function handleCancelEdit() {
-  // إلغاء التعديل وإعادة الفورم إلى وضع إنشاء مهمة جديدة.
-  setEditingTaskId(null);
-  setTitle("");
-  setDescription("");
-  setAssigneeId("");
-  setDueDate("");
-  setMessage("");
-}
-
-
-  // إظهار اسم الشخص المكلّف بالمهمة بدلًا من رقمه الداخلي.
-  function getAssigneeName(id) {
+  // عرض اسم الشخص المكلّف بالمهمة.
+  function getAssigneeName(task) {
     return (
-      teamMembers.find((member) => member.id === id)?.name ??
-      "Unknown member"
+      teamMembers.find(
+        (member) => member.id === task.assigneeId
+      )?.name ||
+      task.assigneeName ||
+      "Team Member"
     );
   }
+
+  const teamStatus = currentTeam
+    ? isLeader
+      ? "leader"
+      : "member"
+    : currentStudent?.teamStatus || "no-team";
 
   return (
     <div className="manage-tasks-page student-layout">
-      <StudentNavbar teamStatus="leader" />
+      <StudentNavbar teamStatus={teamStatus} />
 
       <main className="manage-tasks-content">
         <header className="manage-tasks-header">
@@ -207,185 +348,248 @@ function handleCancelEdit() {
           <h1>Manage Tasks</h1>
 
           <p>
-            Create tasks, assign them to yourself or your team
-            members, and follow their progress.
+            {currentTeam
+              ? `Create and assign tasks for ${currentTeam.name}.`
+              : "Manage tasks for your graduation project team."}
           </p>
         </header>
 
-        <section className="manage-tasks-form-card">
-          <h2>{editingTaskId !== null ? "Edit Task" : "Create a New Task"}</h2>
+        {!currentTeam ? (
+          <section className="manage-tasks-form-card">
+            <h2>No Team Found</h2>
 
-          <p>
-            Choose who will complete the task and set a deadline.
-            You can assign tasks to yourself as Team Leader too.
-          </p>
+            <p>
+              Create or join a team before managing its tasks.
+            </p>
 
-          <form onSubmit={handleSubmit}>
-            <div className="manage-tasks-field">
-              <label htmlFor="taskTitle">Task Title</label>
+            <Link to="/student/create-team">
+              Go to Create Team →
+            </Link>
+          </section>
+        ) : !isLeader ? (
+          <section className="manage-tasks-form-card">
+            <h2>Team Leader Access Required</h2>
 
-              <input
-                id="taskTitle"
-                name="taskTitle"
-                type="text"
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
-                placeholder="e.g. Prepare project documentation"
-                maxLength={120}
-                required
-              />
-            </div>
+            <p>
+              Only your Team Leader can create, assign, or edit
+              tasks. You can view your personal tasks and shared
+              team tasks.
+            </p>
 
-            <div className="manage-tasks-field">
-              <label htmlFor="taskDescription">Description</label>
+            <Link to="/student/tasks">
+              View My Tasks →
+            </Link>
+          </section>
+        ) : (
+          <>
+            <section className="manage-tasks-form-card">
+              <h2>
+                {editingTaskId !== null
+                  ? "Edit Task"
+                  : "Create a New Task"}
+              </h2>
 
-              <textarea
-                id="taskDescription"
-                name="taskDescription"
-                value={description}
-                onChange={(event) =>
-                  setDescription(event.target.value)
-                }
-                placeholder="Describe what needs to be completed"
-                rows={4}
-                maxLength={2000}
-                required
-              />
-            </div>
-
-            <div className="manage-tasks-form-row">
-              <div className="manage-tasks-field">
-                <label htmlFor="taskAssignee">Assign To</label>
-
-                <select
-                  id="taskAssignee"
-                  name="taskAssignee"
-                  value={assigneeId}
-                  onChange={(event) =>
-                    setAssigneeId(event.target.value)
-                  }
-                  required
-                >
-                  <option value="">
-                    Select who will do this task
-                  </option>
-
-                  {teamMembers.map((member) => (
-                    <option key={member.id} value={member.id}>
-                      {member.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="manage-tasks-field">
-                <label htmlFor="taskDueDate">Due Date</label>
-
-                <input
-                  id="taskDueDate"
-                  name="taskDueDate"
-                  type="date"
-                  value={dueDate}
-                  onChange={(event) =>
-                    setDueDate(event.target.value)
-                  }
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="manage-tasks-form-actions">
-  <button type="submit" className="manage-tasks-submit">
-    {editingTaskId !== null ? "Save Changes" : "Create Task"}
-  </button>
-
-  {editingTaskId !== null && (
-    <button
-      type="button"
-      className="manage-tasks-cancel"
-      onClick={handleCancelEdit}
-    >
-      Cancel
-    </button>
-  )}
-</div>
-            {message && (
-              <p
-                className="manage-tasks-message"
-                role="status"
-                aria-live="polite"
-              >
-                {message}
+              <p>
+                Assign a task to any team member, including yourself.
               </p>
-            )}
-          </form>
-        </section>
 
-        <section className="manage-tasks-list-section">
-          <div className="manage-tasks-list-header">
-            <h2>Team Tasks</h2>
-            <span>
-              {tasks.length} {tasks.length === 1 ? "task" : "tasks"}
-            </span>
-          </div>
+              <form onSubmit={handleSubmit}>
+                <div className="manage-tasks-field">
+                  <label htmlFor="taskTitle">
+                    Task Title
+                  </label>
 
-          {tasks.length === 0 ? (
-            <div className="manage-tasks-empty">
-              <h3>No tasks yet</h3>
-              <p>Create your first task using the form above.</p>
-            </div>
-          ) : (
-            <div className="manage-tasks-list">
-              {tasks.map((task) => (
-                <article className="manage-task-card" key={task.id}>
-                  <div className="manage-task-card-header">
-                    <h3>{task.title}</h3>
+                  <input
+                    id="taskTitle"
+                    name="taskTitle"
+                    type="text"
+                    value={title}
+                    onChange={(event) =>
+                      setTitle(event.target.value)
+                    }
+                    placeholder="e.g. Prepare project documentation"
+                    maxLength={120}
+                    required
+                  />
+                </div>
 
-                    <span
-                      className={`manage-task-status ${
-                        task.status === "In Progress"
-                          ? "in-progress"
-                          : task.status === "Completed"
-                            ? "completed"
-                            : "to-do"
-                      }`}
+                <div className="manage-tasks-field">
+                  <label htmlFor="taskDescription">
+                    Description
+                  </label>
+
+                  <textarea
+                    id="taskDescription"
+                    name="taskDescription"
+                    value={description}
+                    onChange={(event) =>
+                      setDescription(event.target.value)
+                    }
+                    placeholder="Describe what needs to be completed"
+                    rows={4}
+                    maxLength={2000}
+                    required
+                  />
+                </div>
+
+                <div className="manage-tasks-form-row">
+                  <div className="manage-tasks-field">
+                    <label htmlFor="taskAssignee">
+                      Assign To
+                    </label>
+
+                    <select
+                      id="taskAssignee"
+                      name="taskAssignee"
+                      value={assigneeId}
+                      onChange={(event) =>
+                        setAssigneeId(event.target.value)
+                      }
+                      required
                     >
-                      {task.status}
-                    </span>
+                      <option value="">
+                        Select a team member
+                      </option>
+
+                      {teamMembers.map((member) => (
+                        <option
+                          key={member.id}
+                          value={member.id}
+                        >
+                          {member.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
-                  <p className="manage-task-description">
-                    {task.description}
+                  <div className="manage-tasks-field">
+                    <label htmlFor="taskDueDate">
+                      Due Date
+                    </label>
+
+                    <input
+                      id="taskDueDate"
+                      name="taskDueDate"
+                      type="date"
+                      value={dueDate}
+                      onChange={(event) =>
+                        setDueDate(event.target.value)
+                      }
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="manage-tasks-form-actions">
+                  <button
+                    type="submit"
+                    className="manage-tasks-submit"
+                  >
+                    {editingTaskId !== null
+                      ? "Save Changes"
+                      : "Create Task"}
+                  </button>
+
+                  {editingTaskId !== null && (
+                    <button
+                      type="button"
+                      className="manage-tasks-cancel"
+                      onClick={handleCancelEdit}
+                    >
+                      Cancel
+                    </button>
+                  )}
+                </div>
+
+                {message && (
+                  <p
+                    className="manage-tasks-message"
+                    role="status"
+                    aria-live="polite"
+                  >
+                    {message}
                   </p>
+                )}
+              </form>
+            </section>
 
-                  <div className="manage-task-meta">
-                    <span>
-                      <strong>Assigned to:</strong>{" "}
-                      {getAssigneeName(task.assigneeId)}
-                    </span>
+            <section className="manage-tasks-list-section">
+              <div className="manage-tasks-list-header">
+                <h2>Team Tasks</h2>
 
-                    <span>
-                      <strong>Due:</strong> {task.dueDate}
-                    </span>
-                  </div>
-                  <div className="manage-task-actions">
-  <button
-    type="button"
-    className="manage-task-edit"
-    onClick={() => handleEdit(task)}
-  >
-    Edit Task
-  </button>
-</div>
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
+                <span>
+                  {tasks.length}{" "}
+                  {tasks.length === 1 ? "task" : "tasks"}
+                </span>
+              </div>
+
+              {tasks.length === 0 ? (
+                <div className="manage-tasks-empty">
+                  <h3>No tasks yet</h3>
+
+                  <p>
+                    Create the first task for your team using
+                    the form above.
+                  </p>
+                </div>
+              ) : (
+                <div className="manage-tasks-list">
+                  {tasks.map((task) => (
+                    <article
+                      className="manage-task-card"
+                      key={task.id}
+                    >
+                      <div className="manage-task-card-header">
+                        <h3>{task.title}</h3>
+
+                        <span
+                          className={`manage-task-status ${
+                            task.status === "In Progress"
+                              ? "in-progress"
+                              : task.status === "Completed"
+                                ? "completed"
+                                : "to-do"
+                          }`}
+                        >
+                          {task.status || "To Do"}
+                        </span>
+                      </div>
+
+                      <p className="manage-task-description">
+                        {task.description}
+                      </p>
+
+                      <div className="manage-task-meta">
+                        <span>
+                          <strong>Assigned to:</strong>{" "}
+                          {getAssigneeName(task)}
+                        </span>
+
+                        <span>
+                          <strong>Due:</strong> {task.dueDate}
+                        </span>
+                      </div>
+
+                      <div className="manage-task-actions">
+                        <button
+                          type="button"
+                          className="manage-task-edit"
+                          onClick={() => handleEdit(task)}
+                        >
+                          Edit Task
+                        </button>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </section>
+          </>
+        )}
 
         <p className="manage-tasks-demo-note">
-          Demo data is stored locally in this browser. It is not yet
-          synchronized with the backend or other users.
+          Tasks are separated by team and saved locally in this
+          browser. Backend synchronization will be added later.
         </p>
       </main>
     </div>

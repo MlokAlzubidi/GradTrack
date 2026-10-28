@@ -146,3 +146,30 @@
     padding: 24px 20px;
   }
 }
+
+.create-team-manage-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 18px;
+  padding: 11px 16px;
+  border: 1px solid #355b43;
+  border-radius: 9px;
+  background: #355b43;
+  color: #fffefa;
+  font-size: 13px;
+  font-weight: 650;
+  text-decoration: none;
+  transition: background-color 160ms ease;
+}
+
+.create-team-manage-link:hover {
+  background: #294638;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .create-team-manage-link {
+    transition: none;
+  }
+}

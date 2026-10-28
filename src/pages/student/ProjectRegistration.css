@@ -148,3 +148,25 @@
     padding: 24px 20px;
   }
 }
+
+.project-registration-message.success {
+  color: #355b43;
+  background: #e8eee5;
+}
+
+.project-registration-message.error {
+  color: #914b37;
+  background: #f8e9e2;
+}
+
+.project-registration-saved-note {
+  margin-top: 14px;
+  color: #7a847b;
+  font-size: 11px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-registration-page * {
+    scroll-behavior: auto;
+  }
+}

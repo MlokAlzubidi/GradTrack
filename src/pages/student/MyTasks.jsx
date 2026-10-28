@@ -1,59 +1,17 @@
-
 import { useState } from "react";
 import StudentNavbar from "../../components/layout/StudentNavbar";
 import "./MyTasks.css";
 
-// يجب أن يكون هذا المفتاح نفسه في ManageTasks و TeamTasks.
 const TASKS_STORAGE_KEY = "gradtrack-team-tasks";
-
-// حد لحجم الملف التجريبي حتى لا يمتلئ تخزين المتصفح بسرعة.
+const CURRENT_STUDENT_KEY = "gradtrack-current-student";
+const TEAMS_STORAGE_KEY = "gradtrack-teams";
 const MAX_FILE_SIZE = 500 * 1024;
 
-// المهام الأولية التي تظهر عند تشغيل التجربة لأول مرة.
-const initialTasks = [
-  {
-    id: 1,
-    title: "Research Project Requirements",
-    description:
-      "Research the problem and prepare the initial requirements document.",
-    assigneeId: "student-1",
-    dueDate: "2026-11-05",
-    status: "In Progress",
-    requiresSubmission: true,
-    submittedFile: "",
-    submissions: [],
-  },
-  {
-    id: 2,
-    title: "Prepare Project Documentation",
-    description:
-      "Prepare and organize the documentation assigned to you.",
-    assigneeId: "student-2",
-    dueDate: "2026-11-12",
-    status: "To Do",
-    requiresSubmission: true,
-    submittedFile: "",
-    submissions: [],
-  },
-  {
-    id: 3,
-    title: "Review Team Feedback",
-    description:
-      "Review the feedback provided by your team leader.",
-    assigneeId: "student-2",
-    dueDate: "2026-11-15",
-    status: "To Do",
-    requiresSubmission: false,
-    submittedFile: "",
-    submissions: [],
-  },
-];
-
-// قراءة حساب الطالب الحالي.
-function getCurrentStudent() {
+// قراءة بيانات الحساب الحالي من جلسة هذا التبويب.
+function readCurrentStudent() {
   try {
-    const savedStudent = localStorage.getItem(
-      "gradtrack-current-student"
+    const savedStudent = sessionStorage.getItem(
+      CURRENT_STUDENT_KEY
     );
 
     return savedStudent ? JSON.parse(savedStudent) : null;
@@ -62,31 +20,54 @@ function getCurrentStudent() {
   }
 }
 
-// تحميل المهام من مصدر البيانات المشترك.
-function loadTasks() {
+// قراءة البيانات المحفوظة بأمان.
+function readLocalArray(key) {
   try {
-    const savedTasks = localStorage.getItem(TASKS_STORAGE_KEY);
+    const savedValue = localStorage.getItem(key);
 
-    if (savedTasks !== null) {
-      const parsedTasks = JSON.parse(savedTasks);
+    if (!savedValue) return [];
 
-      if (Array.isArray(parsedTasks)) {
-        return parsedTasks;
-      }
-    }
+    const parsedValue = JSON.parse(savedValue);
 
-    localStorage.setItem(
-      TASKS_STORAGE_KEY,
-      JSON.stringify(initialTasks)
-    );
-
-    return initialTasks;
+    return Array.isArray(parsedValue) ? parsedValue : [];
   } catch {
-    return initialTasks;
+    return [];
   }
 }
 
-// حفظ المهام والتسليمات في المتصفح.
+// البحث عن فريق الطالب الحالي.
+function getCurrentTeam(student) {
+  if (!student?.universityId) return null;
+
+  const teams = readLocalArray(TEAMS_STORAGE_KEY);
+
+  if (student.teamId) {
+    const team = teams.find(
+      (item) => item.id === student.teamId
+    );
+
+    if (team) return team;
+  }
+
+  // احتياطًا إذا لم يكن teamId موجودًا في الحساب.
+  return (
+    teams.find((team) => {
+      const memberIds = [
+        team.leaderId,
+        ...(Array.isArray(team.memberIds) ? team.memberIds : []),
+        ...(Array.isArray(team.members)
+          ? team.members.map(
+              (member) => member.universityId || member.id
+            )
+          : []),
+      ].filter(Boolean);
+
+      return memberIds.includes(student.universityId);
+    }) || null
+  );
+}
+
+// حفظ قائمة المهام المشتركة كاملة حتى لا تتأثر الفرق الأخرى.
 function saveTasks(updatedTasks) {
   try {
     localStorage.setItem(
@@ -100,65 +81,87 @@ function saveTasks(updatedTasks) {
   }
 }
 
-// قراءة محتوى الملف بصيغة يمكن لصفحة Team Tasks عرضها وتنزيلها.
+// قراءة محتوى الملف حتى يظهر في Team Tasks.
 function readFileAsDataUrl(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
 
     reader.onload = () => resolve(reader.result);
-    reader.onerror = () => reject(new Error("File could not be read."));
+
+    reader.onerror = () =>
+      reject(new Error("Could not read the selected file."));
 
     reader.readAsDataURL(file);
   });
 }
 
-function MyTasks({ teamStatus = "member" }) {
-  const currentStudent = getCurrentStudent();
+function MyTasks() {
+  const currentStudent = readCurrentStudent();
+  const currentTeam = getCurrentTeam(currentStudent);
 
-  const effectiveTeamStatus =
-    currentStudent?.teamStatus ?? teamStatus;
+  const studentId = currentStudent?.universityId;
+  const studentName = currentStudent?.name || "Team Member";
 
-  const currentStudentId = currentStudent?.universityId;
+  const isLeader =
+    Boolean(currentTeam) &&
+    currentTeam.leaderId === studentId;
 
-  const studentName = currentStudent?.name || "Team member";
+  const teamStatus = currentTeam
+    ? isLeader
+      ? "leader"
+      : "member"
+    : "no-team";
 
-  // دعم معرفات المهام التجريبية القديمة.
-  const legacyAssignmentIds = {
-    "2023001": ["student-1"],
-    "2023002": ["student-2"],
-  };
+  const [allTasks, setAllTasks] = useState(() =>
+    readLocalArray(TASKS_STORAGE_KEY)
+  );
 
-  const myAssignmentIds = [
-    ...(currentStudentId ? [currentStudentId] : []),
-    ...(legacyAssignmentIds[currentStudentId] ?? []),
-  ];
-
-  const [tasks, setTasks] = useState(loadTasks);
   const [selectedFiles, setSelectedFiles] = useState({});
   const [messages, setMessages] = useState({});
 
-  // لا نعرض للطالب إلا المهام المسندة إليه.
-  const myTasks = tasks.filter((task) =>
-    myAssignmentIds.includes(task.assigneeId)
+  // نعرض المهام التابعة للفريق الحالي فقط.
+  const teamTasks = currentTeam
+    ? allTasks.filter(
+        (task) => task && task.teamId === currentTeam.id
+      )
+    : [];
+
+  // نعرض للطالب المهام المسندة إليه باستخدام رقمه الجامعي.
+  const myTasks = teamTasks.filter(
+    (task) => task.assigneeId === studentId
   );
 
-  // تحديث الحالة وحفظها حتى تظهر في بقية صفحات الفريق.
+  // تحديث حالة المهمة وحفظها في المصدر المشترك.
   function handleStatusChange(taskId, newStatus) {
-    const updatedTasks = tasks.map((task) =>
-      task.id === taskId
-        ? { ...task, status: newStatus }
-        : task
+    if (!currentTeam || !studentId) return;
+
+    const task = myTasks.find((item) => item.id === taskId);
+
+    if (!task) {
+      setMessages((current) => ({
+        ...current,
+        [taskId]: "This task is not assigned to your account.",
+      }));
+      return;
+    }
+
+    const updatedTasks = allTasks.map((item) =>
+      item.id === taskId &&
+      item.teamId === currentTeam.id
+        ? { ...item, status: newStatus }
+        : item
     );
 
     if (!saveTasks(updatedTasks)) {
       setMessages((current) => ({
         ...current,
-        [taskId]: "Could not save the update. Browser storage may be full.",
+        [taskId]:
+          "Could not save the status. Browser storage may be full.",
       }));
       return;
     }
 
-    setTasks(updatedTasks);
+    setAllTasks(updatedTasks);
 
     setMessages((current) => ({
       ...current,
@@ -166,7 +169,7 @@ function MyTasks({ teamStatus = "member" }) {
     }));
   }
 
-  // تخزين الملف المختار مؤقتًا قبل الضغط على Submit.
+  // اختيار ملف قبل إرساله.
   function handleFileChange(taskId, file) {
     setSelectedFiles((current) => ({
       ...current,
@@ -179,12 +182,33 @@ function MyTasks({ teamStatus = "member" }) {
     }));
   }
 
-  // تسجيل التسليم ومشاركته مع الفريق.
+  // إرسال الملف وتسجيله ضمن تسليمات المهمة المشتركة.
   async function handleSubmit(event, taskId) {
     event.preventDefault();
 
-    // نحتفظ بالنموذج حتى نستطيع تفريغ حقل الملف بعد الحفظ.
+    // الاحتفاظ بمرجع النموذج قبل أي عملية async.
     const form = event.currentTarget;
+
+    if (!currentTeam || !studentId) {
+      setMessages((current) => ({
+        ...current,
+        [taskId]: "Please sign in and join a team first.",
+      }));
+      return;
+    }
+
+    const task = myTasks.find(
+      (item) => item.id === taskId
+    );
+
+    if (!task) {
+      setMessages((current) => ({
+        ...current,
+        [taskId]: "This task is not assigned to your account.",
+      }));
+      return;
+    }
+
     const selectedFile = selectedFiles[taskId];
 
     if (!selectedFile) {
@@ -205,12 +229,11 @@ function MyTasks({ teamStatus = "member" }) {
     }
 
     try {
-      // قراءة محتوى الملف نفسه، وليس اسمه فقط.
       const fileData = await readFileAsDataUrl(selectedFile);
 
-      const submission = {
-        id: `${taskId}-${Date.now()}`,
-        studentId: currentStudentId || "demo-student",
+      const newSubmission = {
+        id: `${taskId}-${studentId}-${Date.now()}`,
+        studentId,
         studentName,
         fileName: selectedFile.name,
         fileType: selectedFile.type || "application/octet-stream",
@@ -219,64 +242,66 @@ function MyTasks({ teamStatus = "member" }) {
         submittedAt: new Date().toISOString(),
       };
 
-      const updatedTasks = tasks.map((task) => {
-        if (task.id !== taskId) {
-          return task;
-        }
+      const previousSubmissions = Array.isArray(task.submissions)
+        ? task.submissions
+        : [];
 
-        // عند إعادة التسليم، نستبدل تسليم الطالب السابق لهذه المهمة،
-        // ونحافظ على أحدث تسليم لكل طالب.
-        const previousSubmissions = Array.isArray(task.submissions)
-          ? task.submissions
-          : [];
+      // نحتفظ بآخر تسليم لهذا الطالب ونبقي تسليمات زملائه.
+      const otherSubmissions = previousSubmissions.filter(
+        (submission) => submission.studentId !== studentId
+      );
 
-        const otherSubmissions = previousSubmissions.filter(
-          (item) => item.studentId !== submission.studentId
-        );
+      const updatedTasks = allTasks.map((item) =>
+        item.id === taskId &&
+        item.teamId === currentTeam.id
+          ? {
+              ...item,
+              status: "Completed",
+              submittedFile: selectedFile.name,
+              submissions: [
+                ...otherSubmissions,
+                newSubmission,
+              ],
+            }
+          : item
+      );
 
-        return {
-          ...task,
-          status: "Completed",
-          submittedFile: selectedFile.name,
-          submissions: [...otherSubmissions, submission],
-        };
-      });
-
-      // لا نعرض النجاح إلا بعد حفظ بيانات المهمة والتسليم.
       if (!saveTasks(updatedTasks)) {
         setMessages((current) => ({
           ...current,
           [taskId]:
-            "Could not save the file. Browser storage may be full. Try a smaller file.",
+            "Could not save the submission. Try a smaller file.",
         }));
         return;
       }
 
-      setTasks(updatedTasks);
+      setAllTasks(updatedTasks);
 
       setSelectedFiles((current) => ({
         ...current,
         [taskId]: null,
       }));
 
+      // تفريغ حقل الملف بعد نجاح الحفظ.
       form.reset();
 
       setMessages((current) => ({
         ...current,
         [taskId]:
-          "Submitted successfully! Your team can now view and download this file in Team Tasks.",
+          "Submitted successfully! Your team can view and download the file in Team Tasks.",
       }));
     } catch {
       setMessages((current) => ({
         ...current,
-        [taskId]: "Could not read the file. Please try again.",
+        [taskId]:
+          "Could not read the selected file. Please try again.",
       }));
     }
   }
 
   return (
     <div className="my-tasks-page student-layout">
-      <StudentNavbar teamStatus={effectiveTeamStatus} />
+      <StudentNavbar teamStatus={teamStatus} />
 
       <main className="my-tasks-content">
         <header className="my-tasks-header">
@@ -291,21 +316,30 @@ function MyTasks({ teamStatus = "member" }) {
         </header>
 
         <div className="my-tasks-demo-note">
-          Submitted files are shared through this browser's demo storage.
-          The maximum file size for this demo is 500 KB.
+          Your tasks are filtered by your team and your account.
+          Files are stored locally for this demo; the upload limit is 500 KB.
         </div>
 
-        <section className="my-tasks-list">
-          {myTasks.length === 0 ? (
-            <article className="my-task-card">
-              <h2>No tasks assigned yet</h2>
-              <p className="my-task-description">
-                Your assigned tasks will appear here when your
-                Team Leader creates them.
-              </p>
-            </article>
-          ) : (
-            myTasks.map((task) => (
+        {!currentTeam ? (
+          <section className="my-task-card">
+            <h2>You are not in a team yet</h2>
+
+            <p className="my-task-description">
+              Join or create a team before accessing team tasks.
+            </p>
+          </section>
+        ) : myTasks.length === 0 ? (
+          <section className="my-task-card">
+            <h2>No tasks assigned yet</h2>
+
+            <p className="my-task-description">
+              When your Team Leader assigns a task to you, it will
+              appear here.
+            </p>
+          </section>
+        ) : (
+          <section className="my-tasks-list">
+            {myTasks.map((task) => (
               <article className="my-task-card" key={task.id}>
                 <div className="my-task-card-header">
                   <div>
@@ -317,9 +351,7 @@ function MyTasks({ teamStatus = "member" }) {
                   </div>
 
                   <span
-                    className={`my-task-status ${(
-                      task.status || "To Do"
-                    )
+                    className={`my-task-status ${(task.status || "To Do")
                       .toLowerCase()
                       .replace(" ", "-")}`}
                   >
@@ -329,8 +361,8 @@ function MyTasks({ teamStatus = "member" }) {
 
                 <p className="my-task-due-date">
                   <strong>Due date:</strong>{" "}
-                  <time dateTime={task.dueDate}>
-                    {task.dueDate}
+                  <time dateTime={task.dueDate || ""}>
+                    {task.dueDate || "Not specified"}
                   </time>
                 </p>
 
@@ -343,7 +375,10 @@ function MyTasks({ teamStatus = "member" }) {
                     id={`task-status-${task.id}`}
                     value={task.status || "To Do"}
                     onChange={(event) =>
-                      handleStatusChange(task.id, event.target.value)
+                      handleStatusChange(
+                        task.id,
+                        event.target.value
+                      )
                     }
                   >
                     <option value="To Do">To Do</option>
@@ -352,7 +387,6 @@ function MyTasks({ teamStatus = "member" }) {
                   </select>
                 </div>
 
-                {/* المهام قابلة للتسليم ما لم تُحدد على أنها لا تتطلب ملفًا. */}
                 {task.requiresSubmission !== false && (
                   <form
                     className="my-task-submission"
@@ -380,8 +414,8 @@ function MyTasks({ teamStatus = "member" }) {
                     </button>
 
                     {task.submissions?.some(
-                      (item) =>
-                        item.studentId === currentStudentId
+                      (submission) =>
+                        submission.studentId === studentId
                     ) && (
                       <p className="my-task-submitted-file">
                         Your latest submission is shared with the team.
@@ -389,7 +423,10 @@ function MyTasks({ teamStatus = "member" }) {
                     )}
 
                     {messages[task.id] && (
-                      <p className="my-task-message" role="status">
+                      <p
+                        className="my-task-message"
+                        role="status"
+                      >
                         {messages[task.id]}
                       </p>
                     )}
@@ -398,14 +435,17 @@ function MyTasks({ teamStatus = "member" }) {
 
                 {task.requiresSubmission === false &&
                   messages[task.id] && (
-                    <p className="my-task-message" role="status">
+                    <p
+                      className="my-task-message"
+                      role="status"
+                    >
                       {messages[task.id]}
                     </p>
                   )}
               </article>
-            ))
-          )}
-        </section>
+            ))}
+          </section>
+        )}
       </main>
     </div>
   );

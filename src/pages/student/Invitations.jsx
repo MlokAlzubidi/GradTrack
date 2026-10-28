@@ -1,66 +1,296 @@
 import { useState } from "react";
 import StudentNavbar from "../../components/layout/StudentNavbar";
-import "./Invitations.css"; 
+import "./Invitations.css";
+import { addNotification } from "../../utils/notifications";
+
+// مفاتيح التخزين المستخدمة بين صفحات GradTrack.
+const TEAMS_STORAGE_KEY = "gradtrack-teams";
+const INVITATIONS_STORAGE_KEY = "gradtrack-invitations";
+const CURRENT_STUDENT_KEY = "gradtrack-current-student";
+const STUDENT_OVERRIDES_KEY = "gradtrack-student-overrides";
+
+const MAX_TEAM_MEMBERS = 4;
+
+// قراءة الحساب الحالي من التبويب الحالي فقط.
+function readCurrentStudent() {
+  try {
+    const savedStudent = sessionStorage.getItem(CURRENT_STUDENT_KEY);
+    return savedStudent ? JSON.parse(savedStudent) : null;
+  } catch {
+    return null;
+  }
+}
+
+// قراءة الفرق المحفوظة.
+function readTeams() {
+  try {
+    const savedTeams = localStorage.getItem(TEAMS_STORAGE_KEY);
+
+    if (!savedTeams) return [];
+
+    const teams = JSON.parse(savedTeams);
+    return Array.isArray(teams) ? teams : [];
+  } catch {
+    return [];
+  }
+}
+
+// قراءة الدعوات المرسلة في تجربة GradTrack.
+function readInvitations() {
+  try {
+    const savedInvitations = localStorage.getItem(
+      INVITATIONS_STORAGE_KEY
+    );
+
+    if (!savedInvitations) return [];
+
+    const invitations = JSON.parse(savedInvitations);
+    return Array.isArray(invitations) ? invitations : [];
+  } catch {
+    return [];
+  }
+}
+
+// حفظ سجل الدعوات.
+function saveInvitations(invitations) {
+  localStorage.setItem(
+    INVITATIONS_STORAGE_KEY,
+    JSON.stringify(invitations)
+  );
+}
+
+// توحيد معرفات أعضاء الفريق، بما فيها البيانات القديمة.
+function getTeamMemberIds(team) {
+  const ids = [
+    ...(Array.isArray(team.memberIds) ? team.memberIds : []),
+    ...(Array.isArray(team.members)
+      ? team.members.map(
+          (member) => member.universityId || member.id
+        )
+      : []),
+  ].filter(Boolean);
+
+  return [...new Set(ids)];
+}
 
 function Invitations() {
-  // Demo data for frontend testing only.
-  // Real invitations will be loaded from the backend.
-  const [teamStatus, setTeamStatus] = useState("no-team");
+  const [currentStudent, setCurrentStudent] = useState(
+    readCurrentStudent
+  );
 
-  const [invitations, setInvitations] = useState([
-    {
-      id: 1,
-      teamName: "Graduation Project Team",
-      leaderName: "Ahmad Khalil",
-      memberCount: 2,
-      maxMembers: 4,
-    },
-    {
-      id: 2,
-      teamName: "Innovation Team",
-      leaderName: "Lina Omar",
-      memberCount: 4,
-      maxMembers: 4,
-    },
-  ]);
+  const [invitations, setInvitations] = useState(
+    readInvitations
+  );
 
   const [message, setMessage] = useState("");
 
+  const studentId = currentStudent?.universityId;
+
+  const teamStatus = currentStudent?.teamStatus || "no-team";
+
+  const hasTeam =
+    Boolean(currentStudent?.teamId) ||
+    teamStatus === "member" ||
+    teamStatus === "leader";
+
+  // الطالب يشوف الدعوات الموجهة إلى رقمه الجامعي فقط.
+  const pendingInvitations = invitations.filter(
+    (invitation) =>
+      invitation.status === "pending" &&
+      String(invitation.invitedStudentId) === String(studentId)
+  );
+
+  // قبول الدعوة وإضافة الطالب إلى الفريق.
   function handleAccept(invitation) {
-    if (teamStatus !== "no-team") {
-      setMessage("You already belong to a team.");
+    setMessage("");
+
+    if (!currentStudent || !studentId) {
+      setMessage("Please sign in to accept an invitation.");
       return;
     }
 
-    if (invitation.memberCount >= invitation.maxMembers) {
-      setMessage("This team has reached its maximum capacity.");
+    if (hasTeam) {
+      setMessage(
+        "You already belong to a team. You cannot join another team."
+      );
       return;
     }
 
-    setTeamStatus("member");
+    try {
+      const teams = readTeams();
 
-    setInvitations((currentInvitations) =>
-      currentInvitations.filter(
-        (item) => item.id !== invitation.id
-      )
-    );
+      const team = teams.find(
+        (item) => item.id === invitation.teamId
+      );
 
-    setMessage(
-      `Demo only: You accepted the invitation to ${invitation.teamName}.`
-    );
+      if (!team) {
+        setMessage(
+          "This team is no longer available. Please contact the Team Leader."
+        );
+        return;
+      }
+
+      const memberIds = getTeamMemberIds(team);
+
+      // التأكد من أن الطالب ليس عضوًا بالفريق مسبقًا.
+      if (
+        memberIds.some((id) => String(id) === String(studentId))
+      ) {
+        setMessage("You are already a member of this team.");
+        return;
+      }
+
+      // الحد الأقصى يشمل القائد وجميع الأعضاء.
+      if (memberIds.length >= MAX_TEAM_MEMBERS) {
+        setMessage(
+          "This team has reached its maximum capacity of four students."
+        );
+        return;
+      }
+
+      // قراءة معلومات الطالب الحالي وإضافته كعضو.
+      const joinedAt = new Date().toISOString();
+
+      const newMember = {
+        id: studentId,
+        universityId: studentId,
+        name: currentStudent.name || "Student",
+        role: "member",
+        joinedAt,
+      };
+
+      const updatedTeam = {
+        ...team,
+        memberIds: [...memberIds, studentId],
+        members: [
+          ...(Array.isArray(team.members) ? team.members : []),
+          newMember,
+        ],
+      };
+
+      const updatedTeams = teams.map((item) =>
+        item.id === team.id ? updatedTeam : item
+      );
+
+      const updatedStudent = {
+        ...currentStudent,
+        role: "student",
+        teamStatus: "member",
+        teamId: team.id,
+      };
+
+      // تحديث حالة العضوية الدائمة للحساب التجريبي.
+      const savedOverrides = localStorage.getItem(
+        STUDENT_OVERRIDES_KEY
+      );
+
+      const overrides = savedOverrides
+        ? JSON.parse(savedOverrides)
+        : {};
+
+      const updatedOverrides = {
+        ...overrides,
+        [studentId]: {
+          ...(overrides[studentId] || {}),
+          teamStatus: "member",
+          teamId: team.id,
+        },
+      };
+
+      // تحديث حالة الدعوة حتى لا تُقبل مرة أخرى.
+      const updatedInvitations = invitations.map((item) =>
+        item.id === invitation.id
+          ? {
+              ...item,
+              status: "accepted",
+              respondedAt: new Date().toISOString(),
+            }
+          : item
+      );
+
+      // حفظ الفريق والعضوية والدعوة والحساب الحالي.
+      localStorage.setItem(
+        TEAMS_STORAGE_KEY,
+        JSON.stringify(updatedTeams)
+      );
+
+      localStorage.setItem(
+        STUDENT_OVERRIDES_KEY,
+        JSON.stringify(updatedOverrides)
+      );
+
+      saveInvitations(updatedInvitations);
+
+      sessionStorage.setItem(
+        CURRENT_STUDENT_KEY,
+        JSON.stringify(updatedStudent)
+      );
+
+      // تحديث الشاشة فورًا بعد نجاح الحفظ.
+      setCurrentStudent(updatedStudent);
+      setInvitations(updatedInvitations);
+
+      // إرسال إشعار لقائد الفريق عند قبول الدعوة.
+      addNotification({
+        id: `invitation-response-${invitation.id}-accepted`,
+        recipientId: invitation.leaderId,
+        type: "invitation",
+        title: "Invitation Accepted",
+        message: `${currentStudent.name || "A student"} accepted your invitation to join ${team.name || invitation.teamName}.`,
+        link: "/student/manage-team",
+        relatedId: invitation.id,
+      });
+
+      setMessage(`You joined ${team.name} successfully.`);
+    } catch {
+      setMessage(
+        "Could not save your response. Please try again."
+      );
+    }
   }
 
+  // رفض الدعوة دون تغيير عضوية الطالب.
   function handleDecline(invitation) {
-    setInvitations((currentInvitations) =>
-      currentInvitations.filter(
-        (item) => item.id !== invitation.id
-      )
-    );
+    setMessage("");
 
-    setMessage(
-      `Demo only: You declined the invitation to ${invitation.teamName}.`
-    );
+    try {
+      const updatedInvitations = invitations.map((item) =>
+        item.id === invitation.id
+          ? {
+              ...item,
+              status: "declined",
+              respondedAt: new Date().toISOString(),
+            }
+          : item
+      );
+
+      // حفظ حالة الرفض أولًا.
+      saveInvitations(updatedInvitations);
+      setInvitations(updatedInvitations);
+
+      // إرسال إشعار لقائد الفريق عند رفض الدعوة.
+      addNotification({
+        id: `invitation-response-${invitation.id}-declined`,
+        recipientId: invitation.leaderId,
+        type: "invitation",
+        title: "Invitation Declined",
+        message: `${currentStudent?.name || "A student"} declined your invitation to join ${invitation.teamName || "your team"}.`,
+        link: "/student/manage-team",
+        relatedId: invitation.id,
+      });
+
+      setMessage(
+        `You declined the invitation to ${invitation.teamName}.`
+      );
+    } catch {
+      setMessage(
+        "Could not save your response. Please try again."
+      );
+    }
   }
+
+  // نقرأ أسماء الفرق وحجمها الحالي من البيانات المحفوظة.
+  const teams = readTeams();
 
   return (
     <div className="invitations-page student-layout">
@@ -75,14 +305,13 @@ function Invitations() {
           <h1>Team Invitations</h1>
 
           <p>
-            Review invitations and decide which team
-            you want to join.
+            Review invitations sent to your university ID
+            and decide whether to join a team.
           </p>
         </header>
 
         <p className="invitations-demo-note">
-          These are sample invitations for interface testing.
-          Real invitations will be loaded from the backend.
+          Invitations are stored locally for this demo.
         </p>
 
         {message && (
@@ -91,20 +320,37 @@ function Invitations() {
           </p>
         )}
 
-        {invitations.length === 0 ? (
+        {hasTeam && (
+          <p className="invitations-message" role="status">
+            You already belong to a team. You must leave your current
+            team before joining another one.
+          </p>
+        )}
+
+        {pendingInvitations.length === 0 ? (
           <section className="invitations-empty-state">
             <h2>No pending invitations</h2>
 
             <p>
-              When a team invites you, its invitation
-              will appear here.
+              When a Team Leader invites your university ID,
+              the invitation will appear here.
             </p>
           </section>
         ) : (
           <section className="invitations-list">
-            {invitations.map((invitation) => {
+            {pendingInvitations.map((invitation) => {
+              const team = teams.find(
+                (item) => item.id === invitation.teamId
+              );
+
+              const memberCount = team
+                ? getTeamMemberIds(team).length
+                : invitation.memberCount || 0;
+
               const isFull =
-                invitation.memberCount >= invitation.maxMembers;
+                memberCount >= MAX_TEAM_MEMBERS;
+
+              const teamExists = Boolean(team);
 
               return (
                 <article
@@ -119,13 +365,18 @@ function Invitations() {
                     </p>
 
                     <p>
-                      Team Size: {invitation.memberCount}/
-                      {invitation.maxMembers} students
+                      Team Size: {memberCount}/{MAX_TEAM_MEMBERS} students
                     </p>
 
                     {isFull && (
                       <span className="invitation-full-label">
                         Team is full
+                      </span>
+                    )}
+
+                    {!teamExists && (
+                      <span className="invitation-full-label">
+                        Team is no longer available
                       </span>
                     )}
                   </div>
@@ -135,7 +386,9 @@ function Invitations() {
                       type="button"
                       className="invitation-accept"
                       onClick={() => handleAccept(invitation)}
-                      disabled={teamStatus !== "no-team" || isFull}
+                      disabled={
+                        hasTeam || isFull || !teamExists
+                      }
                     >
                       Accept
                     </button>

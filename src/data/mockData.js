@@ -40,8 +40,44 @@ export function getRegisteredStudents() {
   }
 }
 
+
 export function getAllMockStudents() {
-  return [...mockStudents, ...getRegisteredStudents()];
+  // الحسابات التجريبية الأصلية والحسابات المسجّلة حديثًا.
+  const students = [
+    ...mockStudents,
+    ...getRegisteredStudents(),
+  ];
+
+  // حالات إضافية محفوظة حتى تبقى عضوية الطالب بعد تسجيل الخروج.
+  const STUDENT_OVERRIDES_KEY = "gradtrack-student-overrides";
+
+  let overrides = {};
+
+  try {
+    const savedOverrides = localStorage.getItem(
+      STUDENT_OVERRIDES_KEY
+    );
+
+    overrides = savedOverrides
+      ? JSON.parse(savedOverrides)
+      : {};
+
+    if (
+      !overrides ||
+      typeof overrides !== "object" ||
+      Array.isArray(overrides)
+    ) {
+      overrides = {};
+    }
+  } catch {
+    overrides = {};
+  }
+
+  // نطبّق حالة الفريق المحفوظة على كل حساب.
+  return students.map((student) => ({
+    ...student,
+    ...(overrides[student.universityId] || {}),
+  }));
 }
 
 export function registerMockStudent(newStudent) {
