@@ -1,4 +1,5 @@
 import { useState } from "react";
+import StudentNavbar from "../../components/layout/StudentNavbar";
 import { Link } from "react-router-dom";
 import {
   FileText,
@@ -12,7 +13,7 @@ import {
   ArrowRight,
   FileCheck2,
 } from "lucide-react";
-import StudentNavbar from "../../components/layout/StudentNavbar";
+import { addNotification } from "../../utils/notifications";
 import "./SubmitProposal.css";
 
 const CURRENT_STUDENT_KEY = "gradtrack-current-student";
@@ -264,6 +265,26 @@ function SubmitProposal() {
         PROPOSALS_STORAGE_KEY,
         []
       );
+      
+try {
+  addNotification({
+    id: `supervisor-proposal-${updatedProposal.id}-${Date.now()}`,
+    recipientId: "demo-supervisor",
+    type: "proposal",
+    title: existingProposal
+      ? "Proposal Resubmitted"
+      : "New Proposal Submitted",
+    message: `${student.name || "A Team Leader"} submitted ${
+      existingProposal ? "a revised proposal" : "a new proposal"
+    } for "${project.title}" from team "${team.name}".`,
+    link: "/supervisor/proposals",
+    relatedId: updatedProposal.id,
+  });
+} catch {
+  // The saved proposal should remain successful even if
+  // the demo notification cannot be stored.
+}
+
 
       if (!Array.isArray(savedProposals)) {
         throw new Error("Invalid saved proposal data.");

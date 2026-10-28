@@ -1,104 +1,265 @@
 
-/* =========================================
+/* ==========================================
    GradTrack — Student Navigation
-   Horizontal navigation with dropdown menus
-========================================= */
+   Unified Supervisor Design + Liquid Glass
+   Responsive Desktop, Tablet and Mobile
+   ========================================== */
 
 .student-layout {
   display: block;
   min-height: 100vh;
-  background: #f5f3eb;
+  background: #f7f6ef;
+  color: #2d4032;
+  font-family: inherit;
+}
+
+.student-sidebar,
+.student-sidebar *,
+.student-sidebar *::before,
+.student-sidebar *::after {
+  box-sizing: border-box;
 }
 
 .student-sidebar {
   position: sticky;
   top: 0;
   z-index: 1000;
+  isolation: isolate;
 
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(175px, 1fr) auto minmax(175px, 1fr);
   align-items: center;
-  gap: 24px;
+  gap: 22px;
 
-  box-sizing: border-box;
   width: 100%;
-  min-height: 72px;
-  padding: 12px clamp(18px, 3vw, 42px);
+  min-height: 67px;
+  padding: 9px 32px;
 
-  background: #fffefa;
-  border-bottom: 1px solid #e7e2d7;
-  box-shadow: 0 4px 16px rgba(39, 59, 49, 0.04);
+  background:
+    radial-gradient(
+      ellipse at 12% 0%,
+      rgba(255, 255, 255, 0.98) 0%,
+      rgba(255, 255, 255, 0) 48%
+    ),
+    radial-gradient(
+      ellipse at 86% 100%,
+      rgba(211, 229, 202, 0.24) 0%,
+      rgba(211, 229, 202, 0) 48%
+    ),
+    linear-gradient(
+      115deg,
+      rgba(255, 255, 250, 0.88),
+      rgba(246, 248, 239, 0.76),
+      rgba(255, 255, 252, 0.90)
+    );
 
-  font-family: Arial, sans-serif;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-bottom-color: rgba(215, 226, 207, 0.65);
+
+  box-shadow:
+    0 8px 28px rgba(38, 61, 41, 0.055),
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 -1px 0 rgba(211, 224, 204, 0.35) inset;
+
+  -webkit-backdrop-filter: blur(28px) saturate(155%);
+  backdrop-filter: blur(28px) saturate(155%);
+
+  font-family: inherit;
+
+  transition:
+    background 250ms ease,
+    box-shadow 250ms ease,
+    border-color 250ms ease;
 }
 
-/* Brand */
+/* Glass reflection */
 
+.student-sidebar::before {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  content: "";
+  pointer-events: none;
 
-/* GradTrack brand */
+  border-radius: inherit;
+
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.62) 0%,
+    rgba(255, 255, 255, 0.12) 27%,
+    rgba(255, 255, 255, 0) 60%
+  );
+
+  opacity: 0.95;
+}
+
+.student-sidebar > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ==========================================
+   Brand — GradTrack
+   ========================================== */
 
 .student-sidebar-brand {
   display: inline-flex;
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
+  width: fit-content;
+  min-width: 0;
 
-  color: #294638;
+  color: #315c45;
   text-decoration: none;
   white-space: nowrap;
-  transition: opacity 180ms ease;
 }
 
 .student-sidebar-brand:hover {
-  opacity: 0.88;
+  opacity: 0.96;
 }
 
-.student-sidebar-brand-mark {
-  display: flex;
+/* Logo icon */
+
+.student-sidebar-brand-mark,
+.student-brand-icon {
+  position: relative;
+  isolation: isolate;
+
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 
   width: 41px;
   height: 41px;
-  border-radius: 12px;
+  overflow: hidden;
 
-  background: #294638;
   color: #fffefa;
 
-  box-shadow: 0 4px 10px rgba(41, 70, 56, 0.14);
+  background:
+    radial-gradient(
+      circle at 28% 12%,
+      rgba(255, 255, 255, 0.58),
+      transparent 45%
+    ),
+    linear-gradient(
+      145deg,
+      #60866a 0%,
+      #416e50 48%,
+      #244633 100%
+    );
+
+  border: 1px solid rgba(255, 255, 255, 0.58);
+  border-radius: 12px;
+
+  box-shadow:
+    0 5px 13px rgba(36, 70, 51, 0.16),
+    0 1px 0 rgba(255, 255, 255, 0.45) inset,
+    0 -2px 4px rgba(25, 58, 36, 0.16) inset;
+
+  transition:
+    transform 220ms ease,
+    box-shadow 220ms ease,
+    border-color 220ms ease;
 }
+
+/* Soft reflection */
+
+.student-sidebar-brand-mark::before,
+.student-brand-icon::before {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  content: "";
+  pointer-events: none;
+
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.32) 0%,
+    rgba(255, 255, 255, 0.09) 35%,
+    transparent 72%
+  );
+}
+
+/* Animated shine */
+
+.student-sidebar-brand-mark::after,
+.student-brand-icon::after {
+  position: absolute;
+  top: -65%;
+  left: -75%;
+  z-index: 2;
+
+  width: 65%;
+  height: 230%;
+
+  content: "";
+  pointer-events: none;
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.42),
+    transparent
+  );
+
+  transform: rotate(25deg);
+  transition: left 500ms ease;
+}
+
+.student-sidebar-brand:hover .student-sidebar-brand-mark,
+.student-sidebar-brand:hover .student-brand-icon {
+  transform: translateY(-1px);
+
+  border-color: rgba(255, 255, 255, 0.95);
+
+  box-shadow:
+    0 8px 18px rgba(36, 70, 51, 0.22),
+    0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 -2px 4px rgba(25, 58, 36, 0.18) inset;
+}
+
+.student-sidebar-brand:hover .student-sidebar-brand-mark::after,
+.student-sidebar-brand:hover .student-brand-icon::after {
+  left: 130%;
+}
+
+.student-sidebar-brand-mark svg,
+.student-brand-icon svg {
+  position: relative;
+  z-index: 3;
+  flex-shrink: 0;
+
+  color: #fffefa;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.12));
+}
+
+/* Wordmark */
 
 .student-sidebar-brand-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+
   color: #294638;
-  font-size: 23px;
-  font-weight: 750;
-  letter-spacing: -0.7px;
+  font-family: inherit;
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.55px;
   line-height: 1;
+  white-space: nowrap;
+  text-shadow: none;
 }
 
-.student-sidebar-brand-text span {
+.student-sidebar-brand-text > span {
   color: #527760;
+  font-weight: 700;
 }
 
-@media (max-width: 600px) {
-  .student-sidebar-brand-mark {
-    width: 37px;
-    height: 37px;
-    border-radius: 11px;
-  }
-
-  .student-sidebar-brand-mark svg {
-    width: 22px;
-    height: 22px;
-  }
-
-  .student-sidebar-brand-text {
-    font-size: 21px;
-  }
-}
-
-/* Main navigation */
+/* ==========================================
+   Main Navigation
+   ========================================== */
 
 .student-sidebar-navigation {
   display: flex;
@@ -115,66 +276,126 @@
   display: none;
 }
 
+/* Links match the supervisor navigation */
+
 .student-sidebar-link {
+  position: relative;
+  isolation: isolate;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 7px;
 
-  box-sizing: border-box;
-  min-height: 40px;
-  padding: 10px 12px;
+  min-height: 37px;
+  padding: 0 11px;
 
-  border-radius: 8px;
-  color: #59665c;
+  color: #5c6d5d;
+  background: rgba(255, 255, 255, 0.06);
 
-  font-size: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  border-radius: 10px;
+
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
   line-height: 1.4;
   text-decoration: none;
   white-space: nowrap;
 
+  cursor: pointer;
+
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.45) inset,
+    0 -1px 0 rgba(209, 221, 201, 0.10) inset;
+
+  -webkit-backdrop-filter: blur(12px) saturate(145%);
+  backdrop-filter: blur(12px) saturate(145%);
+
   transition:
-    background-color 0.2s ease,
-    color 0.2s ease;
+    color 220ms ease,
+    background 220ms ease,
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    transform 220ms ease;
 }
 
 .student-sidebar-link:hover {
-  background: #f2f3ec;
-  color: #294638;
+  color: #244633;
+  background: rgba(237, 244, 231, 0.67);
+  border-color: rgba(255, 255, 255, 0.95);
+
+  box-shadow:
+    0 5px 14px rgba(49, 92, 69, 0.07),
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    0 -1px 0 rgba(202, 220, 193, 0.28) inset;
+
+  transform: translateY(-1px);
 }
 
 .student-sidebar-link.active {
-  background: #e9efe9;
-  color: #294638;
-  font-weight: 700;
+  color: #294e35;
+
+  background:
+    radial-gradient(
+      ellipse at 20% 0%,
+      rgba(255, 255, 255, 0.95),
+      transparent 68%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(232, 241, 225, 0.96),
+      rgba(214, 231, 206, 0.75)
+    );
+
+  border-color: rgba(255, 255, 255, 0.98);
+  font-weight: 750;
+
+  box-shadow:
+    0 5px 15px rgba(49, 92, 69, 0.075),
+    0 1px 0 rgba(255, 255, 255, 0.98) inset,
+    0 -1px 0 rgba(176, 204, 165, 0.32) inset;
 }
 
-/* Dropdown groups */
+/* ==========================================
+   Dropdown Groups
+   ========================================== */
 
 .student-sidebar-group {
   position: relative;
   flex-shrink: 0;
+  overflow: visible;
 }
 
 .student-sidebar-group summary {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 7px;
 
-  box-sizing: border-box;
-  min-height: 40px;
-  padding: 10px 12px;
+  min-height: 37px;
+  padding: 0 11px;
 
-  border-radius: 8px;
-  color: #35463b;
+  color: #5c6d5d;
+  background: rgba(255, 255, 255, 0.06);
 
-  font-size: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  border-radius: 10px;
+
+  font-family: inherit;
+  font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
 
   cursor: pointer;
   list-style: none;
   user-select: none;
+
+  transition:
+    color 220ms ease,
+    background 220ms ease,
+    border-color 220ms ease,
+    box-shadow 220ms ease;
 }
 
 .student-sidebar-group summary::-webkit-details-marker {
@@ -187,31 +408,41 @@
 
 .student-sidebar-group summary::after {
   content: "⌄";
-  color: #527760;
-  font-size: 15px;
+  margin-left: 2px;
+  color: #7d8d79;
+  font-size: 14px;
   line-height: 1;
 }
 
-.student-sidebar-group[open] summary {
-  background: #e9efe9;
-  color: #294638;
+.student-sidebar-group[open] > summary {
+  color: #294e35;
+
+  background: linear-gradient(
+    135deg,
+    rgba(232, 241, 225, 0.96),
+    rgba(214, 231, 206, 0.75)
+  );
+
+  border-color: rgba(255, 255, 255, 0.98);
 }
 
-.student-sidebar-group[open] summary::after {
+.student-sidebar-group[open] > summary::after {
   content: "⌃";
 }
 
 .student-sidebar-group summary:hover {
-  background: #f2f3ec;
+  color: #244633;
+  background: rgba(237, 244, 231, 0.67);
+  border-color: rgba(255, 255, 255, 0.95);
 }
 
-/* Dropdown panel */
+/* Floating glass dropdown */
 
 .student-sidebar-group-links {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
-  z-index: 1100;
+  position: absolute !important;
+  top: calc(100% + 9px) !important;
+  left: 0 !important;
+  z-index: 1100 !important;
 
   display: flex;
   flex-direction: column;
@@ -223,36 +454,108 @@
   max-width: min(290px, calc(100vw - 32px));
   padding: 8px;
 
-  border: 1px solid #e7e2d7;
-  border-radius: 12px;
-  background: #fffefa;
-  box-shadow: 0 12px 30px rgba(39, 59, 49, 0.14);
+  background:
+    radial-gradient(
+      ellipse at 15% 0%,
+      rgba(255, 255, 255, 0.98),
+      transparent 60%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 252, 0.91),
+      rgba(239, 245, 233, 0.83)
+    );
+
+  border: 1px solid rgba(255, 255, 255, 0.96);
+  border-radius: 14px;
+
+  box-shadow:
+    0 18px 45px rgba(36, 70, 51, 0.13),
+    0 4px 12px rgba(36, 70, 51, 0.045),
+    0 1px 0 rgba(255, 255, 255, 0.98) inset,
+    0 -1px 0 rgba(203, 220, 195, 0.30) inset;
+
+  -webkit-backdrop-filter: blur(26px) saturate(165%);
+  backdrop-filter: blur(26px) saturate(165%);
+
+  transform-origin: top left;
 }
 
-/* Align the last menu towards the inside of the screen */
+.student-sidebar-group:last-of-type .student-sidebar-group-links {
+  left: auto !important;
+  right: 0 !important;
+}
 
-.student-sidebar-group:last-of-type
-  .student-sidebar-group-links {
-  left: auto;
-  right: 0;
+.student-sidebar-group[open] .student-sidebar-group-links {
+  animation: studentGlassDropdownIn 180ms ease-out both;
 }
 
 .student-sidebar-group-links .student-sidebar-link {
   display: flex;
+  align-items: center;
   justify-content: flex-start;
 
   width: 100%;
-  min-height: 40px;
-  padding: 10px 12px;
+  min-height: 38px;
+  padding: 9px 11px;
 
-  border-radius: 7px;
-  font-size: 13px;
+  color: #647363;
+  background: transparent;
+
+  border: 1px solid transparent;
+  border-radius: 10px;
+
+  font-size: 11px;
+  font-weight: 600;
   line-height: 1.45;
   text-align: left;
   white-space: normal;
 }
 
-/* Notification, profile and logout */
+.student-sidebar-group-links .student-sidebar-link:hover {
+  color: #294e35;
+  background: rgba(232, 241, 225, 0.72);
+  border-color: rgba(255, 255, 255, 0.85);
+
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 3px 10px rgba(49, 92, 69, 0.045);
+
+  transform: none;
+}
+
+.student-sidebar-group-links .student-sidebar-link.active {
+  color: #294e35;
+
+  background: linear-gradient(
+    125deg,
+    rgba(255, 255, 255, 0.95),
+    rgba(222, 236, 215, 0.75)
+  );
+
+  border-color: rgba(255, 255, 255, 0.98);
+  font-weight: 750;
+
+  box-shadow:
+    0 3px 10px rgba(49, 92, 69, 0.06),
+    0 1px 0 rgba(255, 255, 255, 0.98) inset;
+}
+
+@keyframes studentGlassDropdownIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ==========================================
+   Notification, Profile and Logout
+   ========================================== */
 
 .student-sidebar-bottom {
   display: flex;
@@ -267,35 +570,80 @@
 }
 
 .student-nav-icon {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 
-  box-sizing: border-box;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   padding: 0;
 
-  border: 1px solid #e7e2d7;
-  border-radius: 10px;
-  background: #fffefa;
-  color: #355b43;
+  color: #46694c;
+
+  background:
+    radial-gradient(
+      circle at 28% 12%,
+      rgba(255, 255, 255, 0.98),
+      rgba(255, 255, 255, 0.24) 48%,
+      transparent 75%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.77),
+      rgba(229, 239, 222, 0.46)
+    );
+
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+
+  box-shadow:
+    0 5px 13px rgba(44, 73, 46, 0.065),
+    0 1px 0 rgba(255, 255, 255, 0.98) inset,
+    0 -1px 0 rgba(202, 220, 193, 0.44) inset;
+
+  -webkit-backdrop-filter: blur(16px) saturate(165%);
+  backdrop-filter: blur(16px) saturate(165%);
 
   text-decoration: none;
   cursor: pointer;
 
   transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease;
+    color 220ms ease,
+    background 220ms ease,
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    transform 220ms ease;
 }
 
 .student-nav-icon:hover:not(:disabled),
 .student-nav-icon.active {
-  background: #e9efe9;
-  border-color: #d5e3d4;
-  color: #294638;
+  color: #244633;
+
+  background:
+    radial-gradient(
+      circle at 28% 12%,
+      rgba(255, 255, 255, 1),
+      rgba(255, 255, 255, 0.35) 48%,
+      transparent 75%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(242, 248, 237, 0.98),
+      rgba(215, 232, 207, 0.78)
+    );
+
+  border-color: #fff;
+
+  box-shadow:
+    0 5px 14px rgba(49, 92, 69, 0.10),
+    0 1px 0 #fff inset,
+    0 -1px 0 rgba(185, 210, 176, 0.5) inset;
+}
+
+.student-nav-icon:hover:not(:disabled) {
+  transform: translateY(-1px);
 }
 
 .student-nav-icon:disabled {
@@ -303,99 +651,9 @@
   cursor: not-allowed;
 }
 
-/* Keyboard accessibility */
-
-.student-sidebar a:focus-visible,
-.student-sidebar summary:focus-visible,
-.student-nav-icon:focus-visible {
-  outline: 2px solid #527760;
-  outline-offset: 3px;
-}
-
-/* Tablet */
-
-@media (max-width: 1050px) {
-  .student-sidebar {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 10px 18px;
-  }
-
-  .student-sidebar-brand {
-    order: 1;
-  }
-
-  .student-sidebar-bottom {
-    order: 2;
-    margin-left: auto;
-  }
-
-  .student-sidebar-navigation {
-    order: 3;
-    flex: 0 0 100%;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-    gap: 5px;
-  }
-
-  .student-sidebar-group:last-of-type
-    .student-sidebar-group-links {
-    left: 0;
-    right: auto;
-  }
-}
-
-/* Mobile */
-
-@media (max-width: 600px) {
-  .student-sidebar {
-    gap: 12px;
-    padding: 13px 16px;
-  }
-
-  .student-sidebar-brand {
-    font-size: 21px;
-  }
-
-  .student-sidebar-navigation {
-    gap: 4px;
-  }
-
-  .student-sidebar-link,
-  .student-sidebar-group summary {
-    min-height: 38px;
-    padding: 9px 10px;
-    font-size: 12px;
-  }
-
-  .student-sidebar-group-links {
-    min-width: 200px;
-    max-width: calc(100vw - 32px);
-  }
-
-  .student-sidebar-group-links .student-sidebar-link {
-    white-space: normal;
-  }
-
-  .student-sidebar-bottom {
-    gap: 6px;
-  }
-
-  .student-nav-icon {
-    width: 38px;
-    height: 38px;
-  }
-}
-
-/* Respect reduced-motion preferences */
-
-@media (prefers-reduced-motion: reduce) {
-  .student-sidebar-link,
-  .student-nav-icon {
-    transition: none;
-  }
-}
+/* ==========================================
+   Signature Notification Bell
+   ========================================== */
 
 .student-notification-bell {
   position: relative;
@@ -403,39 +661,6 @@
   align-items: center;
   justify-content: center;
 }
-
-.student-notification-badge {
-  position: absolute;
-  top: -9px;
-  right: -11px;
-  min-width: 17px;
-  height: 17px;
-  padding: 0 4px;
-  border: 2px solid #f8f5ed;
-  border-radius: 999px;
-  background: #c83e4d;
-  color: #ffffff;
-  font-size: 10px;
-  font-weight: 700;
-  line-height: 13px;
-  text-align: center;
-  box-sizing: border-box;
-  animation: notificationBadgeIn 0.25s ease-out;
-}
-
-@keyframes notificationBadgeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.6);
-  }
-
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* GradTrack — Signature Notification Bell */
 
 .student-notification-link {
   position: relative;
@@ -445,36 +670,55 @@
 
 .student-notification-orb {
   position: relative;
-  width: 43px;
-  height: 43px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 
-  color: #244c3b;
-  background: linear-gradient(
-    145deg,
-    #ffffff 0%,
-    #e3eddf 100%
-  );
+  width: 36px;
+  height: 36px;
 
-  border: 1px solid rgba(52, 91, 69, 0.16);
-  border-radius: 15px;
+  color: #46694c;
+
+  background:
+    radial-gradient(
+      circle at 28% 12%,
+      rgba(255, 255, 255, 0.98),
+      rgba(255, 255, 255, 0.24) 48%,
+      transparent 75%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.77),
+      rgba(229, 239, 222, 0.46)
+    );
+
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
 
   box-shadow:
-    0 4px 12px rgba(34, 73, 52, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    0 5px 13px rgba(44, 73, 46, 0.065),
+    0 1px 0 rgba(255, 255, 255, 0.98) inset,
+    0 -1px 0 rgba(202, 220, 193, 0.44) inset;
+
+  -webkit-backdrop-filter: blur(16px) saturate(165%);
+  backdrop-filter: blur(16px) saturate(165%);
 
   transition:
-    transform 0.3s ease,
-    background 0.3s ease,
-    box-shadow 0.3s ease;
+    color 220ms ease,
+    background 220ms ease,
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    transform 220ms ease;
 }
 
 .student-notification-orb:hover {
-  transform: translateY(-3px) rotate(-3deg);
-  box-shadow: 0 8px 22px rgba(34, 73, 52, 0.2);
+  color: #244633;
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 8px 18px rgba(44, 73, 46, 0.11),
+    0 1px 0 rgba(255, 255, 255, 1) inset;
 }
 
 .student-notification-icon {
@@ -483,19 +727,22 @@
   transition: transform 0.3s ease;
 }
 
-/* هالة الإشعار */
 .student-notification-aura {
   position: absolute;
-  inset: -5px;
-  border: 1px solid rgba(95, 155, 113, 0.4);
-  border-radius: 19px;
+  inset: -4px;
+  z-index: -1;
+
+  border: 1px solid rgba(104, 148, 91, 0.35);
+  border-radius: 15px;
+
   opacity: 0;
   pointer-events: none;
 }
 
-/* الحالة التي تحتوي على إشعارات غير مقروءة */
+/* Unread notification state */
+
 .student-notification-orb.has-unread {
-  color: #ffffff;
+  color: #fff;
 
   background: linear-gradient(
     145deg,
@@ -503,11 +750,11 @@
     #234b39 100%
   );
 
-  border-color: rgba(255, 255, 255, 0.24);
+  border-color: rgba(255, 255, 255, 0.65);
 
   box-shadow:
-    0 5px 17px rgba(35, 75, 57, 0.24),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    0 5px 15px rgba(49, 92, 69, 0.11),
+    0 1px 0 rgba(255, 255, 255, 0.2) inset;
 }
 
 .student-notification-orb.has-unread .student-notification-aura {
@@ -518,43 +765,44 @@
   animation: gradtrackBellMotion 3.8s ease-in-out infinite;
 }
 
-/* عداد الإشعارات */
+/* Notification count badge */
+
 .student-notification-badge {
   position: absolute;
   z-index: 3;
-  top: -8px;
-  right: -9px;
-
-  min-width: 21px;
-  height: 21px;
-  padding: 0 5px;
+  top: -5px;
+  right: -5px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  color: #ffffff;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+
+  color: #fff;
+
   background: linear-gradient(
     135deg,
     #ff7770,
     #e74755
   );
 
-  border: 2px solid #ffffff;
+  border: 2px solid #fffefa;
   border-radius: 999px;
 
   font-family: inherit;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 800;
   line-height: 1;
-  letter-spacing: -0.2px;
+  text-align: center;
 
-  box-shadow: 0 3px 9px rgba(208, 57, 72, 0.35);
+  box-shadow: 0 3px 9px rgba(208, 57, 72, 0.25);
 
   animation: gradtrackBadgeAppear 0.35s ease-out;
 }
 
-/* ظهور خفيف للعداد */
 @keyframes gradtrackBadgeAppear {
   0% {
     opacity: 0;
@@ -571,7 +819,6 @@
   }
 }
 
-/* هالة ضوئية */
 @keyframes gradtrackNotificationAura {
   0% {
     opacity: 0.65;
@@ -585,7 +832,6 @@
   }
 }
 
-/* حركة الجرس */
 @keyframes gradtrackBellMotion {
   0%,
   82%,
@@ -614,520 +860,76 @@
   }
 }
 
-/* احترام إعداد تقليل الحركة */
-@media (prefers-reduced-motion: reduce) {
-  .student-notification-orb,
-  .student-notification-aura,
-  .student-notification-icon,
-  .student-notification-badge {
-    animation: none !important;
-    transition: none !important;
-  }
-}
-
-
-/* Match Profile and Logout buttons with the notification bell */
-
-.student-sidebar-bottom
-  > .student-nav-icon:not(.student-notification-link) {
-  position: relative;
-
-  width: 43px;
-  height: 43px;
-  flex: 0 0 43px;
-  box-sizing: border-box;
-  padding: 0;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  color: #244c3b;
-  background: linear-gradient(
-    145deg,
-    #ffffff 0%,
-    #e3eddf 100%
-  );
-
-  border: 1px solid rgba(52, 91, 69, 0.16);
-  border-radius: 15px;
-
-  box-shadow:
-    0 4px 12px rgba(34, 73, 52, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
-
-  cursor: pointer;
-
-  transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
-}
-
-/* Keep the same appearance when active or hovered */
-.student-sidebar-bottom
-  > .student-nav-icon:not(.student-notification-link):hover,
-.student-sidebar-bottom
-  > .student-nav-icon:not(.student-notification-link).active {
-  color: #244c3b;
-  background: linear-gradient(
-    145deg,
-    #ffffff 0%,
-    #e3eddf 100%
-  );
-}
-
-/* Same hover motion as the notification bell */
-.student-sidebar-bottom
-  > .student-nav-icon:not(.student-notification-link):hover {
-  transform: translateY(-3px) rotate(-3deg);
-
-  box-shadow:
-    0 8px 22px rgba(34, 73, 52, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
-}
-
-/* Subtle keyboard focus */
-.student-sidebar-bottom
-  > .student-nav-icon:not(.student-notification-link):focus-visible {
-  outline: 2px solid #5f9b71;
-  outline-offset: 3px;
-}
-
-/* Respect reduced-motion preferences */
-@media (prefers-reduced-motion: reduce) {
-  .student-sidebar-bottom
-    > .student-nav-icon:not(.student-notification-link) {
-    transition: none;
-  }
-
-  .student-sidebar-bottom
-    > .student-nav-icon:not(.student-notification-link):hover {
-    transform: none;
-  }
-}
-
 /* ==========================================
-   GradTrack — Liquid Glass Navbar
+   Mobile Menu Toggle
    ========================================== */
 
-.student-sidebar {
-  position: relative;
-  isolation: isolate;
-
-  background:
-    linear-gradient(
-      145deg,
-      rgba(255, 255, 255, 0.78) 0%,
-      rgba(235, 242, 231, 0.61) 48%,
-      rgba(255, 255, 255, 0.72) 100%
-    ) !important;
-
-  -webkit-backdrop-filter: blur(26px) saturate(165%);
-  backdrop-filter: blur(26px) saturate(165%);
-
-  border: 1px solid rgba(255, 255, 255, 0.78);
-
-  box-shadow:
-    0 16px 42px rgba(38, 67, 47, 0.10),
-    0 3px 10px rgba(38, 67, 47, 0.04),
-    inset 0 1px 0 rgba(255, 255, 255, 0.95),
-    inset 1px 0 0 rgba(255, 255, 255, 0.45),
-    inset 0 -1px 0 rgba(116, 150, 107, 0.12);
-
-  transition:
-    background 300ms ease,
-    box-shadow 300ms ease,
-    border-color 300ms ease;
-}
-
-/* Soft reflected light on the glass surface */
-.student-sidebar::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-
-  border-radius: inherit;
-  pointer-events: none;
-
-  background:
-    radial-gradient(
-      ellipse at 0% 0%,
-      rgba(255, 255, 255, 0.78),
-      transparent 48%
-    ),
-    linear-gradient(
-      160deg,
-      rgba(255, 255, 255, 0.16),
-      transparent 40%,
-      rgba(184, 208, 174, 0.08)
-    );
-
-  opacity: 0.85;
-}
-
-/* Keep the navbar content above the glass reflection */
-.student-sidebar > * {
-  position: relative;
-  z-index: 1;
-}
-
-/* Navigation links feel like soft glass pills */
-.student-sidebar-link {
-  border: 1px solid transparent;
-  border-radius: 12px;
-
-  transition:
-    background 250ms ease,
-    border-color 250ms ease,
-    box-shadow 250ms ease,
-    transform 250ms ease,
-    color 250ms ease;
-}
-
-.student-sidebar-link:hover {
-  background: rgba(255, 255, 255, 0.55);
-  border-color: rgba(255, 255, 255, 0.75);
-
-  box-shadow:
-    0 4px 12px rgba(39, 70, 48, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.85);
-
-  transform: translateX(2px);
-}
-
-/* Active page: subtle sage glass */
-.student-sidebar-link.active {
-  background: rgba(218, 232, 210, 0.64);
-  border-color: rgba(151, 181, 140, 0.28);
-
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.8),
-    0 3px 9px rgba(47, 84, 56, 0.04);
-}
-
-/* Smoothly highlight expandable navigation groups */
-.student-sidebar-group summary {
-  border-radius: 12px;
-
-  transition:
-    background 250ms ease,
-    color 250ms ease;
-}
-
-.student-sidebar-group summary:hover {
-  background: rgba(255, 255, 255, 0.42);
-}
-
-/* Respect reduced-motion preferences */
-@media (prefers-reduced-motion: reduce) {
-  .student-sidebar,
-  .student-sidebar-link,
-  .student-sidebar-group summary {
-    transition: none !important;
-  }
-
-  .student-sidebar-link:hover {
-    transform: none;
-  }
-}
-
-/* ==========================================
-   GradTrack — Liquid Glass Dropdown Menus
-   ========================================== */
-
-/* Keep dropdowns positioned correctly */
-.student-sidebar-group {
-  position: relative;
-  overflow: visible;
-}
-
-/* Glass dropdown panel */
-.student-sidebar-group-links {
-  position: relative;
-  z-index: 20;
-
-  padding: 8px;
-  gap: 5px;
-
-  background: linear-gradient(
-    145deg,
-    rgba(255, 255, 255, 0.84) 0%,
-    rgba(244, 247, 239, 0.76) 100%
-  );
-
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
-  backdrop-filter: blur(24px) saturate(160%);
-
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  border-radius: 16px;
-
-  box-shadow:
-    0 16px 38px rgba(39, 65, 47, 0.10),
-    0 4px 12px rgba(39, 65, 47, 0.045),
-    inset 0 1px 0 rgba(255, 255, 255, 0.95);
-
-  transform-origin: top center;
-}
-
-/* Animate the menu when it opens */
-.student-sidebar-group[open] .student-sidebar-group-links {
-  animation: gradtrackGlassMenuIn 220ms
-    cubic-bezier(0.2, 0.75, 0.25, 1) both;
-}
-
-@keyframes gradtrackGlassMenuIn {
-  from {
-    opacity: 0;
-    transform: translateY(-6px) scale(0.985);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* Dropdown links */
-.student-sidebar-group-links .student-sidebar-link {
-  position: relative;
-  display: flex;
-  align-items: center;
-
-  min-height: 40px;
-  padding: 10px 12px;
-
-  border: 1px solid transparent;
-  border-radius: 10px;
-
-  background: transparent;
-  color: #536456;
-
-  font-size: 0.84rem;
-  text-decoration: none;
-
-  transition:
-    background 220ms ease,
-    color 220ms ease,
-    border-color 220ms ease,
-    transform 220ms ease,
-    box-shadow 220ms ease;
-}
-
-/* Soft glass highlight on hover */
-.student-sidebar-group-links .student-sidebar-link:hover {
-  background: rgba(255, 255, 255, 0.78);
-  border-color: rgba(211, 225, 204, 0.8);
-
-  color: #294b38;
-
-  box-shadow:
-    0 3px 10px rgba(39, 65, 47, 0.045),
-    inset 0 1px 0 rgba(255, 255, 255, 0.95);
-
-  transform: translateX(2px);
-}
-
-/* Active page inside the dropdown */
-.student-sidebar-group-links .student-sidebar-link.active {
-  background: rgba(220, 233, 213, 0.72);
-  border-color: rgba(157, 184, 145, 0.32);
-
-  color: #315b40;
-  font-weight: 650;
-
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
-}
-
-/* Softer group heading while open */
-.student-sidebar-group[open] > summary {
-  color: #315b40;
-  background: rgba(255, 255, 255, 0.48);
-}
-
-/* Keyboard accessibility */
-.student-sidebar-group-links .student-sidebar-link:focus-visible {
-  outline: 2px solid rgba(96, 127, 99, 0.45);
-  outline-offset: 2px;
-}
-
-/* Accessibility */
-@media (prefers-reduced-motion: reduce) {
-  .student-sidebar-group[open] .student-sidebar-group-links {
-    animation: none;
-  }
-
-  .student-sidebar-group-links .student-sidebar-link {
-    transition: none;
-  }
-}
-/* ==========================================
-   GradTrack — Compact Floating Glass Dropdown
-   ========================================== */
-
-/* The dropdown anchor */
-.student-sidebar-group {
-  position: relative !important;
-  overflow: visible !important;
-}
-
-/* Make the menu float over the page instead of
-   increasing the navbar height */
-.student-sidebar-group-links {
-  position: absolute !important;
-  top: calc(100% + 8px) !important;
-  left: 0 !important;
-  z-index: 1000 !important;
-
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-
-  width: max-content;
-  min-width: 190px;
-  max-width: min(235px, calc(100vw - 24px));
-  box-sizing: border-box;
-
-  padding: 7px;
-
-  background: rgba(255, 254, 250, 0.88) !important;
-
-  -webkit-backdrop-filter: blur(24px) saturate(155%);
-  backdrop-filter: blur(24px) saturate(155%);
-
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  border-radius: 15px;
-
-  box-shadow:
-    0 12px 30px rgba(39, 65, 47, 0.10),
-    0 3px 9px rgba(39, 65, 47, 0.04),
-    inset 0 1px 0 rgba(255, 255, 255, 0.95);
-
-  transform-origin: top left;
-}
-
-/* Compact menu items */
-.student-sidebar-group-links .student-sidebar-link {
-  display: flex;
-  align-items: center;
-
-  min-height: 35px;
-  box-sizing: border-box;
-  padding: 8px 11px;
-
-  border: 1px solid transparent;
-  border-radius: 9px;
-
-  color: #536456;
-  font-size: 0.79rem;
-  line-height: 1.4;
-  white-space: nowrap;
-
-  transition:
-    background 200ms ease,
-    border-color 200ms ease,
-    color 200ms ease,
-    transform 200ms ease;
-}
-
-/* Soft hover */
-.student-sidebar-group-links .student-sidebar-link:hover {
-  background: rgba(226, 237, 220, 0.7);
-  border-color: rgba(200, 218, 192, 0.65);
-  color: #294b38;
-  transform: translateX(2px);
-}
-
-/* Current page */
-.student-sidebar-group-links .student-sidebar-link.active {
-  background: rgba(218, 232, 210, 0.72);
-  border-color: rgba(157, 184, 145, 0.3);
-  color: #315b40;
-  font-weight: 650;
-}
-
-/* Small, smooth opening */
-.student-sidebar-group[open] .student-sidebar-group-links {
-  animation: gradtrackCompactMenuIn 180ms ease-out both;
-}
-
-@keyframes gradtrackCompactMenuIn {
-  from {
-    opacity: 0;
-    transform: translateY(-4px) scale(0.985);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* Prevent the top bar from clipping the dropdown */
-.student-sidebar {
-  overflow: visible !important;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .student-sidebar-group[open] .student-sidebar-group-links {
-    animation: none !important;
-  }
-
-  .student-sidebar-group-links .student-sidebar-link {
-    transition: none !important;
-  }
-}
-
-
-/* ==========================================
-   GradTrack — Responsive Mobile Navigation
-   ========================================== */
-
-/* Hidden on desktop */
 .student-mobile-menu-toggle {
   display: none;
 }
 
-@media (max-width: 680px) {
-  /* Compact glass header */
-  .student-sidebar {
-    position: sticky !important;
-    top: 0;
-    z-index: 1000;
+/* ==========================================
+   Tablet — match supervisor spacing
+   ========================================== */
 
+@media (max-width: 1050px) {
+  .student-sidebar {
+    grid-template-columns: minmax(150px, 1fr) auto minmax(130px, 1fr);
+    gap: 10px;
+    padding-inline: 20px;
+  }
+
+  .student-sidebar-brand-text {
+    font-size: 19px;
+  }
+
+  .student-sidebar-navigation {
+    gap: 1px;
+  }
+
+  .student-sidebar-link,
+  .student-sidebar-group summary {
+    gap: 5px;
+    padding-inline: 8px;
+    font-size: 10px;
+  }
+
+  .student-sidebar-group-links {
+    min-width: 210px;
+  }
+
+  .student-sidebar-group:last-of-type .student-sidebar-group-links {
+    left: auto !important;
+    right: 0 !important;
+  }
+}
+
+/* ==========================================
+   Responsive Mobile Navigation
+   ========================================== */
+
+@media (max-width: 760px) {
+  .student-sidebar {
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) auto auto;
     grid-template-rows: auto auto;
     align-items: center;
+
     column-gap: 9px;
     row-gap: 0;
 
-    width: 100% !important;
-    height: auto !important;
-    min-height: 0 !important;
-    box-sizing: border-box;
+    width: 100%;
+    height: auto;
+    min-height: 0;
 
     padding: 10px 12px !important;
     overflow: visible !important;
 
-    border-radius: 0 0 17px 17px !important;
-
-    background: linear-gradient(
-      145deg,
-      rgba(255, 255, 255, 0.88),
-      rgba(235, 242, 231, 0.79)
-    ) !important;
-
-    -webkit-backdrop-filter: blur(24px) saturate(155%);
-    backdrop-filter: blur(24px) saturate(155%);
-
-    box-shadow:
-      0 8px 24px rgba(38, 67, 47, 0.08),
-      inset 0 1px 0 rgba(255, 255, 255, 0.95);
+    border-radius: 0 0 17px 17px;
   }
 
   /* Brand occupies the left side */
+
   .student-sidebar > .student-sidebar-brand {
     grid-column: 1;
     grid-row: 1;
@@ -1137,24 +939,26 @@
     gap: 8px;
   }
 
-  .student-sidebar-brand-mark {
+  .student-sidebar-brand-mark,
+  .student-brand-icon {
     width: 35px;
     height: 35px;
-    flex-shrink: 0;
     border-radius: 11px;
   }
 
-  .student-sidebar-brand-mark svg {
+  .student-sidebar-brand-mark svg,
+  .student-brand-icon svg {
     width: 21px;
     height: 21px;
   }
 
   .student-sidebar-brand-text {
-    font-size: 1.12rem;
-    white-space: nowrap;
+    font-size: 19px;
+    letter-spacing: -0.55px;
   }
 
   /* Menu button */
+
   .student-mobile-menu-toggle {
     grid-column: 2;
     grid-row: 1;
@@ -1167,15 +971,30 @@
     height: 35px;
     padding: 0;
 
-    border: 1px solid rgba(255, 255, 255, 0.9);
+    color: #315c45;
+
+    background:
+      radial-gradient(
+        circle at 25% 10%,
+        rgba(255, 255, 255, 0.96),
+        transparent 72%
+      ),
+      linear-gradient(
+        145deg,
+        rgba(237, 244, 231, 0.93),
+        rgba(217, 233, 209, 0.73)
+      );
+
+    border: 1px solid rgba(255, 255, 255, 0.97);
     border-radius: 11px;
 
-    background: rgba(255, 255, 255, 0.63);
-    color: #345342;
-
     box-shadow:
-      0 3px 9px rgba(39, 65, 47, 0.04),
-      inset 0 1px 0 rgba(255, 255, 255, 0.95);
+      0 4px 11px rgba(44, 73, 46, 0.065),
+      0 1px 0 rgba(255, 255, 255, 0.98) inset,
+      0 -1px 0 rgba(202, 220, 193, 0.4) inset;
+
+    -webkit-backdrop-filter: blur(14px) saturate(155%);
+    backdrop-filter: blur(14px) saturate(155%);
 
     cursor: pointer;
 
@@ -1186,15 +1005,16 @@
   }
 
   .student-mobile-menu-toggle:hover {
-    background: rgba(224, 235, 217, 0.88);
-    box-shadow: 0 5px 13px rgba(39, 65, 47, 0.08);
+    background: rgba(229, 240, 222, 0.98);
+    box-shadow: 0 6px 15px rgba(44, 73, 46, 0.10);
   }
 
   .student-mobile-menu-toggle:active {
     transform: scale(0.95);
   }
 
-  /* Right-side icon group */
+  /* Right-side actions */
+
   .student-sidebar > .student-sidebar-bottom {
     grid-column: 3;
     grid-row: 1;
@@ -1212,10 +1032,6 @@
   }
 
   .student-sidebar-bottom > .student-nav-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
     width: 34px !important;
     height: 34px !important;
     min-width: 34px;
@@ -1223,7 +1039,6 @@
     padding: 0 !important;
 
     border-radius: 11px;
-    box-sizing: border-box;
   }
 
   .student-notification-orb {
@@ -1240,7 +1055,8 @@
     font-size: 9px;
   }
 
-  /* Navigation is collapsed by default */
+  /* Navigation collapsed by default */
+
   .student-sidebar > .student-sidebar-navigation {
     grid-column: 1 / -1;
     grid-row: 2;
@@ -1260,34 +1076,38 @@
     padding: 0 !important;
   }
 
-  /* Expanded menu */
+  /* Open mobile navigation glass panel */
+
   .student-sidebar > .student-sidebar-navigation.mobile-open {
     display: flex !important;
 
-    margin-top: 12px !important;
-    padding-top: 12px !important;
+    margin-top: 10px !important;
+    padding: 12px !important;
 
-    border-top: 1px solid rgba(120, 151, 111, 0.17);
-    animation: studentMobileMenuEnter 200ms ease-out both;
-  }
+    background:
+      radial-gradient(
+        ellipse at 10% 0%,
+        rgba(255, 255, 255, 0.97),
+        transparent 58%
+      ),
+      linear-gradient(
+        145deg,
+        rgba(255, 255, 251, 0.91),
+        rgba(236, 243, 229, 0.83)
+      );
 
-  @keyframes studentMobileMenuEnter {
-    from {
-      opacity: 0;
-      transform: translateY(-5px);
-    }
+    border: 1px solid rgba(255, 255, 255, 0.97);
+    border-radius: 17px;
 
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
+    box-shadow:
+      0 12px 30px rgba(36, 70, 51, 0.09),
+      0 1px 0 rgba(255, 255, 255, 0.98) inset,
+      0 -1px 0 rgba(204, 221, 196, 0.27) inset;
 
-  .student-sidebar-label {
-    margin: 2px 10px 5px !important;
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    backdrop-filter: blur(24px) saturate(160%);
 
-    font-size: 0.62rem;
-    letter-spacing: 0.12em;
+    animation: studentMobileMenuEnter 220ms ease both;
   }
 
   .student-sidebar-navigation > .student-sidebar-link,
@@ -1297,22 +1117,20 @@
     justify-content: space-between;
 
     width: 100%;
-    min-height: 41px;
-    box-sizing: border-box;
+    min-height: 43px;
     padding: 10px 12px;
 
-    border: 1px solid transparent;
-    border-radius: 11px;
-
-    font-size: 0.84rem;
+    font-size: 12px;
+    white-space: normal;
   }
 
   .student-sidebar-navigation > .student-sidebar-link.active {
-    background: rgba(218, 232, 210, 0.72);
-    border-color: rgba(157, 184, 145, 0.3);
+    background: rgba(232, 241, 225, 0.92);
+    border-color: rgba(255, 255, 255, 0.98);
   }
 
-  /* Mobile groups expand inside the menu, not as floating popovers */
+  /* Dropdowns expand inside the mobile menu */
+
   .student-sidebar-group {
     position: relative !important;
     width: 100%;
@@ -1329,6 +1147,11 @@
     display: none;
   }
 
+  .student-sidebar-group:last-of-type .student-sidebar-group-links {
+    left: auto !important;
+    right: auto !important;
+  }
+
   .student-sidebar-group-links {
     position: static !important;
     inset: auto !important;
@@ -1340,87 +1163,276 @@
     width: 100% !important;
     min-width: 0 !important;
     max-width: none !important;
-    box-sizing: border-box;
 
     margin-top: 4px;
     padding: 5px !important;
 
-    border: 1px solid rgba(255, 255, 255, 0.8);
-    border-radius: 12px;
+    background: rgba(239, 245, 233, 0.7) !important;
 
-    background: rgba(255, 255, 255, 0.42) !important;
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    border-left: 2px solid rgba(116, 153, 104, 0.42);
+    border-radius: 0 11px 11px 0;
+
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
 
     -webkit-backdrop-filter: blur(18px);
     backdrop-filter: blur(18px);
-
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
-    transform-origin: top center;
   }
 
   .student-sidebar-group-links .student-sidebar-link {
     display: flex;
     align-items: center;
+    justify-content: flex-start;
 
-    min-height: 38px;
-    box-sizing: border-box;
+    width: 100%;
+    min-height: 41px;
     padding: 9px 11px;
 
-    border: 1px solid transparent;
-    border-radius: 9px;
-
-    font-size: 0.8rem;
+    font-size: 11px;
     white-space: normal;
   }
 
   .student-sidebar-group-links .student-sidebar-link:hover {
+    background: rgba(255, 255, 255, 0.78);
     transform: none;
-    background: rgba(255, 255, 255, 0.75);
   }
 
   .student-sidebar-group-links .student-sidebar-link.active {
-    background: rgba(218, 232, 210, 0.72);
-    border-color: rgba(157, 184, 145, 0.3);
+    background: rgba(222, 236, 215, 0.85);
+    border-color: rgba(255, 255, 255, 0.9);
   }
 
-  /* Fit very narrow screens */
-  @media (max-width: 360px) {
-    .student-sidebar {
-      padding-inline: 8px !important;
-      column-gap: 5px;
+  @keyframes studentMobileMenuEnter {
+    from {
+      opacity: 0;
+      transform: translateY(-5px);
     }
 
-    .student-sidebar-brand {
-      gap: 6px;
-    }
-
-    .student-sidebar-brand-text {
-      font-size: 1rem;
-    }
-
-    .student-sidebar > .student-sidebar-bottom {
-      gap: 3px;
-    }
-
-    .student-sidebar-bottom > .student-nav-icon {
-      width: 31px !important;
-      height: 31px !important;
-      min-width: 31px;
-      flex-basis: 31px;
-    }
-
-    .student-mobile-menu-toggle {
-      width: 32px;
-      height: 32px;
+    to {
+      opacity: 1;
+      transform: translateY(0);
     }
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .student-sidebar > .student-sidebar-navigation.mobile-open {
-    animation: none !important;
+/* Small phones */
+
+@media (max-width: 420px) {
+  .student-sidebar {
+    padding-inline: 10px !important;
+  }
+
+  .student-sidebar-brand {
+    gap: 7px;
+  }
+
+  .student-sidebar-brand-mark,
+  .student-brand-icon {
+    width: 31px;
+    height: 31px;
+    border-radius: 9px;
+  }
+
+  .student-sidebar-brand-mark svg,
+  .student-brand-icon svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .student-sidebar-brand-text {
+    font-size: 19px;
+    letter-spacing: -0.55px;
+  }
+
+  .student-sidebar-bottom {
+    gap: 4px;
+  }
+
+  .student-nav-icon,
+  .student-notification-orb {
+    border-radius: 10px;
+  }
+}
+
+/* Very narrow phones */
+
+@media (max-width: 360px) {
+  .student-sidebar {
+    padding-inline: 8px !important;
+    column-gap: 5px;
+  }
+
+  .student-sidebar-brand {
+    gap: 6px;
+  }
+
+  .student-sidebar-brand-text {
+    font-size: 17px;
+    letter-spacing: -0.45px;
+  }
+
+  .student-sidebar > .student-sidebar-bottom {
+    gap: 3px;
+  }
+
+  .student-sidebar-bottom > .student-nav-icon {
+    width: 31px !important;
+    height: 31px !important;
+    min-width: 31px;
+    flex-basis: 31px;
   }
 
   .student-mobile-menu-toggle {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+/* Keyboard accessibility */
+
+.student-sidebar a:focus-visible,
+.student-sidebar summary:focus-visible,
+.student-nav-icon:focus-visible,
+.student-mobile-menu-toggle:focus-visible {
+  outline: 2px solid #527760;
+  outline-offset: 3px;
+}
+
+/* Respect reduced-motion preferences */
+
+@media (prefers-reduced-motion: reduce) {
+  .student-sidebar,
+  .student-sidebar-link,
+  .student-sidebar-group summary,
+  .student-nav-icon,
+  .student-notification-orb,
+  .student-notification-aura,
+  .student-notification-icon,
+  .student-notification-badge,
+  .student-mobile-menu-toggle,
+  .student-sidebar-brand-mark,
+  .student-brand-icon,
+  .student-sidebar-brand-mark::after,
+  .student-brand-icon::after {
+    animation: none !important;
     transition: none !important;
   }
+
+  .student-sidebar-link:hover,
+  .student-nav-icon:hover:not(:disabled),
+  .student-notification-orb:hover,
+  .student-sidebar-brand:hover .student-sidebar-brand-mark,
+  .student-sidebar-brand:hover .student-brand-icon {
+    transform: none !important;
+  }
+
+  .student-sidebar > .student-sidebar-navigation.mobile-open,
+  .student-sidebar-group[open] .student-sidebar-group-links {
+    animation: none !important;
+  }
+}
+
+/* ==========================================
+   FIX — Visible Hover on All Student Navbar Controls
+   ========================================== */
+
+/* Normal navigation links */
+.student-sidebar-navigation > .student-sidebar-link:hover,
+.student-sidebar-group-links .student-sidebar-link:hover {
+  color: #294b35 !important;
+  background: rgba(218, 232, 210, 0.78) !important;
+
+  border-color: rgba(157, 184, 145, 0.58) !important;
+
+  box-shadow:
+    0 5px 14px rgba(49, 92, 69, 0.09),
+    0 1px 0 rgba(255, 255, 255, 0.95) inset !important;
+
+  transform: translateY(-2px);
+  cursor: pointer;
+}
+
+/* Dropdown buttons: Tasks, Project & Proposal, etc. */
+.student-sidebar-group > summary:hover {
+  color: #294b35 !important;
+  background: rgba(218, 232, 210, 0.78) !important;
+
+  border-color: rgba(157, 184, 145, 0.58) !important;
+
+  box-shadow:
+    0 5px 14px rgba(49, 92, 69, 0.09),
+    0 1px 0 rgba(255, 255, 255, 0.95) inset !important;
+
+  cursor: pointer;
+}
+
+/* Dropdown items */
+.student-sidebar-group-links .student-sidebar-link:hover {
+  color: #294b35 !important;
+  background: rgba(218, 232, 210, 0.85) !important;
+  border-color: rgba(157, 184, 145, 0.55) !important;
+  transform: translateX(3px);
+}
+
+/* Notification, profile and logout buttons */
+.student-sidebar-bottom .student-nav-icon:hover:not(:disabled) {
+  color: #244633 !important;
+  background: linear-gradient(
+    145deg,
+    #ffffff,
+    #dcead5
+  ) !important;
+
+  border-color: rgba(157, 184, 145, 0.65) !important;
+
+  box-shadow:
+    0 7px 18px rgba(44, 73, 46, 0.14),
+    0 1px 0 rgba(255, 255, 255, 0.98) inset !important;
+
+  transform: translateY(-2px);
+}
+
+/* Keep the unread bell styling intact */
+.student-notification-orb.has-unread:hover {
+  background: linear-gradient(
+    145deg,
+    #568764,
+    #234b39
+  ) !important;
+}
+
+/* Mobile menu button */
+.student-mobile-menu-toggle:hover {
+  color: #244633 !important;
+  background: linear-gradient(
+    145deg,
+    #ffffff,
+    #dcead5
+  ) !important;
+
+  border-color: rgba(157, 184, 145, 0.65) !important;
+
+  box-shadow:
+    0 6px 15px rgba(44, 73, 46, 0.12),
+    0 1px 0 #fff inset !important;
+}
+
+/* Smooth transitions for all controls */
+.student-sidebar-link,
+.student-sidebar-group > summary,
+.student-nav-icon,
+.student-mobile-menu-toggle {
+  transition:
+    color 200ms ease,
+    background 200ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease,
+    transform 200ms ease !important;
+}
+
+/* Active links remain visibly selected */
+.student-sidebar-link.active {
+  color: #294b35;
+  background: rgba(218, 232, 210, 0.78);
+  border-color: rgba(157, 184, 145, 0.45);
 }

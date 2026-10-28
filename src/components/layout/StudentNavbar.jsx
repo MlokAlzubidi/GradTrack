@@ -225,12 +225,9 @@ function StudentNavbar({ teamStatus = "no-team" }) {
         className="student-sidebar-brand"
         onClick={closeMenu}
       >
-        <span
-          className="student-sidebar-brand-mark"
-          aria-hidden="true"
-        >
-          <GraduationCap size={25} strokeWidth={2} />
-        </span>
+        <span className="student-brand-icon">
+  <GraduationCap size={25} strokeWidth={1.8} />
+</span>
 
         <span className="student-sidebar-brand-text">
           Grad<span>Track</span>

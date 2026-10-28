@@ -240,3 +240,141 @@
     max-width: none;
   }
 }
+
+.my-task-review-feedback {
+  margin-top: 20px;
+  padding: 18px;
+  background: #f7f9f3;
+  border: 1px solid #dfe8d9;
+  border-radius: 15px;
+}
+
+.my-task-review-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.my-task-review-eyebrow {
+  color: #7b8978;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 1.3px;
+}
+
+.my-task-review-heading h3 {
+  margin: 5px 0 0;
+  color: #31533a;
+  font-size: 16px;
+}
+
+.my-task-review-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  color: #896b32;
+  background: #faf2df;
+  border: 1px solid #f0e5c6;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.my-task-review-status.reviewed {
+  color: #276544;
+  background: #e3f3e9;
+  border-color: #d1e9d9;
+}
+
+.my-task-review-status.changes-requested {
+  color: #974b40;
+  background: #fff0ed;
+  border-color: #f3ded8;
+}
+
+.my-task-review-file {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: 13px;
+  border-bottom: 1px solid #e5eade;
+}
+
+.my-task-review-file strong {
+  color: #60715d;
+  font-size: 11px;
+}
+
+.my-task-review-file span {
+  color: #405643;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.my-task-review-comments {
+  margin-top: 15px;
+  padding: 13px 14px;
+  background: #fff;
+  border: 1px solid #e4e9dd;
+  border-radius: 11px;
+}
+
+.my-task-review-comments strong {
+  color: #3d5a41;
+  font-size: 12px;
+}
+
+.my-task-review-comments p {
+  margin: 7px 0 0;
+  color: #626f60;
+  font-size: 12px;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.my-task-review-pending-note {
+  margin: 13px 0 0;
+  color: #778572;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.my-task-review-date {
+  margin: 12px 0 0;
+  color: #879181;
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.my-task-review-action {
+  margin: 12px 0 0;
+  padding: 11px 12px;
+  color: #8e4c40;
+  background: #fff0ed;
+  border: 1px solid #f3ded8;
+  border-radius: 10px;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+@media (max-width: 520px) {
+  .my-task-review-feedback {
+    padding: 14px;
+  }
+
+  .my-task-review-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+.my-task-review-feedback .my-task-review-action.reviewed {
+  color: #276544;
+  background: #e3f3e9;
+  border: 1px solid #d1e9d9;
+}

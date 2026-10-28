@@ -129,3 +129,41 @@
     padding: 30px 24px;
   }
 }
+
+
+.supervisor-login-message {
+  margin: 14px 0;
+  padding: 12px 14px;
+  border: 1px solid #e6b8b8;
+  border-radius: 12px;
+  background: #fff1ef;
+  color: #922f2f;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.supervisor-demo-credentials {
+  margin-top: 24px;
+  padding: 15px;
+  border: 1px solid #dce5d9;
+  border-radius: 14px;
+  background: #f4f7f1;
+  color: #344b39;
+  overflow-wrap: anywhere;
+}
+
+.supervisor-demo-credentials > strong {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+}
+
+.supervisor-demo-credentials p {
+  margin: 6px 0 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.supervisor-demo-credentials span {
+  font-weight: 600;
+}

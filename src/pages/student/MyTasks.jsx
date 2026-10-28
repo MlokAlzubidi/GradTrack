@@ -1,5 +1,7 @@
-import { useState } from "react";
+
+import { useEffect, useState } from "react";
 import StudentNavbar from "../../components/layout/StudentNavbar";
+import { addNotification } from "../../utils/notifications";
 import "./MyTasks.css";
 
 const TASKS_STORAGE_KEY = "gradtrack-team-tasks";
@@ -62,7 +64,10 @@ function getCurrentTeam(student) {
           : []),
       ].filter(Boolean);
 
-      return memberIds.includes(student.universityId);
+      return memberIds.some(
+        (id) =>
+          String(id) === String(student.universityId)
+      );
     }) || null
   );
 }
@@ -95,6 +100,27 @@ function readFileAsDataUrl(file) {
   });
 }
 
+// تنسيق تاريخ مراجعة المشرف.
+function formatReviewDate(dateString) {
+  if (!dateString) return "";
+
+  const date = new Date(dateString);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return date.toLocaleString();
+}
+
+// تحويل حالة المراجعة إلى class لتنسيقها باستخدام CSS.
+function getReviewStatusClass(status) {
+  return (status || "Pending Review")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
 function MyTasks() {
   const currentStudent = readCurrentStudent();
   const currentTeam = getCurrentTeam(currentStudent);
@@ -104,7 +130,7 @@ function MyTasks() {
 
   const isLeader =
     Boolean(currentTeam) &&
-    currentTeam.leaderId === studentId;
+    String(currentTeam.leaderId) === String(studentId);
 
   const teamStatus = currentTeam
     ? isLeader
@@ -119,23 +145,49 @@ function MyTasks() {
   const [selectedFiles, setSelectedFiles] = useState({});
   const [messages, setMessages] = useState({});
 
+  // تحديث المهام إذا راجع المشرف التسليم من تبويب آخر.
+  useEffect(() => {
+    function refreshTasks(event) {
+      if (
+        !event ||
+        !event.key ||
+        event.key === TASKS_STORAGE_KEY
+      ) {
+        setAllTasks(readLocalArray(TASKS_STORAGE_KEY));
+      }
+    }
+
+    window.addEventListener("storage", refreshTasks);
+    window.addEventListener("focus", refreshTasks);
+
+    return () => {
+      window.removeEventListener("storage", refreshTasks);
+      window.removeEventListener("focus", refreshTasks);
+    };
+  }, []);
+
   // نعرض المهام التابعة للفريق الحالي فقط.
   const teamTasks = currentTeam
     ? allTasks.filter(
-        (task) => task && task.teamId === currentTeam.id
+        (task) =>
+          task &&
+          String(task.teamId) === String(currentTeam.id)
       )
     : [];
 
   // نعرض للطالب المهام المسندة إليه باستخدام رقمه الجامعي.
   const myTasks = teamTasks.filter(
-    (task) => task.assigneeId === studentId
+    (task) =>
+      String(task.assigneeId) === String(studentId)
   );
 
   // تحديث حالة المهمة وحفظها في المصدر المشترك.
   function handleStatusChange(taskId, newStatus) {
     if (!currentTeam || !studentId) return;
 
-    const task = myTasks.find((item) => item.id === taskId);
+    const task = myTasks.find(
+      (item) => item.id === taskId
+    );
 
     if (!task) {
       setMessages((current) => ({
@@ -147,7 +199,7 @@ function MyTasks() {
 
     const updatedTasks = allTasks.map((item) =>
       item.id === taskId &&
-      item.teamId === currentTeam.id
+      String(item.teamId) === String(currentTeam.id)
         ? { ...item, status: newStatus }
         : item
     );
@@ -236,24 +288,58 @@ function MyTasks() {
         studentId,
         studentName,
         fileName: selectedFile.name,
-        fileType: selectedFile.type || "application/octet-stream",
+        fileType:
+          selectedFile.type || "application/octet-stream",
         fileSize: selectedFile.size,
         fileData,
         submittedAt: new Date().toISOString(),
+
+        // كل ملف جديد يبدأ بمراجعة جديدة.
+        reviewStatus: "Pending Review",
+        supervisorFeedback: "",
+        reviewedAt: null,
+        reviewedBy: null,
       };
 
-      const previousSubmissions = Array.isArray(task.submissions)
-        ? task.submissions
-        : [];
+      // قراءة أحدث نسخة قبل الحفظ للمحافظة على أي مراجعة
+      // أو تعديل حصل منذ فتح الصفحة.
+      const latestTasks = readLocalArray(TASKS_STORAGE_KEY);
 
-      // نحتفظ بآخر تسليم لهذا الطالب ونبقي تسليمات زملائه.
-      const otherSubmissions = previousSubmissions.filter(
-        (submission) => submission.studentId !== studentId
+      const latestTask = latestTasks.find(
+        (item) =>
+          item.id === taskId &&
+          String(item.teamId) === String(currentTeam.id)
       );
 
-      const updatedTasks = allTasks.map((item) =>
+      if (!latestTask) {
+        setMessages((current) => ({
+          ...current,
+          [taskId]:
+            "This task could not be found in saved data. Refresh and try again.",
+        }));
+        return;
+      }
+
+      const previousSubmissions = Array.isArray(
+        latestTask.submissions
+      )
+        ? latestTask.submissions
+        : [];
+
+        const isResubmission = previousSubmissions.some(
+  (submission) =>
+    String(submission.studentId) === String(studentId)
+);
+
+      // نحتفظ بتسليمات الزملاء ونستبدل آخر تسليم لهذا الطالب.
+      const otherSubmissions = previousSubmissions.filter(
+        (submission) =>
+          String(submission.studentId) !== String(studentId)
+      );
+
+      const updatedTasks = latestTasks.map((item) =>
         item.id === taskId &&
-        item.teamId === currentTeam.id
+        String(item.teamId) === String(currentTeam.id)
           ? {
               ...item,
               status: "Completed",
@@ -275,6 +361,24 @@ function MyTasks() {
         return;
       }
 
+try {
+  addNotification({
+    id: `supervisor-task-${newSubmission.id}`,
+    recipientId: "demo-supervisor",
+    type: "task",
+    title: isResubmission
+      ? "Task Submission Updated"
+      : "New Task Submission",
+    message: `${studentName} ${
+      isResubmission ? "resubmitted" : "submitted"
+    } the task "${task.title}" for team "${currentTeam.name || "the team"}".`,
+    link: "/supervisor/submissions",
+    relatedId: newSubmission.id,
+  });
+} catch {
+  // Keep the successfully saved student submission intact.
+}
+
       setAllTasks(updatedTasks);
 
       setSelectedFiles((current) => ({
@@ -294,7 +398,7 @@ function MyTasks() {
       setMessages((current) => ({
         ...current,
         [taskId]:
-          "Could not read the selected file. Please try again.",
+          "Could not read or save the selected file. Please try again.",
       }));
     }
   }
@@ -339,90 +443,119 @@ function MyTasks() {
           </section>
         ) : (
           <section className="my-tasks-list">
-            {myTasks.map((task) => (
-              <article className="my-task-card" key={task.id}>
-                <div className="my-task-card-header">
-                  <div>
-                    <h2>{task.title}</h2>
+            {myTasks.map((task) => {
+              // نحدد تسليم الطالب الحالي لهذه المهمة.
+              const mySubmission = Array.isArray(task.submissions)
+                ? task.submissions.find(
+                    (submission) =>
+                      String(submission.studentId) ===
+                      String(studentId)
+                  )
+                : null;
 
-                    <p className="my-task-description">
-                      {task.description}
-                    </p>
+              const reviewStatus =
+                mySubmission?.reviewStatus || "Pending Review";
+
+              const reviewStatusClass =
+                getReviewStatusClass(reviewStatus);
+
+              return (
+                <article className="my-task-card" key={task.id}>
+                  <div className="my-task-card-header">
+                    <div>
+                      <h2>{task.title}</h2>
+
+                      <p className="my-task-description">
+                        {task.description}
+                      </p>
+                    </div>
+
+                    <span
+                      className={`my-task-status ${(task.status || "To Do")
+                        .toLowerCase()
+                        .replace(" ", "-")}`}
+                    >
+                      {task.status || "To Do"}
+                    </span>
                   </div>
 
-                  <span
-                    className={`my-task-status ${(task.status || "To Do")
-                      .toLowerCase()
-                      .replace(" ", "-")}`}
-                  >
-                    {task.status || "To Do"}
-                  </span>
-                </div>
+                  <p className="my-task-due-date">
+                    <strong>Due date:</strong>{" "}
+                    <time dateTime={task.dueDate || ""}>
+                      {task.dueDate || "Not specified"}
+                    </time>
+                  </p>
 
-                <p className="my-task-due-date">
-                  <strong>Due date:</strong>{" "}
-                  <time dateTime={task.dueDate || ""}>
-                    {task.dueDate || "Not specified"}
-                  </time>
-                </p>
-
-                <div className="my-task-status-control">
-                  <label htmlFor={`task-status-${task.id}`}>
-                    Update status
-                  </label>
-
-                  <select
-                    id={`task-status-${task.id}`}
-                    value={task.status || "To Do"}
-                    onChange={(event) =>
-                      handleStatusChange(
-                        task.id,
-                        event.target.value
-                      )
-                    }
-                  >
-                    <option value="To Do">To Do</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Completed">Completed</option>
-                  </select>
-                </div>
-
-                {task.requiresSubmission !== false && (
-                  <form
-                    className="my-task-submission"
-                    onSubmit={(event) =>
-                      handleSubmit(event, task.id)
-                    }
-                  >
-                    <label htmlFor={`task-file-${task.id}`}>
-                      Upload your task file
+                  <div className="my-task-status-control">
+                    <label htmlFor={`task-status-${task.id}`}>
+                      Update status
                     </label>
 
-                    <input
-                      id={`task-file-${task.id}`}
-                      type="file"
+                    <select
+                      id={`task-status-${task.id}`}
+                      value={task.status || "To Do"}
                       onChange={(event) =>
-                        handleFileChange(
+                        handleStatusChange(
                           task.id,
-                          event.target.files?.[0] ?? null
+                          event.target.value
                         )
                       }
-                    />
+                    >
+                      <option value="To Do">To Do</option>
+                      <option value="In Progress">In Progress</option>
+                      <option value="Completed">Completed</option>
+                    </select>
+                  </div>
 
-                    <button type="submit">
-                      Submit File
-                    </button>
+                  {task.requiresSubmission !== false && (
+                    <form
+                      className="my-task-submission"
+                      onSubmit={(event) =>
+                        handleSubmit(event, task.id)
+                      }
+                    >
+                      <label htmlFor={`task-file-${task.id}`}>
+                        Upload your task file
+                      </label>
 
-                    {task.submissions?.some(
-                      (submission) =>
-                        submission.studentId === studentId
-                    ) && (
-                      <p className="my-task-submitted-file">
-                        Your latest submission is shared with the team.
-                      </p>
-                    )}
+                      <input
+                        id={`task-file-${task.id}`}
+                        type="file"
+                        onChange={(event) =>
+                          handleFileChange(
+                            task.id,
+                            event.target.files?.[0] ?? null
+                          )
+                        }
+                      />
 
-                    {messages[task.id] && (
+                      <button type="submit">
+                        {mySubmission
+                          ? "Submit Revised File"
+                          : "Submit File"}
+                      </button>
+
+                      {mySubmission && (
+                        <p className="my-task-submitted-file">
+                          Your latest submission:{" "}
+                          {mySubmission.fileName}. You can upload
+                          a revised file if needed.
+                        </p>
+                      )}
+
+                      {messages[task.id] && (
+                        <p
+                          className="my-task-message"
+                          role="status"
+                        >
+                          {messages[task.id]}
+                        </p>
+                      )}
+                    </form>
+                  )}
+
+                  {task.requiresSubmission === false &&
+                    messages[task.id] && (
                       <p
                         className="my-task-message"
                         role="status"
@@ -430,20 +563,79 @@ function MyTasks() {
                         {messages[task.id]}
                       </p>
                     )}
-                  </form>
-                )}
 
-                {task.requiresSubmission === false &&
-                  messages[task.id] && (
-                    <p
-                      className="my-task-message"
-                      role="status"
+                  {/* Supervisor review and feedback */}
+                  {mySubmission && (
+                    <section
+                      className="my-task-review-feedback"
+                      aria-label="Supervisor submission feedback"
                     >
-                      {messages[task.id]}
-                    </p>
+                      <div className="my-task-review-heading">
+                        <div>
+                          <span className="my-task-review-eyebrow">
+                            SUPERVISOR FEEDBACK
+                          </span>
+
+                          <h3>Submission Review</h3>
+                        </div>
+
+                        <span
+                          className={`my-task-review-status ${reviewStatusClass}`}
+                        >
+                          {reviewStatus}
+                        </span>
+                      </div>
+
+                      <div className="my-task-review-file">
+                        <strong>Submitted file</strong>
+                        <span>{mySubmission.fileName}</span>
+                      </div>
+
+                      {mySubmission.supervisorFeedback?.trim() ? (
+                        <div className="my-task-review-comments">
+                          <strong>Supervisor comments</strong>
+
+                          <p>
+                            {mySubmission.supervisorFeedback}
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="my-task-review-pending-note">
+                          {reviewStatus === "Pending Review"
+                            ? "Your submission is awaiting review from the academic supervisor."
+                            : "Your submission has been reviewed. No additional comments were provided."}
+                        </p>
+                      )}
+
+                      {mySubmission.reviewedAt && (
+                        <p className="my-task-review-date">
+                          Reviewed by{" "}
+                          {mySubmission.reviewedBy ||
+                            "Academic Supervisor"}
+                          {" · "}
+                          {formatReviewDate(
+                            mySubmission.reviewedAt
+                          )}
+                        </p>
+                      )}
+
+                      {reviewStatus === "Changes Requested" && (
+                        <p className="my-task-review-action">
+                          Please read the supervisor's comments
+                          and submit a revised file.
+                        </p>
+                      )}
+
+                      {reviewStatus === "Reviewed" && (
+                        <p className="my-task-review-action reviewed">
+                          Your submission has been reviewed.
+                        </p>
+                      )}
+                    </section>
                   )}
-              </article>
-            ))}
+                </article>
+              );
+            })}
           </section>
         )}
       </main>

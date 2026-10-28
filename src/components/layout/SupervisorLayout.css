@@ -1,0 +1,1455 @@
+
+.supervisor-layout {
+  --supervisor-green: #315c45;
+  --supervisor-green-dark: #244633;
+  --supervisor-sage: #e8efe2;
+  --supervisor-cream: #f7f6ef;
+  --supervisor-text: #2d4032;
+  --supervisor-muted: #7b8678;
+  --supervisor-border: #e2e7dc;
+
+  min-height: 100vh;
+  color: var(--supervisor-text);
+  background: var(--supervisor-cream);
+  font-family: inherit;
+}
+
+.supervisor-layout *,
+.supervisor-layout *::before,
+.supervisor-layout *::after {
+  box-sizing: border-box;
+}
+
+/* Top horizontal navigation */
+
+.supervisor-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: grid;
+  grid-template-columns: minmax(175px, 1fr) auto minmax(175px, 1fr);
+  align-items: center;
+  gap: 22px;
+  width: 100%;
+  min-height: 67px;
+  padding: 9px 32px;
+  background: rgba(255, 255, 250, 0.89);
+  border-bottom: 1px solid rgba(49, 92, 69, 0.09);
+  box-shadow: 0 5px 20px rgba(38, 61, 41, 0.035);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.supervisor-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  color: var(--supervisor-green);
+  text-decoration: none;
+}
+
+.supervisor-brand-icon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 35px;
+  height: 35px;
+  color: #fff;
+  background: linear-gradient(145deg, #3d6b50, #244633);
+  border-radius: 11px;
+  box-shadow: 0 4px 10px rgba(36, 70, 51, 0.13);
+  transition: transform 180ms ease;
+}
+
+.supervisor-brand:hover .supervisor-brand-icon {
+  transform: translateY(-1px);
+}
+
+.supervisor-brand-name {
+  color: #345d43;
+  font-size: 17px;
+  font-weight: 780;
+  letter-spacing: -0.55px;
+}
+
+/* Desktop navigation */
+
+.supervisor-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.supervisor-nav-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 37px;
+  padding: 0 11px;
+  color: #5c6d5d;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    color 180ms ease,
+    background 180ms ease,
+    border-color 180ms ease;
+}
+
+.supervisor-nav-link:hover {
+  color: var(--supervisor-green-dark);
+  background: rgba(232, 239, 226, 0.75);
+}
+
+.supervisor-nav-link.active {
+  color: var(--supervisor-green-dark);
+  background: #e8efe2;
+  border-color: #dce7d6;
+  font-weight: 750;
+}
+
+.supervisor-mobile-nav-icon,
+.supervisor-mobile-extra-link,
+.supervisor-mobile-logout {
+  display: none;
+}
+
+/* Reviews dropdown */
+
+.supervisor-nav-dropdown {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.supervisor-nav-dropdown-trigger {
+  appearance: none;
+}
+
+.supervisor-nav-chevron {
+  flex-shrink: 0;
+  color: #7d8d79;
+  transition: transform 180ms ease;
+}
+
+.supervisor-nav-dropdown.is-open
+  .supervisor-nav-chevron {
+  transform: rotate(180deg);
+}
+
+.supervisor-nav-dropdown-panel {
+  position: absolute;
+  top: calc(100% + 9px);
+  left: 0;
+  z-index: 120;
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  width: 235px;
+  padding: 8px;
+  background: rgba(255, 255, 251, 0.97);
+  border: 1px solid #e1e7dc;
+  border-radius: 14px;
+  box-shadow: 0 16px 38px rgba(36, 70, 51, 0.12);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.supervisor-nav-dropdown:hover
+  .supervisor-nav-dropdown-panel,
+.supervisor-nav-dropdown.is-open
+  .supervisor-nav-dropdown-panel {
+  display: flex;
+}
+
+.supervisor-dropdown-link {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-height: 42px;
+  padding: 0 11px;
+  color: #647363;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    color 180ms ease,
+    background 180ms ease;
+}
+
+.supervisor-dropdown-link:hover {
+  color: var(--supervisor-green);
+  background: #f0f4eb;
+}
+
+.supervisor-dropdown-link.active {
+  color: var(--supervisor-green-dark);
+  background: #e8efe2;
+  border-color: #dce7d6;
+  font-weight: 750;
+}
+
+/* Notification, profile and logout actions */
+
+.supervisor-topbar-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.supervisor-action-button {
+  position: relative;
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  color: #46694c;
+  background: rgba(255, 255, 251, 0.75);
+  border: 1px solid #dce5d7;
+  border-radius: 12px;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    color 180ms ease,
+    background 180ms ease,
+    border-color 180ms ease,
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.supervisor-action-button:hover {
+  color: #244633;
+  background: #e8efe2;
+  border-color: #cbdcc5;
+  transform: translateY(-1px);
+}
+
+.supervisor-action-button.active {
+  color: #244633;
+  background: #e8efe2;
+  border-color: #cfdec8;
+}
+
+.supervisor-action-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  display: grid;
+  place-items: center;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  color: #fff;
+  background: #b94f43;
+  border: 2px solid #fffefa;
+  border-radius: 999px;
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.supervisor-menu-toggle {
+  display: none;
+  place-items: center;
+  flex-shrink: 0;
+  width: 37px;
+  height: 37px;
+  padding: 0;
+  color: #315c45;
+  background: #e8efe2;
+  border: 1px solid #dce7d6;
+  border-radius: 11px;
+  cursor: pointer;
+  transition: background 180ms ease;
+}
+
+.supervisor-menu-toggle:hover {
+  background: #dce8d5;
+}
+
+/* Main content */
+
+.supervisor-main {
+  width: 100%;
+  min-height: calc(100vh - 67px);
+  margin: 0;
+}
+
+.supervisor-content {
+  width: 100%;
+  max-width: 1600px;
+  min-height: calc(100vh - 67px);
+  margin: 0 auto;
+  padding: 30px 34px 34px;
+  animation: supervisorPageEnter 350ms ease both;
+}
+
+@keyframes supervisorPageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Medium screens */
+
+@media (max-width: 1050px) {
+  .supervisor-topbar {
+    grid-template-columns: minmax(150px, 1fr) auto minmax(130px, 1fr);
+    gap: 10px;
+    padding-inline: 20px;
+  }
+
+  .supervisor-brand-name {
+    font-size: 16px;
+  }
+
+  .supervisor-navigation {
+    gap: 1px;
+  }
+
+  .supervisor-nav-link {
+    gap: 5px;
+    padding-inline: 8px;
+    font-size: 10px;
+  }
+
+  .supervisor-content {
+    padding: 25px 23px 30px;
+  }
+}
+
+/* Mobile navigation */
+
+@media (max-width: 760px) {
+  .supervisor-topbar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 10px;
+    min-height: 61px;
+    padding: 10px 15px;
+  }
+
+  .supervisor-brand {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .supervisor-brand-icon {
+    width: 34px;
+    height: 34px;
+  }
+
+  .supervisor-brand-name {
+    font-size: 17px;
+  }
+
+  .supervisor-topbar-actions {
+    gap: 5px;
+  }
+
+  .supervisor-action-button {
+    width: 33px;
+    height: 33px;
+    border-radius: 10px;
+  }
+
+  .supervisor-menu-toggle {
+    display: grid;
+    order: 3;
+  }
+
+  .supervisor-navigation {
+    display: none;
+    flex-basis: 100%;
+    order: 4;
+    align-items: stretch;
+    flex-direction: column;
+    gap: 5px;
+    width: 100%;
+    min-width: 0;
+    padding: 12px 0 2px;
+    border-top: 1px solid #e5e9df;
+  }
+
+  .supervisor-navigation.is-mobile-open {
+    display: flex;
+    animation: supervisorMobileMenuEnter 220ms ease both;
+  }
+
+  .supervisor-nav-link {
+    justify-content: flex-start;
+    gap: 11px;
+    width: 100%;
+    min-height: 43px;
+    padding: 0 12px;
+    font-size: 12px;
+    text-align: left;
+    white-space: normal;
+  }
+
+  .supervisor-mobile-nav-icon {
+    display: block;
+    flex-shrink: 0;
+  }
+
+  .supervisor-nav-dropdown {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .supervisor-nav-dropdown-trigger {
+    justify-content: flex-start;
+  }
+
+  .supervisor-nav-chevron {
+    margin-left: auto;
+  }
+
+  .supervisor-nav-dropdown-panel {
+    position: static;
+    display: none;
+    width: 100%;
+    margin-top: 4px;
+    padding: 5px 0 5px 12px;
+    background: #f8f9f3;
+    border: 0;
+    border-left: 2px solid #dce7d6;
+    border-radius: 0 10px 10px 0;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  .supervisor-nav-dropdown:hover
+    .supervisor-nav-dropdown-panel {
+    display: none;
+  }
+
+  .supervisor-nav-dropdown.is-open
+    .supervisor-nav-dropdown-panel {
+    display: flex;
+  }
+
+  .supervisor-dropdown-link {
+    min-height: 41px;
+    padding-inline: 11px;
+    font-size: 11px;
+  }
+
+  .supervisor-mobile-extra-link {
+    display: flex;
+  }
+
+  .supervisor-mobile-logout {
+    display: flex;
+    color: #815d53;
+    appearance: none;
+  }
+
+  .supervisor-mobile-logout:hover {
+    color: #943f35;
+    background: #fff0ed;
+  }
+
+  .supervisor-mobile-unread-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    margin-left: auto;
+    padding: 0 5px;
+    color: #fff;
+    background: #b94f43;
+    border-radius: 999px;
+    font-size: 9px;
+    font-weight: 800;
+  }
+
+  .supervisor-content {
+    min-height: calc(100vh - 61px);
+    padding: 23px 17px 28px;
+  }
+}
+
+@keyframes supervisorMobileMenuEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Small phones */
+
+@media (max-width: 420px) {
+  .supervisor-topbar {
+    gap: 7px;
+    padding-inline: 10px;
+  }
+
+  .supervisor-brand {
+    gap: 7px;
+  }
+
+  .supervisor-brand-icon {
+    width: 31px;
+    height: 31px;
+    border-radius: 9px;
+  }
+
+  .supervisor-brand-icon svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .supervisor-brand-name {
+    font-size: 15px;
+  }
+
+  .supervisor-topbar-actions {
+    gap: 4px;
+  }
+
+  .supervisor-action-button,
+  .supervisor-menu-toggle {
+    width: 31px;
+    height: 31px;
+  }
+
+  .supervisor-content {
+    padding: 20px 12px 25px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .supervisor-layout *,
+  .supervisor-layout *::before,
+  .supervisor-layout *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+
+/* =========================================
+   SUPERVISOR NAVBAR — LIQUID GLASS EFFECT
+   ========================================= */
+
+.supervisor-topbar {
+  position: sticky;
+  isolation: isolate;
+
+  background:
+    radial-gradient(
+      ellipse at 12% 0%,
+      rgba(255, 255, 255, 0.98) 0%,
+      rgba(255, 255, 255, 0) 48%
+    ),
+    radial-gradient(
+      ellipse at 86% 100%,
+      rgba(211, 229, 202, 0.24) 0%,
+      rgba(211, 229, 202, 0) 48%
+    ),
+    linear-gradient(
+      115deg,
+      rgba(255, 255, 250, 0.88),
+      rgba(246, 248, 239, 0.76),
+      rgba(255, 255, 252, 0.90)
+    );
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.85);
+
+  box-shadow:
+    0 8px 28px rgba(38, 61, 41, 0.055),
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 -1px 0 rgba(211, 224, 204, 0.35) inset;
+
+  backdrop-filter: blur(28px) saturate(155%);
+  -webkit-backdrop-filter: blur(28px) saturate(155%);
+
+  transition:
+    background 250ms ease,
+    box-shadow 250ms ease;
+}
+
+.supervisor-topbar::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  content: "";
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.62) 0%,
+      rgba(255, 255, 255, 0.12) 27%,
+      rgba(255, 255, 255, 0) 60%
+    );
+
+  opacity: 0.95;
+}
+
+/* Glossy graduation-cap logo */
+
+.supervisor-brand-icon {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+
+  background:
+    radial-gradient(
+      circle at 28% 12%,
+      rgba(255, 255, 255, 0.58),
+      transparent 45%
+    ),
+    linear-gradient(
+      145deg,
+      #60866a 0%,
+      #416e50 48%,
+      #244633 100%
+    );
+
+  border: 1px solid rgba(255, 255, 255, 0.58);
+
+  box-shadow:
+    0 5px 13px rgba(36, 70, 51, 0.16),
+    0 1px 0 rgba(255, 255, 255, 0.45) inset,
+    0 -2px 4px rgba(25, 58, 36, 0.16) inset;
+}
+
+.supervisor-brand-icon::after {
+  position: absolute;
+  top: -65%;
+  left: -75%;
+  z-index: -1;
+  width: 65%;
+  height: 230%;
+  content: "";
+  pointer-events: none;
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.35),
+    transparent
+  );
+
+  transform: rotate(25deg);
+  transition: left 500ms ease;
+}
+
+.supervisor-brand:hover .supervisor-brand-icon::after {
+  left: 130%;
+}
+
+.supervisor-brand-name {
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+/* Liquid glass navigation pills */
+
+.supervisor-nav-link {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+
+  background: rgba(255, 255, 255, 0.06);
+
+  border: 1px solid rgba(255, 255, 255, 0.32);
+
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.45) inset,
+    0 -1px 0 rgba(209, 221, 201, 0.10) inset;
+
+  backdrop-filter: blur(12px) saturate(145%);
+  -webkit-backdrop-filter: blur(12px) saturate(145%);
+
+  transition:
+    color 220ms ease,
+    background 220ms ease,
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    transform 220ms ease;
+}
+
+.supervisor-nav-link::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  content: "";
+  pointer-events: none;
+
+  background: linear-gradient(
+    125deg,
+    rgba(255, 255, 255, 0.74) 0%,
+    rgba(255, 255, 255, 0.19) 38%,
+    rgba(220, 234, 213, 0.13) 100%
+  );
+
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+
+.supervisor-nav-link:hover {
+  color: #244633;
+
+  background: rgba(237, 244, 231, 0.67);
+
+  border-color: rgba(255, 255, 255, 0.95);
+
+  box-shadow:
+    0 5px 14px rgba(49, 92, 69, 0.07),
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    0 -1px 0 rgba(202, 220, 193, 0.28) inset;
+
+  transform: translateY(-1px);
+}
+
+.supervisor-nav-link:hover::before {
+  opacity: 1;
+}
+
+.supervisor-nav-link.active {
+  color: #294e35;
+
+  background:
+    radial-gradient(
+      ellipse at 20% 0%,
+      rgba(255, 255, 255, 0.95),
+      transparent 68%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(232, 241, 225, 0.96),
+      rgba(214, 231, 206, 0.75)
+    );
+
+  border-color: rgba(255, 255, 255, 0.98);
+
+  box-shadow:
+    0 5px 15px rgba(49, 92, 69, 0.075),
+    0 1px 0 rgba(255, 255, 255, 0.98) inset,
+    0 -1px 0 rgba(176, 204, 165, 0.32) inset;
+}
+
+.supervisor-nav-link.active::before {
+  opacity: 0.72;
+}
+
+/* Reviews dropdown — translucent glass panel */
+
+.supervisor-nav-dropdown-panel {
+  padding: 9px;
+
+  background:
+    radial-gradient(
+      ellipse at 15% 0%,
+      rgba(255, 255, 255, 0.98),
+      transparent 60%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 252, 0.91),
+      rgba(239, 245, 233, 0.83)
+    );
+
+  border: 1px solid rgba(255, 255, 255, 0.96);
+
+  box-shadow:
+    0 18px 45px rgba(36, 70, 51, 0.13),
+    0 4px 12px rgba(36, 70, 51, 0.045),
+    0 1px 0 rgba(255, 255, 255, 0.98) inset,
+    0 -1px 0 rgba(203, 220, 195, 0.30) inset;
+
+  backdrop-filter: blur(26px) saturate(165%);
+  -webkit-backdrop-filter: blur(26px) saturate(165%);
+}
+
+.supervisor-dropdown-link {
+  position: relative;
+  overflow: hidden;
+
+  border-color: transparent;
+
+  transition:
+    color 200ms ease,
+    background 200ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.supervisor-dropdown-link:hover {
+  color: #294e35;
+
+  background: rgba(232, 241, 225, 0.72);
+
+  border-color: rgba(255, 255, 255, 0.85);
+
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 3px 10px rgba(49, 92, 69, 0.045);
+}
+
+.supervisor-dropdown-link.active {
+  background:
+    linear-gradient(
+      125deg,
+      rgba(255, 255, 255, 0.95),
+      rgba(222, 236, 215, 0.75)
+    );
+
+  border-color: rgba(255, 255, 255, 0.98);
+
+  box-shadow:
+    0 3px 10px rgba(49, 92, 69, 0.06),
+    0 1px 0 rgba(255, 255, 255, 0.98) inset;
+}
+
+/* Notification, profile and logout — glass orb buttons */
+
+.supervisor-action-button {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+
+  background:
+    radial-gradient(
+      circle at 28% 12%,
+      rgba(255, 255, 255, 0.98),
+      rgba(255, 255, 255, 0.24) 48%,
+      transparent 75%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.77),
+      rgba(229, 239, 222, 0.46)
+    );
+
+  border: 1px solid rgba(255, 255, 255, 0.95);
+
+  box-shadow:
+    0 5px 13px rgba(44, 73, 46, 0.065),
+    0 1px 0 rgba(255, 255, 255, 0.98) inset,
+    0 -1px 0 rgba(202, 220, 193, 0.44) inset;
+
+  backdrop-filter: blur(16px) saturate(165%);
+  -webkit-backdrop-filter: blur(16px) saturate(165%);
+
+  transition:
+    color 220ms ease,
+    background 220ms ease,
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    transform 220ms ease;
+}
+
+.supervisor-action-button::before {
+  position: absolute;
+  top: -85%;
+  left: -45%;
+  z-index: -1;
+  width: 75%;
+  height: 180%;
+  content: "";
+  pointer-events: none;
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.65),
+    transparent
+  );
+
+  transform: rotate(25deg);
+  transition: left 450ms ease;
+}
+
+.supervisor-action-button:hover {
+  color: #244633;
+
+  background:
+    radial-gradient(
+      circle at 28% 12%,
+      rgba(255, 255, 255, 1),
+      rgba(255, 255, 255, 0.35) 48%,
+      transparent 75%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(242, 248, 237, 0.98),
+      rgba(215, 232, 207, 0.78)
+    );
+
+  border-color: #fff;
+
+  box-shadow:
+    0 8px 18px rgba(44, 73, 46, 0.11),
+    0 1px 0 rgba(255, 255, 255, 1) inset,
+    0 -1px 0 rgba(185, 210, 176, 0.5) inset;
+
+  transform: translateY(-2px);
+}
+
+.supervisor-action-button:hover::before {
+  left: 125%;
+}
+
+.supervisor-action-button.active {
+  background:
+    radial-gradient(
+      circle at 25% 10%,
+      rgba(255, 255, 255, 0.98),
+      transparent 72%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(229, 240, 222, 0.98),
+      rgba(207, 227, 198, 0.84)
+    );
+
+  border-color: rgba(255, 255, 255, 0.98);
+
+  box-shadow:
+    0 5px 14px rgba(49, 92, 69, 0.10),
+    0 1px 0 #fff inset,
+    0 -1px 0 rgba(185, 210, 176, 0.6) inset;
+}
+
+/* Soft animated notification aura when unread items exist */
+
+.supervisor-action-button.supervisor-notification-action:has(
+  .supervisor-action-badge
+) {
+  box-shadow:
+    0 0 0 3px rgba(86, 127, 82, 0.07),
+    0 5px 15px rgba(49, 92, 69, 0.10),
+    0 1px 0 rgba(255, 255, 255, 0.98) inset,
+    0 -1px 0 rgba(202, 220, 193, 0.44) inset;
+}
+
+.supervisor-action-button.supervisor-notification-action:has(
+  .supervisor-action-badge
+)::after {
+  position: absolute;
+  inset: -4px;
+  z-index: -2;
+  content: "";
+  pointer-events: none;
+
+  border: 1px solid rgba(104, 148, 91, 0.27);
+  border-radius: 15px;
+
+  animation: supervisorGlassAura 2.8s ease-in-out infinite;
+}
+
+.supervisor-action-badge {
+  box-shadow:
+    0 2px 5px rgba(115, 43, 35, 0.2),
+    0 1px 0 rgba(255, 255, 255, 0.4) inset;
+}
+
+/* Glass menu button on mobile */
+
+.supervisor-menu-toggle {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+
+  background:
+    radial-gradient(
+      circle at 25% 10%,
+      rgba(255, 255, 255, 0.96),
+      transparent 72%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(237, 244, 231, 0.93),
+      rgba(217, 233, 209, 0.73)
+    );
+
+  border: 1px solid rgba(255, 255, 255, 0.97);
+
+  box-shadow:
+    0 4px 11px rgba(44, 73, 46, 0.065),
+    0 1px 0 rgba(255, 255, 255, 0.98) inset,
+    0 -1px 0 rgba(202, 220, 193, 0.4) inset;
+
+  backdrop-filter: blur(14px) saturate(155%);
+  -webkit-backdrop-filter: blur(14px) saturate(155%);
+}
+
+.supervisor-menu-toggle:hover {
+  background:
+    radial-gradient(
+      circle at 25% 10%,
+      rgba(255, 255, 255, 0.98),
+      transparent 72%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(229, 240, 222, 0.98),
+      rgba(205, 226, 195, 0.88)
+    );
+
+  box-shadow:
+    0 6px 15px rgba(44, 73, 46, 0.10),
+    0 1px 0 #fff inset;
+}
+
+/* Floating glass panel on mobile */
+
+@media (max-width: 760px) {
+  .supervisor-navigation.is-mobile-open {
+    position: relative;
+    z-index: 1;
+
+    margin-top: 8px;
+    padding: 12px;
+
+    background:
+      radial-gradient(
+        ellipse at 10% 0%,
+        rgba(255, 255, 255, 0.97),
+        transparent 58%
+      ),
+      linear-gradient(
+        145deg,
+        rgba(255, 255, 251, 0.91),
+        rgba(236, 243, 229, 0.83)
+      );
+
+    border: 1px solid rgba(255, 255, 255, 0.97);
+    border-radius: 17px;
+
+    box-shadow:
+      0 12px 30px rgba(36, 70, 51, 0.09),
+      0 1px 0 rgba(255, 255, 255, 0.98) inset,
+      0 -1px 0 rgba(204, 221, 196, 0.27) inset;
+
+    backdrop-filter: blur(24px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+  }
+
+  .supervisor-navigation.is-mobile-open .supervisor-nav-link {
+    border-color: rgba(255, 255, 255, 0.45);
+  }
+
+  .supervisor-navigation.is-mobile-open
+    .supervisor-nav-link:hover {
+    background: rgba(231, 240, 224, 0.82);
+  }
+
+  .supervisor-navigation.is-mobile-open
+    .supervisor-nav-link.active {
+    background:
+      linear-gradient(
+        130deg,
+        rgba(255, 255, 255, 0.97),
+        rgba(215, 232, 207, 0.82)
+      );
+
+    box-shadow:
+      0 3px 9px rgba(49, 92, 69, 0.055),
+      0 1px 0 rgba(255, 255, 255, 1) inset;
+  }
+
+  .supervisor-navigation.is-mobile-open
+    .supervisor-nav-dropdown-panel {
+    background: rgba(239, 245, 233, 0.7);
+    border-left: 2px solid rgba(116, 153, 104, 0.42);
+    border-radius: 0 11px 11px 0;
+  }
+}
+
+/* Smooth glass motion */
+
+@keyframes supervisorGlassAura {
+  0%,
+  100% {
+    opacity: 0.42;
+    transform: scale(0.97);
+  }
+
+  50% {
+    opacity: 0.95;
+    transform: scale(1.04);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .supervisor-topbar *,
+  .supervisor-topbar *::before,
+  .supervisor-topbar *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+
+/* GradTrack wordmark — match the Student Navbar */
+
+/* GradTrack wordmark — match the Student Navbar */
+.supervisor-brand-name {
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.85px;
+  line-height: 1;
+  white-space: nowrap;
+
+  background: linear-gradient(
+    100deg,
+    #294633 0%,
+    #315c45 48%,
+    #759477 100%
+  );
+
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+
+  text-shadow: none;
+}
+
+/* ==========================================
+   Match Supervisor Logo to Student Logo
+   ========================================== */
+
+/* Graduation cap icon */
+.supervisor-brand-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  isolation: auto;
+
+  width: 41px;
+  height: 41px;
+  box-sizing: border-box;
+  overflow: hidden;
+
+  color: #fffefa;
+  background: #294638 !important;
+
+  border: 0 !important;
+  border-radius: 12px;
+
+  box-shadow: 0 4px 10px rgba(41, 70, 56, 0.14) !important;
+
+  transform: none;
+  transition: opacity 180ms ease;
+}
+
+/* Remove the extra glossy effects */
+.supervisor-brand-icon::before,
+.supervisor-brand-icon::after {
+  display: none !important;
+  content: none !important;
+}
+
+.supervisor-brand:hover .supervisor-brand-icon {
+  transform: none;
+  border-color: transparent;
+  box-shadow: 0 4px 10px rgba(41, 70, 56, 0.14) !important;
+}
+
+.supervisor-brand-icon svg {
+  position: static;
+  z-index: auto;
+
+  width: 25px;
+  height: 25px;
+  flex-shrink: 0;
+
+  color: #fffefa;
+  filter: none;
+}
+
+/* GradTrack wordmark — same as Student Navbar */
+.supervisor-brand-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+
+  font-family: Arial, sans-serif;
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.65px;
+  line-height: 1;
+  white-space: nowrap;
+
+  color: #294638;
+  background: none;
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  -webkit-text-fill-color: initial;
+  text-shadow: none;
+}
+
+.supervisor-brand-grad {
+  color: #294638 !important;
+  -webkit-text-fill-color: #294638 !important;
+  font-weight: 700;
+}
+
+.supervisor-brand-track {
+  color: #527760 !important;
+  -webkit-text-fill-color: #527760 !important;
+  font-weight: 700;
+}
+
+/* Match the student logo on mobile */
+@media (max-width: 760px) {
+  .supervisor-brand-icon {
+    width: 35px;
+    height: 35px;
+    border-radius: 11px;
+  }
+
+  .supervisor-brand-icon svg {
+    width: 21px;
+    height: 21px;
+  }
+
+  .supervisor-brand-name {
+    font-size: 19px;
+    letter-spacing: -0.55px;
+  }
+}
+
+@media (max-width: 420px) {
+  .supervisor-brand-icon {
+    width: 31px;
+    height: 31px;
+    border-radius: 9px;
+  }
+
+  .supervisor-brand-icon svg {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+/* ==========================================
+   Exact Student-Style GradTrack Brand
+   ========================================== */
+
+/* Glass graduation-cap icon */
+.supervisor-brand-icon {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  width: 41px;
+  height: 41px;
+  box-sizing: border-box;
+  overflow: hidden;
+
+  color: #fffefa;
+
+  background:
+    radial-gradient(
+      circle at 28% 12%,
+      rgba(255, 255, 255, 0.58),
+      transparent 45%
+    ),
+    linear-gradient(
+      145deg,
+      #60866a 0%,
+      #416e50 48%,
+      #244633 100%
+    ) !important;
+
+  border: 1px solid rgba(255, 255, 255, 0.58) !important;
+  border-radius: 12px;
+
+  box-shadow:
+    0 5px 13px rgba(36, 70, 51, 0.16),
+    0 1px 0 rgba(255, 255, 255, 0.45) inset,
+    0 -2px 4px rgba(25, 58, 36, 0.16) inset !important;
+
+  transform: none;
+  transition:
+    transform 220ms ease,
+    box-shadow 220ms ease,
+    border-color 220ms ease;
+}
+
+/* Soft white reflection */
+.supervisor-brand-icon::before {
+  display: block !important;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  content: "";
+  pointer-events: none;
+
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.32) 0%,
+    rgba(255, 255, 255, 0.09) 35%,
+    transparent 72%
+  );
+
+  opacity: 0.95;
+}
+
+/* Moving glass shine */
+.supervisor-brand-icon::after {
+  display: block !important;
+  position: absolute;
+  top: -65%;
+  left: -75%;
+  z-index: 2;
+
+  width: 65%;
+  height: 230%;
+
+  content: "";
+  pointer-events: none;
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.42),
+    transparent
+  );
+
+  transform: rotate(25deg);
+  transition: left 500ms ease;
+}
+
+.supervisor-brand:hover .supervisor-brand-icon {
+  transform: translateY(-2px);
+
+  border-color: rgba(255, 255, 255, 0.95) !important;
+
+  box-shadow:
+    0 8px 18px rgba(36, 70, 51, 0.22),
+    0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 -2px 4px rgba(25, 58, 36, 0.18) inset !important;
+}
+
+.supervisor-brand:hover .supervisor-brand-icon::after {
+  left: 130%;
+}
+
+.supervisor-brand-icon svg {
+  position: relative;
+  z-index: 3;
+
+  width: 25px;
+  height: 25px;
+  flex-shrink: 0;
+
+  color: #fffefa;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.12));
+}
+
+/* GradTrack wordmark */
+.supervisor-brand-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+
+  font-family: Arial, sans-serif;
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.65px;
+  line-height: 1;
+  white-space: nowrap;
+
+  color: #294638;
+  background: none;
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  -webkit-text-fill-color: initial;
+  text-shadow: none;
+}
+
+.supervisor-brand-grad {
+  color: #294638 !important;
+  -webkit-text-fill-color: #294638 !important;
+  font-weight: 700;
+}
+
+.supervisor-brand-track {
+  color: #527760 !important;
+  -webkit-text-fill-color: #527760 !important;
+  font-weight: 700;
+}
+
+/* Match the student logo at smaller widths */
+@media (max-width: 760px) {
+  .supervisor-brand-icon {
+    width: 35px;
+    height: 35px;
+    border-radius: 11px;
+  }
+
+  .supervisor-brand-icon svg {
+    width: 21px;
+    height: 21px;
+  }
+
+  .supervisor-brand-name {
+    font-size: 19px;
+    letter-spacing: -0.55px;
+  }
+}
+
+@media (max-width: 420px) {
+  .supervisor-brand-icon {
+    width: 31px;
+    height: 31px;
+    border-radius: 9px;
+  }
+
+  .supervisor-brand-icon svg {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .supervisor-brand-icon,
+  .supervisor-brand-icon::after {
+    transition: none !important;
+  }
+}
+
+

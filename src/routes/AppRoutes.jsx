@@ -1,3 +1,4 @@
+
 import {
   Routes,
   Route,
@@ -29,6 +30,16 @@ import Profile from "../pages/student/Profile";
 import Notifications from "../pages/student/Notifications";
 
 import PlaceholderPage from "../components/common/PlaceholderPage";
+import RequireSupervisor from "../components/common/RequireSupervisor";
+import SupervisorLayout from "../components/layout/SupervisorLayout";
+import SupervisorProjects from "../pages/supervisor/SupervisorProjects";
+import SupervisorProposals from "../pages/supervisor/SupervisorProposals";
+
+import SupervisorSubmissions from "../pages/supervisor/SupervisorSubmissions";
+import SupervisorDashboard from "../pages/supervisor/SupervisorDashboard";
+
+import SupervisorProfile from "../pages/supervisor/SupervisorProfile";
+import SupervisorNotifications from "../pages/supervisor/SupervisorNotifications";
 
 import "../styles/shared.css";
 
@@ -54,6 +65,7 @@ function AppRoutes() {
           element={<PlaceholderPage title="Forgot Password" />}
         />
 
+        {/* Supervisor login */}
         <Route
           path="/supervisor/login"
           element={<SupervisorLogin />}
@@ -134,40 +146,48 @@ function AppRoutes() {
           element={<ProposalStatus />}
         />
 
-        {/* Supervisor */}
+        {/* Protected Supervisor routes */}
         <Route
-          path="/supervisor/dashboard"
-          element={<PlaceholderPage title="Supervisor Dashboard" />}
-        />
+          path="/supervisor"
+          element={<RequireSupervisor />}
+        >
+          {/* Shared Supervisor Layout */}
+          <Route element={<SupervisorLayout />}>
+            <Route
+              index
+              element={<Navigate to="dashboard" replace />}
+            />
 
-        <Route
-          path="/supervisor/projects"
-          element={<PlaceholderPage title="Assigned Projects" />}
-        />
+            <Route
+  path="dashboard"
+  element={<SupervisorDashboard />}
+/>
 
-        <Route
-          path="/supervisor/proposals"
-          element={<PlaceholderPage title="Proposal Reviews" />}
-        />
+            <Route
+  path="projects"
+  element={<SupervisorProjects />}
+/>
 
-        <Route
-          path="/supervisor/submissions"
-          element={
-            <PlaceholderPage title="Submissions and Feedback" />
-          }
-        />
+    <Route
+  path="proposals"
+  element={<SupervisorProposals />}
+/>
 
-        <Route
-          path="/supervisor/notifications"
-          element={
-            <PlaceholderPage title="Supervisor Notifications" />
-          }
-        />
+            <Route
+  path="submissions"
+  element={<SupervisorSubmissions />}
+/>
+<Route
+  path="notifications"
+  element={<SupervisorNotifications />}
+/>
 
-        <Route
-          path="/supervisor/profile"
-          element={<PlaceholderPage title="Supervisor Profile" />}
-        />
+            <Route
+  path="profile"
+  element={<SupervisorProfile />}
+/>
+          </Route>
+        </Route>
 
         {/* Compatibility with the previous dashboard URL */}
         <Route
