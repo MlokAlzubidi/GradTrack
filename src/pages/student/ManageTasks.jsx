@@ -7,6 +7,7 @@ import "./ManageTasks.css";
 const TASKS_STORAGE_KEY = "gradtrack-team-tasks";
 const TEAMS_STORAGE_KEY = "gradtrack-teams";
 const CURRENT_STUDENT_KEY = "gradtrack-current-student";
+const NOTIFICATIONS_STORAGE_KEY = "gradtrack-notifications";
 
 // قراءة البيانات المحفوظة بأمان.
 function readLocalArray(key) {
@@ -145,6 +146,48 @@ function saveAllTasks(tasks) {
     return false;
   }
 }
+// إرسال إشعار إلى الطالب عند إسناد مهمة جديدة إليه.
+function createTaskAssignmentNotification({
+  recipientId,
+  leaderName,
+  task,
+  teamId,
+}) {
+  try {
+    // قراءة الإشعارات السابقة حتى لا نفقد إشعارات المستخدمين الآخرين.
+    const notifications = readLocalArray(
+      NOTIFICATIONS_STORAGE_KEY
+    );
+
+    const notification = {
+      id: `task-${teamId}-${task.id}-${recipientId}-${Date.now()}`,
+      recipientId: String(recipientId),
+      type: "task",
+      title: "New task assigned to you",
+      message: `${leaderName} assigned "${task.title}" to you. Due date: ${task.dueDate}.`,
+      createdAt: new Date().toISOString(),
+      isRead: false,
+      link: "/student/tasks",
+      teamId,
+      taskId: task.id,
+    };
+
+    // حفظ الإشعار مع بقية إشعارات النظام.
+    localStorage.setItem(
+      NOTIFICATIONS_STORAGE_KEY,
+      JSON.stringify([...notifications, notification])
+    );
+
+    // إعلام المكونات التي تتابع عداد الإشعارات بالتحديث.
+    window.dispatchEvent(
+      new Event("gradtrack-notifications-updated")
+    );
+
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 function ManageTasks() {
   const currentStudent = getCurrentStudent();
@@ -179,6 +222,8 @@ function ManageTasks() {
   const [description, setDescription] = useState("");
   const [assigneeId, setAssigneeId] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [requiresSupervisorReview, setRequiresSupervisorReview] =
+    useState(false);
   const [message, setMessage] = useState("");
   const [editingTaskId, setEditingTaskId] = useState(null);
 
@@ -257,6 +302,8 @@ function ManageTasks() {
 
       requiresSubmission:
         existingTask?.requiresSubmission ?? true,
+      // The leader can enable or disable supervisor review while editing a task.
+      requiresSupervisorReview,
     };
 
     const updatedAllTasks = isEditing
@@ -276,18 +323,42 @@ function ManageTasks() {
     }
 
     setAllTasks(updatedAllTasks);
+    // نرسل إشعارًا عند إنشاء مهمة أو تغيير الشخص المكلّف بها.
+// لا نرسل إشعارًا إذا كان القائد قد أسند المهمة لنفسه.
+const assigneeChanged =
+  !isEditing ||
+  String(existingTask?.assigneeId ?? "") !==
+    String(assigneeId);
+
+const shouldNotifyAssignee =
+  assigneeChanged &&
+  String(assigneeId) !== String(currentStudentId);
+
+let notificationSaved = true;
+
+if (shouldNotifyAssignee) {
+  notificationSaved = createTaskAssignmentNotification({
+    recipientId: assigneeId,
+    leaderName: currentStudent?.name || "Your Team Leader",
+    task: updatedTask,
+    teamId: currentTeam.id,
+  });
+}
 
     setTitle("");
     setDescription("");
     setAssigneeId("");
     setDueDate("");
+    setRequiresSupervisorReview(false);
     setEditingTaskId(null);
 
     setMessage(
-      isEditing
-        ? "Task updated successfully."
-        : "Task created and saved for your team."
-    );
+  shouldNotifyAssignee && !notificationSaved
+    ? "Task saved, but the notification could not be saved."
+    : isEditing
+      ? "Task updated successfully."
+      : "Task created and saved for your team."
+);
   }
 
   // تعبئة النموذج ببيانات المهمة المطلوب تعديلها.
@@ -302,6 +373,9 @@ function ManageTasks() {
     setDescription(task.description || "");
     setAssigneeId(String(task.assigneeId || ""));
     setDueDate(task.dueDate || "");
+    setRequiresSupervisorReview(
+      task.requiresSupervisorReview === true
+    );
     setMessage("");
 
     document
@@ -361,6 +435,7 @@ function ManageTasks() {
       setDescription("");
       setAssigneeId("");
       setDueDate("");
+      setRequiresSupervisorReview(false);
     }
 
     setMessage(`"${task.title}" was removed successfully.`);
@@ -373,6 +448,7 @@ function ManageTasks() {
     setDescription("");
     setAssigneeId("");
     setDueDate("");
+    setRequiresSupervisorReview(false);
     setMessage("");
   }
 
@@ -537,6 +613,28 @@ function ManageTasks() {
                       required
                     />
                   </div>
+                </div>
+
+                <div className="manage-tasks-review-option">
+                  <label htmlFor="requiresSupervisorReview">
+                    <input
+                      id="requiresSupervisorReview"
+                      name="requiresSupervisorReview"
+                      type="checkbox"
+                      checked={requiresSupervisorReview}
+                      onChange={(event) =>
+                        setRequiresSupervisorReview(
+                          event.target.checked
+                        )
+                      }
+                    />
+                    <span>
+                      <strong>Requires supervisor review</strong>
+                      <small>
+                        Only submissions for this task will appear in the supervisor review inbox.
+                      </small>
+                    </span>
+                  </label>
                 </div>
 
                 <div className="manage-tasks-form-actions">

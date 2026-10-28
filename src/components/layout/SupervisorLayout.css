@@ -1453,3 +1453,697 @@
 }
 
 
+
+/* ==========================================
+   Supervisor Notification Bell
+   Same visual style as Student notification bell
+========================================== */
+
+.supervisor-notification-bell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+}
+
+.supervisor-notification-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  text-decoration: none;
+}
+
+/* Default glass button */
+.supervisor-notification-orb {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  box-sizing: border-box;
+
+  color: #46694c;
+  background:
+    radial-gradient(
+      circle at 28% 12%,
+      rgba(255, 255, 255, 0.98),
+      rgba(255, 255, 255, 0.24) 48%,
+      transparent 75%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.77),
+      rgba(229, 239, 222, 0.46)
+    );
+
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+
+  box-shadow:
+    0 5px 13px rgba(44, 73, 46, 0.065),
+    0 1px 0 rgba(255, 255, 255, 0.98) inset,
+    0 -1px 0 rgba(202, 220, 193, 0.44) inset;
+
+  -webkit-backdrop-filter: blur(16px) saturate(165%);
+  backdrop-filter: blur(16px) saturate(165%);
+
+  transition:
+    color 220ms ease,
+    background 220ms ease,
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    transform 220ms ease;
+}
+
+/* Hover */
+.supervisor-notification-link:hover .supervisor-notification-orb {
+  color: #244633;
+  transform: translateY(-1px);
+}
+
+/* Unread state */
+.supervisor-notification-orb.has-unread {
+  color: #fffefa;
+  background: linear-gradient(
+    145deg,
+    #477d5b 0%,
+    #234b39 100%
+  );
+
+  border-color: rgba(255, 255, 255, 0.65);
+
+  box-shadow:
+    0 5px 15px rgba(49, 92, 69, 0.11),
+    0 1px 0 rgba(255, 255, 255, 0.2) inset;
+}
+
+/* Bell icon */
+.supervisor-notification-icon {
+  position: relative;
+  z-index: 2;
+  display: block;
+  width: 19px;
+  height: 19px;
+  flex-shrink: 0;
+
+  color: currentColor;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  transform-origin: 50% 10%;
+}
+
+/* Bell movement when there are unread notifications */
+.supervisor-notification-orb.has-unread
+.supervisor-notification-icon {
+  animation: gradtrack-supervisor-bell 3.8s ease-in-out infinite;
+}
+
+/* Green pulsing aura */
+.supervisor-notification-aura {
+  position: absolute;
+  inset: -4px;
+  z-index: -1;
+
+  border: 1px solid rgba(104, 148, 91, 0.35);
+  border-radius: 15px;
+
+  opacity: 0;
+  pointer-events: none;
+}
+
+.supervisor-notification-orb.has-unread
+.supervisor-notification-aura {
+  animation: gradtrack-supervisor-aura 2.2s ease-out infinite;
+}
+
+/* Red unread count */
+.supervisor-notification-badge {
+  position: absolute;
+  z-index: 5;
+  top: -5px;
+  right: -5px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+
+  color: #fff;
+  background: linear-gradient(
+    135deg,
+    #ff7770,
+    #e74755
+  );
+
+  border: 2px solid #fffefa;
+  border-radius: 999px;
+
+  font-family: inherit;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+
+  box-shadow: 0 3px 9px rgba(208, 57, 72, 0.25);
+  animation: gradtrack-supervisor-badge 0.35s ease-out;
+}
+
+/* Badge entrance */
+@keyframes gradtrack-supervisor-badge {
+  0% {
+    opacity: 0;
+    transform: scale(0.4) rotate(-15deg);
+  }
+
+  70% {
+    transform: scale(1.15) rotate(3deg);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+/* Aura pulse */
+@keyframes gradtrack-supervisor-aura {
+  0% {
+    opacity: 0.65;
+    transform: scale(0.88);
+  }
+
+  75%,
+  100% {
+    opacity: 0;
+    transform: scale(1.28);
+  }
+}
+
+/* Gentle bell ringing */
+@keyframes gradtrack-supervisor-bell {
+  0%,
+  82%,
+  100% {
+    transform: rotate(0);
+  }
+
+  85% {
+    transform: rotate(12deg);
+  }
+
+  88% {
+    transform: rotate(-12deg);
+  }
+
+  91% {
+    transform: rotate(8deg);
+  }
+
+  94% {
+    transform: rotate(-5deg);
+  }
+
+  97% {
+    transform: rotate(0);
+  }
+}
+
+/* Mobile sizing */
+@media (max-width: 760px) {
+  .supervisor-notification-bell,
+  .supervisor-notification-link,
+  .supervisor-notification-orb {
+    width: 32px;
+    height: 32px;
+  }
+
+  .supervisor-notification-bell {
+    flex-basis: 32px;
+  }
+
+  .supervisor-notification-link {
+    flex: 0 0 32px;
+  }
+
+  .supervisor-notification-orb {
+    flex-basis: 32px;
+  }
+
+  .supervisor-notification-badge {
+    top: -5px;
+    right: -5px;
+  }
+}
+
+/* Accessibility */
+.supervisor-notification-link:focus-visible {
+  outline: 2px solid #527760;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .supervisor-notification-icon,
+  .supervisor-notification-aura,
+  .supervisor-notification-badge {
+    animation: none !important;
+  }
+
+  .supervisor-notification-orb {
+    transition: none !important;
+  }
+}
+
+
+/* ==========================================
+   GradTrack Supervisor Notification Bell
+   Clean version — matches Student bell
+========================================== */
+
+.supervisor-notification-bell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+}
+
+.supervisor-notification-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  text-decoration: none;
+}
+
+.supervisor-notification-orb {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  box-sizing: border-box;
+  color: #46694c;
+
+  background:
+    radial-gradient(
+      circle at 28% 12%,
+      rgba(255, 255, 255, 0.98),
+      rgba(255, 255, 255, 0.24) 48%,
+      transparent 75%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.77),
+      rgba(229, 239, 222, 0.46)
+    );
+
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+
+  box-shadow:
+    0 5px 13px rgba(44, 73, 46, 0.065),
+    0 1px 0 rgba(255, 255, 255, 0.98) inset,
+    0 -1px 0 rgba(202, 220, 193, 0.44) inset;
+
+  -webkit-backdrop-filter: blur(16px) saturate(165%);
+  backdrop-filter: blur(16px) saturate(165%);
+
+  transition:
+    color 220ms ease,
+    background 220ms ease,
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    transform 220ms ease;
+}
+
+.supervisor-notification-link:hover
+.supervisor-notification-orb {
+  color: #244633;
+  transform: translateY(-1px);
+}
+
+.supervisor-notification-orb.has-unread {
+  color: #fffefa;
+  background: linear-gradient(
+    145deg,
+    #477d5b 0%,
+    #234b39 100%
+  );
+  border-color: rgba(255, 255, 255, 0.65);
+
+  box-shadow:
+    0 5px 15px rgba(49, 92, 69, 0.11),
+    0 1px 0 rgba(255, 255, 255, 0.2) inset;
+}
+
+.supervisor-notification-icon {
+  position: relative;
+  z-index: 2;
+  display: block;
+  flex-shrink: 0;
+  width: 19px;
+  height: 19px;
+  color: currentColor;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  transform-origin: 50% 10%;
+}
+
+.supervisor-notification-orb.has-unread
+.supervisor-notification-icon {
+  animation: supervisor-bell-ring 3.8s ease-in-out infinite;
+}
+
+.supervisor-notification-aura {
+  position: absolute;
+  inset: -4px;
+  z-index: -1;
+  border: 1px solid rgba(104, 148, 91, 0.35);
+  border-radius: 15px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.supervisor-notification-orb.has-unread
+.supervisor-notification-aura {
+  animation: supervisor-bell-pulse 2.2s ease-out infinite;
+}
+
+.supervisor-notification-badge {
+  position: absolute;
+  z-index: 5;
+  top: -5px;
+  right: -5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+
+  color: #fff;
+  background: linear-gradient(
+    135deg,
+    #ff7770,
+    #e74755
+  );
+
+  border: 2px solid #fffefa;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  box-shadow: 0 3px 9px rgba(208, 57, 72, 0.25);
+
+  animation: supervisor-badge-pop 0.35s ease-out;
+}
+
+@keyframes supervisor-bell-ring {
+  0%, 82%, 100% { transform: rotate(0); }
+  85% { transform: rotate(12deg); }
+  88% { transform: rotate(-12deg); }
+  91% { transform: rotate(8deg); }
+  94% { transform: rotate(-5deg); }
+  97% { transform: rotate(0); }
+}
+
+@keyframes supervisor-bell-pulse {
+  0% {
+    opacity: 0.65;
+    transform: scale(0.88);
+  }
+  75%, 100% {
+    opacity: 0;
+    transform: scale(1.28);
+  }
+}
+
+@keyframes supervisor-badge-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.4) rotate(-15deg);
+  }
+  70% {
+    transform: scale(1.15) rotate(3deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+@media (max-width: 760px) {
+  .supervisor-notification-bell,
+  .supervisor-notification-link,
+  .supervisor-notification-orb {
+    width: 32px;
+    height: 32px;
+  }
+
+  .supervisor-notification-bell {
+    flex-basis: 32px;
+  }
+
+  .supervisor-notification-link,
+  .supervisor-notification-orb {
+    flex-basis: 32px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .supervisor-notification-icon,
+  .supervisor-notification-aura,
+  .supervisor-notification-badge {
+    animation: none !important;
+  }
+
+  .supervisor-notification-orb {
+    transition: none !important;
+  }
+}
+
+/* ==========================================
+   Supervisor Bell — Clean isolated styles
+========================================== */
+
+.supervisor-bell-clean {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+}
+
+.supervisor-bell-clean__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  overflow: visible;
+  background: transparent;
+  border: 0;
+  text-decoration: none;
+}
+
+.supervisor-bell-clean__orb {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  box-sizing: border-box;
+  color: #46694c;
+
+  background:
+    radial-gradient(
+      circle at 28% 12%,
+      rgba(255, 255, 255, 0.98),
+      rgba(255, 255, 255, 0.24) 48%,
+      transparent 75%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.77),
+      rgba(229, 239, 222, 0.46)
+    );
+
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  box-shadow:
+    0 5px 13px rgba(44, 73, 46, 0.065),
+    0 1px 0 rgba(255, 255, 255, 0.98) inset,
+    0 -1px 0 rgba(202, 220, 193, 0.44) inset;
+
+  -webkit-backdrop-filter: blur(16px) saturate(165%);
+  backdrop-filter: blur(16px) saturate(165%);
+
+  transition: transform 220ms ease, box-shadow 220ms ease;
+}
+
+/* Green button and white bell when notifications are unread */
+.supervisor-bell-clean__orb.has-unread {
+  color: #fffefa;
+  background: linear-gradient(145deg, #477d5b, #234b39);
+  border-color: rgba(255, 255, 255, 0.65);
+  box-shadow:
+    0 5px 15px rgba(49, 92, 69, 0.11),
+    0 1px 0 rgba(255, 255, 255, 0.2) inset;
+}
+
+.supervisor-bell-clean__icon {
+  position: relative;
+  z-index: 2;
+  display: block;
+  width: 19px;
+  height: 19px;
+  color: currentColor;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+  transform-origin: 50% 10%;
+}
+
+.supervisor-bell-clean__orb.has-unread
+.supervisor-bell-clean__icon {
+  animation: supervisorBellCleanRing 3.8s ease-in-out infinite;
+}
+
+/* Green pulsing glow */
+.supervisor-bell-clean__aura {
+  position: absolute;
+  inset: -4px;
+  z-index: -1;
+  border: 1px solid rgba(104, 148, 91, 0.35);
+  border-radius: 15px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.supervisor-bell-clean__orb.has-unread
+.supervisor-bell-clean__aura {
+  animation: supervisorBellCleanPulse 2.2s ease-out infinite;
+}
+
+/* Red unread counter */
+.supervisor-bell-clean__badge {
+  position: absolute;
+  z-index: 5;
+  top: -5px;
+  right: -5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  color: #fff;
+  background: linear-gradient(135deg, #ff7770, #e74755);
+  border: 2px solid #fffefa;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+  box-shadow: 0 3px 9px rgba(208, 57, 72, 0.25);
+  animation: supervisorBellCleanAppear 0.35s ease-out;
+}
+
+@keyframes supervisorBellCleanRing {
+  0%, 82%, 100% { transform: rotate(0); }
+  85% { transform: rotate(12deg); }
+  88% { transform: rotate(-12deg); }
+  91% { transform: rotate(8deg); }
+  94% { transform: rotate(-5deg); }
+  97% { transform: rotate(0); }
+}
+
+@keyframes supervisorBellCleanPulse {
+  0% {
+    opacity: 0.65;
+    transform: scale(0.88);
+  }
+  75%, 100% {
+    opacity: 0;
+    transform: scale(1.28);
+  }
+}
+
+@keyframes supervisorBellCleanAppear {
+  0% {
+    opacity: 0;
+    transform: scale(0.4) rotate(-15deg);
+  }
+  70% {
+    transform: scale(1.15) rotate(3deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+@media (max-width: 760px) {
+  .supervisor-bell-clean,
+  .supervisor-bell-clean__link,
+  .supervisor-bell-clean__orb {
+    width: 32px;
+    height: 32px;
+  }
+
+  .supervisor-bell-clean {
+    flex-basis: 32px;
+  }
+
+  .supervisor-bell-clean__link,
+  .supervisor-bell-clean__orb {
+    flex-basis: 32px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .supervisor-bell-clean__icon,
+  .supervisor-bell-clean__aura,
+  .supervisor-bell-clean__badge {
+    animation: none !important;
+  }
+}

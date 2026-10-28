@@ -11,6 +11,8 @@ import {
   LayoutList,
 } from "lucide-react";
 import "./SupervisorProjects.css";
+import { getSupervisorSession } from "../../utils/supervisorAuth";
+import { filterAssignedProjects } from "../../utils/supervisorAssignments";
 
 const PROJECTS_KEY = "gradtrack-projects";
 const TEAMS_KEY = "gradtrack-teams";
@@ -27,7 +29,7 @@ function readArray(key) {
 
 function loadProjectsData() {
   return {
-    projects: readArray(PROJECTS_KEY),
+    projects: filterAssignedProjects(readArray(PROJECTS_KEY), getSupervisorSession()?.id),
     teams: readArray(TEAMS_KEY),
   };
 }

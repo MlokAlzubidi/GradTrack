@@ -1,16 +1,62 @@
-# React + Vite
+# GradTrack — Graduation Project Management System
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+GradTrack is a React + Vite frontend prototype for managing university graduation projects. It includes student and team-leader workflows, supervisor review screens, task tracking, proposal submission, and local demo notifications.
 
-Currently, two official plugins are available:
+## Requirements
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Node.js compatible with the Vite version in `package.json`
+- npm
 
-## React Compiler
+## Run locally
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+npm ci
+npm run dev
+```
 
-## Expanding the Oxlint configuration
+## Build the frontend
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+```bash
+npm run build
+npm run preview
+```
+
+## Demo accounts
+
+Student demo accounts:
+
+| University ID | Password | Demo state |
+| --- | --- | --- |
+| `2023001` | `123456` | No team |
+| `2023002` | `123456` | Member of the GradTrack Demo Team |
+| `2023003` | `123456` | Team Leader of the GradTrack Demo Team |
+
+Supervisor demo account:
+
+- Email: `supervisor@gradtrack.demo`
+- Password: `Supervisor123!`
+
+These credentials are for local demonstration only. Do not use them as real credentials.
+
+## Current prototype behavior
+
+- Student registration and sessions are simulated in browser storage.
+- Team, task, proposal, notification, and review records are stored in `localStorage` / `sessionStorage`.
+- Small demo file uploads are stored in browser storage as data URLs.
+- Task-level supervisor review is opt-in: the Team Leader selects **Requires supervisor review** for a task. Only those task submissions appear in the supervisor submissions inbox.
+- Proposal submission and review updates create demo notifications for the supervisor or current team members.
+- Data is local to the browser and does not synchronize across devices or users. This project does not yet have a real backend, database, secure authentication, or server-side file storage.
+- Frontend route checks are convenience guards for the prototype; they are not a substitute for server-side authorization.
+
+## Project structure
+
+- `src/pages/auth` — role selection, student registration/login, supervisor login
+- `src/pages/student` — dashboard, teams, invitations, tasks, project registration, and proposal status
+- `src/pages/supervisor` — supervisor dashboard, project/proposal review, task submissions, notifications, and profile
+- `src/components/layout` — shared navigation layouts
+- `src/data` — sample account data and demo-data initialization
+- `src/utils` — demo notifications and supervisor session utilities
+
+## Before production use
+
+Connect the frontend to a backend API, store passwords securely on the server, enforce role/team authorization server-side, and use proper file storage instead of browser local storage. Also test the complete student/team/supervisor workflows before deploying the public demo.

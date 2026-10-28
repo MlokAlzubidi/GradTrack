@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { getSupervisorSession } from "../../utils/supervisorAuth";
 import { addNotification } from "../../utils/notifications";
+import { getAssignedTeamIds } from "../../utils/supervisorAssignments";
 import "./SupervisorSubmissions.css";
 
 const TASKS_KEY = "gradtrack-team-tasks";
@@ -92,6 +93,9 @@ function getTeamName(teamId, teams, fallbackName) {
 
 function getSubmissionRecords(tasks, teams) {
   return tasks.flatMap((task) => {
+    // Only tasks flagged by the Team Leader should appear in the supervisor inbox.
+    if (task.requiresSupervisorReview !== true) return [];
+
     if (!Array.isArray(task.submissions)) {
       return [];
     }
@@ -132,6 +136,7 @@ function SupervisorSubmissions() {
   const [generalError, setGeneralError] = useState("");
 
   const supervisor = getSupervisorSession();
+  const assignedIds = getAssignedTeamIds(supervisor?.id);
 
   function refreshData() {
     setData(loadPageData());
@@ -158,8 +163,8 @@ function SupervisorSubmissions() {
   }, []);
 
   const records = useMemo(
-    () => getSubmissionRecords(data.tasks, data.teams),
-    [data]
+    () => getSubmissionRecords(data.tasks.filter((task) => assignedIds.has(String(task.teamId))), data.teams),
+    [data, supervisor?.id]
   );
 
   const pendingCount = records.filter(

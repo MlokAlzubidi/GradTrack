@@ -15,6 +15,7 @@ import {
   ClipboardCheck,
 } from "lucide-react";
 import { getSupervisorSession } from "../../utils/supervisorAuth";
+import { getAssignedTeamIds, filterAssignedProjects } from "../../utils/supervisorAssignments";
 import "./SupervisorDashboard.css";
 
 const PROJECTS_KEY = "gradtrack-projects";
@@ -82,6 +83,8 @@ function getProposalStatus(proposal) {
 
 function getTaskSubmissions(tasks) {
   return tasks.flatMap((task) => {
+    // Keep the dashboard consistent with the supervisor submissions inbox.
+    if (task.requiresSupervisorReview !== true) return [];
     if (!Array.isArray(task.submissions)) return [];
 
     return task.submissions
@@ -112,6 +115,10 @@ function sortNewest(items, dateField) {
 function SupervisorDashboard() {
   const supervisor = getSupervisorSession();
   const [data, setData] = useState(loadDashboardData);
+  const assignedIds = getAssignedTeamIds(supervisor?.id);
+  const assignedProjects = filterAssignedProjects(data.projects, supervisor?.id);
+  const assignedProposals = data.proposals.filter((item) => assignedIds.has(String(item.teamId)));
+  const assignedTasks = data.tasks.filter((item) => assignedIds.has(String(item.teamId)));
 
   function refreshData() {
     setData(loadDashboardData());
@@ -142,15 +149,15 @@ function SupervisorDashboard() {
   }, []);
 
   const submissions = useMemo(
-    () => getTaskSubmissions(data.tasks),
-    [data.tasks]
+    () => getTaskSubmissions(assignedTasks),
+    [data.tasks, supervisor?.id]
   );
 
-  const pendingProposals = data.proposals.filter(
+  const pendingProposals = assignedProposals.filter(
     (proposal) => getProposalStatus(proposal) === "Pending Review"
   );
 
-  const approvedProposals = data.proposals.filter(
+  const approvedProposals = assignedProposals.filter(
     (proposal) => getProposalStatus(proposal) === "Approved"
   );
 
@@ -167,10 +174,10 @@ function SupervisorDashboard() {
   const recentProposals = useMemo(
     () =>
       sortNewest(
-        data.proposals,
+        assignedProposals,
         "submittedAt"
       ).slice(0, 4),
-    [data.proposals]
+    [assignedProposals]
   );
 
   const recentSubmissions = useMemo(
@@ -239,7 +246,7 @@ function SupervisorDashboard() {
           </div>
 
           <strong className="supervisor-dashboard-stat-number">
-            {data.projects.length}
+            {assignedProjects.length}
           </strong>
 
           <p>Registered projects</p>

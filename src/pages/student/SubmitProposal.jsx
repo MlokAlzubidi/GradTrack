@@ -265,26 +265,6 @@ function SubmitProposal() {
         PROPOSALS_STORAGE_KEY,
         []
       );
-      
-try {
-  addNotification({
-    id: `supervisor-proposal-${updatedProposal.id}-${Date.now()}`,
-    recipientId: "demo-supervisor",
-    type: "proposal",
-    title: existingProposal
-      ? "Proposal Resubmitted"
-      : "New Proposal Submitted",
-    message: `${student.name || "A Team Leader"} submitted ${
-      existingProposal ? "a revised proposal" : "a new proposal"
-    } for "${project.title}" from team "${team.name}".`,
-    link: "/supervisor/proposals",
-    relatedId: updatedProposal.id,
-  });
-} catch {
-  // The saved proposal should remain successful even if
-  // the demo notification cannot be stored.
-}
-
 
       if (!Array.isArray(savedProposals)) {
         throw new Error("Invalid saved proposal data.");
@@ -341,6 +321,22 @@ try {
         JSON.stringify(updatedProposals)
       );
 
+      // Notify the supervisor only after the proposal was saved successfully.
+      // Keep proposal saving successful even if notification storage fails.
+      const supervisorNotificationSaved = addNotification({
+        id: `supervisor-proposal-${updatedProposal.id}-revision-${updatedProposal.revisionNumber}`,
+        recipientId: "demo-supervisor",
+        type: "proposal",
+        title: existingProposal
+          ? "Proposal Resubmitted"
+          : "New Proposal Submitted",
+        message: `${student.name || "A Team Leader"} submitted ${
+          existingProposal ? "a revised proposal" : "a new proposal"
+        } for "${project.title}" from team "${team.name}".`,
+        link: "/supervisor/proposals",
+        relatedId: updatedProposal.id,
+      });
+
       setPageData((currentData) => ({
         ...currentData,
         proposal: updatedProposal,
@@ -350,10 +346,14 @@ try {
       setNotes("");
       setFileInputKey((currentKey) => currentKey + 1);
 
+      const savedMessage = existingProposal
+        ? "Updated proposal saved successfully. It is now pending supervisor review."
+        : "Proposal submitted successfully. It is now pending supervisor review.";
+
       showMessage(
-        existingProposal
-          ? "Updated proposal saved successfully. It is now pending supervisor review."
-          : "Proposal submitted successfully. It is now pending supervisor review.",
+        supervisorNotificationSaved
+          ? `${savedMessage} The supervisor has been notified.`
+          : `${savedMessage} The proposal was saved, but the supervisor notification could not be stored.`,
         "success"
       );
     } catch {

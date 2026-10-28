@@ -621,3 +621,22 @@
     transition: none;
   }
 }
+
+.tasks-progress-empty a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 16px;
+  padding: 9px 13px;
+  border: 1px solid #355b43;
+  border-radius: 8px;
+  background: #355b43;
+  color: #fffefa;
+  font-size: 12px;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.tasks-progress-empty a:hover {
+  background: #294638;
+}

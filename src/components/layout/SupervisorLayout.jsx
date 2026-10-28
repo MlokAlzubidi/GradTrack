@@ -19,6 +19,7 @@ import {
   Menu,
   X,
   ChevronDown,
+  ClipboardList,
 } from "lucide-react";
 import {
   clearSupervisorSession,
@@ -200,6 +201,11 @@ function SupervisorLayout() {
             <span>Projects</span>
           </NavLink>
 
+          <NavLink to="/supervisor/assignments" onClick={closeMenus} className={({ isActive }) => `supervisor-nav-link ${isActive ? "active" : ""}`}>
+            <ClipboardList className="supervisor-mobile-nav-icon" size={17} />
+            <span>Requests</span>
+          </NavLink>
+
           <div
             className={`supervisor-nav-dropdown ${
               reviewsOpen ? "is-open" : ""
@@ -309,28 +315,48 @@ function SupervisorLayout() {
         </nav>
 
         <div className="supervisor-topbar-actions">
-          <NavLink
-            to="/supervisor/notifications"
-            className={({ isActive }) =>
-              `supervisor-action-button supervisor-notification-action ${
-                isActive ? "active" : ""
-              }`
-            }
-            aria-label="Notifications"
-            title={
-              unreadCount > 0
-                ? `${unreadCount} unread notifications`
-                : "Notifications"
-            }
-          >
-            <Bell size={19} />
+         
 
-            {unreadCount > 0 && (
-              <span className="supervisor-action-badge">
-                {unreadCount > 99 ? "99+" : unreadCount}
-              </span>
-            )}
-          </NavLink>
+
+<div className="supervisor-bell-clean">
+  <NavLink
+    to="/supervisor/notifications"
+    className="supervisor-bell-clean__link"
+    aria-label="Notifications"
+    title={
+      unreadCount > 0
+        ? `${unreadCount} unread notifications`
+        : "Notifications"
+    }
+  >
+    <span
+      className={`supervisor-bell-clean__orb ${
+        unreadCount > 0 ? "has-unread" : ""
+      }`}
+    >
+      {unreadCount > 0 && (
+        <span
+          className="supervisor-bell-clean__aura"
+          aria-hidden="true"
+        />
+      )}
+
+      <Bell
+        className="supervisor-bell-clean__icon"
+        size={19}
+        strokeWidth={2}
+      />
+    </span>
+  </NavLink>
+
+  {unreadCount > 0 && (
+    <span className="supervisor-bell-clean__badge">
+      {unreadCount > 99 ? "99+" : unreadCount}
+    </span>
+  )}
+</div>
+
+
 
           <NavLink
             to="/supervisor/profile"

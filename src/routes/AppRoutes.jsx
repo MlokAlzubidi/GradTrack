@@ -31,6 +31,7 @@ import Notifications from "../pages/student/Notifications";
 
 import PlaceholderPage from "../components/common/PlaceholderPage";
 import RequireSupervisor from "../components/common/RequireSupervisor";
+import RequireStudent from "../components/common/RequireStudent";
 import SupervisorLayout from "../components/layout/SupervisorLayout";
 import SupervisorProjects from "../pages/supervisor/SupervisorProjects";
 import SupervisorProposals from "../pages/supervisor/SupervisorProposals";
@@ -40,6 +41,7 @@ import SupervisorDashboard from "../pages/supervisor/SupervisorDashboard";
 
 import SupervisorProfile from "../pages/supervisor/SupervisorProfile";
 import SupervisorNotifications from "../pages/supervisor/SupervisorNotifications";
+import SupervisorAssignments from "../pages/supervisor/SupervisorAssignments";
 
 import "../styles/shared.css";
 
@@ -74,76 +76,76 @@ function AppRoutes() {
         {/* Student Dashboard */}
         <Route
           path="/student/dashboard"
-          element={<StudentDashboard />}
+          element={<RequireStudent><StudentDashboard /></RequireStudent>}
         />
 
         {/* Team Management */}
         <Route
           path="/student/create-team"
-          element={<CreateTeam />}
+          element={<RequireStudent><CreateTeam /></RequireStudent>}
         />
 
         <Route
           path="/student/team"
-          element={<MyTeam />}
+          element={<RequireStudent><MyTeam /></RequireStudent>}
         />
 
         <Route
           path="/student/invitations"
-          element={<Invitations />}
+          element={<RequireStudent><Invitations /></RequireStudent>}
         />
 
         <Route
           path="/student/manage-team"
-          element={<ManageTeam />}
+          element={<RequireStudent><ManageTeam /></RequireStudent>}
         />
 
         {/* Student Profile and Notifications */}
         <Route
           path="/student/profile"
-          element={<Profile />}
+          element={<RequireStudent><Profile /></RequireStudent>}
         />
 
         <Route
           path="/student/notifications"
-          element={<Notifications />}
+          element={<RequireStudent><Notifications /></RequireStudent>}
         />
 
         {/* Tasks */}
         <Route
           path="/student/tasks"
-          element={<MyTasks />}
+          element={<RequireStudent><MyTasks /></RequireStudent>}
         />
 
         <Route
           path="/student/manage-tasks"
-          element={<ManageTasks />}
+          element={<RequireStudent><ManageTasks /></RequireStudent>}
         />
 
         <Route
           path="/student/team-tasks"
-          element={<TeamTasks />}
+          element={<RequireStudent><TeamTasks /></RequireStudent>}
         />
 
         <Route
           path="/student/tasks-progress"
-          element={<TasksProgress />}
+          element={<RequireStudent><TasksProgress /></RequireStudent>}
         />
 
         {/* Project and Proposal */}
         <Route
           path="/student/project-registration"
-          element={<ProjectRegistration />}
+          element={<RequireStudent><ProjectRegistration /></RequireStudent>}
         />
 
         <Route
           path="/student/submit-proposal"
-          element={<SubmitProposal />}
+          element={<RequireStudent><SubmitProposal /></RequireStudent>}
         />
 
         <Route
           path="/student/proposal-status"
-          element={<ProposalStatus />}
+          element={<RequireStudent><ProposalStatus /></RequireStudent>}
         />
 
         {/* Protected Supervisor routes */}
@@ -167,6 +169,7 @@ function AppRoutes() {
   path="projects"
   element={<SupervisorProjects />}
 />
+            <Route path="assignments" element={<SupervisorAssignments />} />
 
     <Route
   path="proposals"

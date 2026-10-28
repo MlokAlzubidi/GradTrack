@@ -294,8 +294,11 @@ function MyTasks() {
         fileData,
         submittedAt: new Date().toISOString(),
 
-        // كل ملف جديد يبدأ بمراجعة جديدة.
-        reviewStatus: "Pending Review",
+        // Only tasks explicitly assigned for supervisor review enter the review queue.
+        reviewStatus:
+          task.requiresSupervisorReview === true
+            ? "Pending Review"
+            : "Not Required",
         supervisorFeedback: "",
         reviewedAt: null,
         reviewedBy: null,
@@ -361,23 +364,26 @@ function MyTasks() {
         return;
       }
 
-try {
-  addNotification({
-    id: `supervisor-task-${newSubmission.id}`,
-    recipientId: "demo-supervisor",
-    type: "task",
-    title: isResubmission
-      ? "Task Submission Updated"
-      : "New Task Submission",
-    message: `${studentName} ${
-      isResubmission ? "resubmitted" : "submitted"
-    } the task "${task.title}" for team "${currentTeam.name || "the team"}".`,
-    link: "/supervisor/submissions",
-    relatedId: newSubmission.id,
-  });
-} catch {
-  // Keep the successfully saved student submission intact.
-}
+// Notify the supervisor only when the task explicitly requires review.
+      if (task.requiresSupervisorReview === true) {
+        try {
+          addNotification({
+            id: `supervisor-task-${newSubmission.id}`,
+            recipientId: "demo-supervisor",
+            type: "task",
+            title: isResubmission
+              ? "Task Submission Updated"
+              : "New Task Submission",
+            message: `${studentName} ${
+              isResubmission ? "resubmitted" : "submitted"
+            } the task "${task.title}" for team "${currentTeam.name || "the team"}".`,
+            link: "/supervisor/submissions",
+            relatedId: newSubmission.id,
+          });
+        } catch {
+          // Keep the successfully saved student submission intact.
+        }
+      }
 
       setAllTasks(updatedTasks);
 

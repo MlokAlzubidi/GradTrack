@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import StudentNavbar from "../../components/layout/StudentNavbar";
 import "./TasksProgress.css";
 
@@ -321,6 +322,20 @@ function TasksProgress() {
                 Create or join a team before tracking its
                 task progress.
               </p>
+            </div>
+          </section>
+        ) : !isLeader ? (
+          <section className="tasks-progress-list-section">
+            <div className="tasks-progress-empty">
+              <span className="tasks-progress-empty-icon" aria-hidden="true">
+                🔒
+              </span>
+              <h3>Team Leader access required</h3>
+              <p>
+                Detailed team-wide progress is available to the Team Leader.
+                You can still browse shared tasks and deliverables.
+              </p>
+              <Link to="/student/team-tasks">View Team Tasks →</Link>
             </div>
           </section>
         ) : (

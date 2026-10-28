@@ -1436,3 +1436,79 @@
   background: rgba(218, 232, 210, 0.78);
   border-color: rgba(157, 184, 145, 0.45);
 }
+
+
+/* ==========================================
+   Supervisor notification bell animation
+   Inspired by the Student notification bell
+========================================== */
+
+/* Move the bell gently while unread notifications exist */
+.supervisor-action-button.supervisor-notification-action:has(
+  .supervisor-action-badge
+) > svg {
+  transform-origin: 50% 10%;
+  animation: supervisorBellMotion 3.8s ease-in-out infinite;
+}
+
+/* Make the existing notification aura pulse smoothly */
+.supervisor-action-button.supervisor-notification-action:has(
+  .supervisor-action-badge
+)::after {
+  animation: supervisorNotificationPulse 2.2s ease-out infinite;
+}
+
+/* Gentle bell movement */
+@keyframes supervisorBellMotion {
+  0%,
+  82%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  85% {
+    transform: rotate(12deg);
+  }
+
+  88% {
+    transform: rotate(-12deg);
+  }
+
+  91% {
+    transform: rotate(8deg);
+  }
+
+  94% {
+    transform: rotate(-5deg);
+  }
+
+  97% {
+    transform: rotate(0deg);
+  }
+}
+
+/* Soft green flash around the notification button */
+@keyframes supervisorNotificationPulse {
+  0% {
+    opacity: 0.65;
+    transform: scale(0.88);
+  }
+
+  75%,
+  100% {
+    opacity: 0;
+    transform: scale(1.28);
+  }
+}
+
+/* Do not animate when the user prefers reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .supervisor-action-button.supervisor-notification-action:has(
+    .supervisor-action-badge
+  ) > svg,
+  .supervisor-action-button.supervisor-notification-action:has(
+    .supervisor-action-badge
+  )::after {
+    animation: none !important;
+  }
+}

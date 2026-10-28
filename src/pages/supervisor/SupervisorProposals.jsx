@@ -16,6 +16,8 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { getSupervisorSession } from "../../utils/supervisorAuth";
+import { addNotification } from "../../utils/notifications";
+import { getAssignedTeamIds } from "../../utils/supervisorAssignments";
 import "./SupervisorProposals.css";
 
 const PROPOSALS_KEY = "gradtrack-proposals";
@@ -28,6 +30,45 @@ function readProposals() {
   } catch {
     return [];
   }
+}
+
+function getProposalRecipientIds(proposal) {
+  const recipientIds = new Set();
+
+  if (proposal?.submittedBy) {
+    recipientIds.add(String(proposal.submittedBy));
+  }
+
+  try {
+    const savedTeams = localStorage.getItem("gradtrack-teams");
+    const parsedTeams = savedTeams ? JSON.parse(savedTeams) : [];
+    const teams = Array.isArray(parsedTeams) ? parsedTeams : [];
+    const team = teams.find(
+      (item) => String(item.id) === String(proposal?.teamId)
+    );
+
+    if (team) {
+      if (team.leaderId) {
+        recipientIds.add(String(team.leaderId));
+      }
+
+      (Array.isArray(team.memberIds) ? team.memberIds : []).forEach(
+        (id) => recipientIds.add(String(id))
+      );
+
+      (Array.isArray(team.members) ? team.members : []).forEach(
+        (member) => {
+          const id = member.universityId || member.id;
+          if (id) recipientIds.add(String(id));
+        }
+      );
+    }
+  } catch {
+    // The proposal review itself can still be saved without team notifications.
+  }
+
+  recipientIds.delete("");
+  return [...recipientIds];
 }
 
 function formatDate(value) {
@@ -68,7 +109,10 @@ function getStatusClass(status) {
 }
 
 function SupervisorProposals() {
-  const [proposals, setProposals] = useState(readProposals);
+  const supervisor = getSupervisorSession();
+  const [allProposals, setProposals] = useState(readProposals);
+  const assignedIds = getAssignedTeamIds(supervisor?.id);
+  const proposals = allProposals.filter((item) => assignedIds.has(String(item.teamId)));
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [expandedId, setExpandedId] = useState(null);
@@ -77,8 +121,6 @@ function SupervisorProposals() {
   const [errorById, setErrorById] = useState({});
   const [successMessage, setSuccessMessage] = useState("");
   const [generalError, setGeneralError] = useState("");
-
-  const supervisor = getSupervisorSession();
 
   function refreshProposals() {
     setProposals(readProposals());
@@ -248,10 +290,39 @@ function SupervisorProposals() {
         return next;
       });
 
-      setSuccessMessage(
+      const decisionMessage =
         decision === "Approved"
           ? `The proposal for "${updatedProposal.projectTitle || updatedProposal.teamName || "this team"}" has been approved.`
-          : `Changes have been requested for "${updatedProposal.projectTitle || updatedProposal.teamName || "this team"}".`
+          : `Changes have been requested for "${updatedProposal.projectTitle || updatedProposal.teamName || "this team"}".`;
+
+      // Send the result and feedback to the leader and all current team members.
+      const recipients = getProposalRecipientIds(updatedProposal);
+      let notificationsSaved = 0;
+
+      recipients.forEach((recipientId) => {
+        const notificationSaved = addNotification({
+          id: `proposal-review-${updatedProposal.id}-${updatedProposal.revisionNumber || 1}-${decision}-${recipientId}-${now}`,
+          recipientId,
+          type: "proposal",
+          title:
+            decision === "Approved"
+              ? "Proposal Approved"
+              : "Changes Requested for Proposal",
+          message:
+            decision === "Approved"
+              ? `The supervisor approved "${updatedProposal.projectTitle || updatedProposal.teamName || "your team proposal"}".${feedback ? ` Feedback: ${feedback}` : ""}`
+              : `The supervisor requested changes to "${updatedProposal.projectTitle || updatedProposal.teamName || "your team proposal"}". Feedback: ${feedback}`,
+          link: "/student/proposal-status",
+          relatedId: updatedProposal.id,
+        });
+
+        if (notificationSaved) notificationsSaved += 1;
+      });
+
+      setSuccessMessage(
+        notificationsSaved > 0
+          ? `${decisionMessage} Notifications were sent to ${notificationsSaved} team member(s).`
+          : `${decisionMessage} However, notifications could not be saved.`
       );
     } catch {
       setGeneralError(

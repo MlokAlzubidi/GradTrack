@@ -2,14 +2,10 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { SUPERVISOR_SESSION_KEY } from "../../utils/supervisorAuth";
+import { SUPERVISORS } from "../../utils/supervisorAssignments";
 import "./SupervisorLogin.css";
 
-const DEMO_SUPERVISOR = {
-  email: "supervisor@gradtrack.demo",
-  password: "Supervisor123!",
-  name: "Academic Supervisor",
-  role: "supervisor",
-};
+const DEMO_SUPERVISOR = SUPERVISORS[0];
 
 function SupervisorLogin() {
   const navigate = useNavigate();
@@ -26,10 +22,10 @@ function SupervisorLogin() {
     const email = supervisorEmail.trim();
     const password = supervisorPassword;
 
-    if (
-      email.toLowerCase() !== DEMO_SUPERVISOR.email.toLowerCase() ||
-      password !== DEMO_SUPERVISOR.password
-    ) {
+    const matchedSupervisor = SUPERVISORS.find((item) =>
+      item.email.toLowerCase() === email.toLowerCase() && item.password === password
+    );
+    if (!matchedSupervisor) {
       setErrorMessage(
         "Invalid demo credentials. Please check the details below."
       );
@@ -37,10 +33,10 @@ function SupervisorLogin() {
     }
 
     const supervisorSession = {
-      id: "demo-supervisor",
-      email: DEMO_SUPERVISOR.email,
-      name: DEMO_SUPERVISOR.name,
-      role: DEMO_SUPERVISOR.role,
+      id: matchedSupervisor.id,
+      email: matchedSupervisor.email,
+      name: matchedSupervisor.name,
+      role: "supervisor",
       loggedInAt: new Date().toISOString(),
     };
 

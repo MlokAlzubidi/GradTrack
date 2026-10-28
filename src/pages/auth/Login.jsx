@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { GraduationCap, ArrowRight, LockKeyhole } from "lucide-react";
 import "./Login.css";
 import { getAllMockStudents } from "../../data/mockData";
 
 function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [universityId, setUniversityId] = useState("");
   const [password, setPassword] = useState("");
@@ -66,7 +67,8 @@ function Login() {
       JSON.stringify(currentStudent)
     );
 
-    navigate("/student/dashboard");
+    const destination = location.state?.from?.pathname || "/student/dashboard";
+    navigate(destination, { replace: true });
   }
 
   return (

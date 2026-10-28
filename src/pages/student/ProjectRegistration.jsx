@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import StudentNavbar from "../../components/layout/StudentNavbar";
+import { SUPERVISORS, createAssignmentRequest } from "../../utils/supervisorAssignments";
 import "./ProjectRegistration.css";
 
 // مفاتيح البيانات المشتركة في GradTrack.
@@ -124,6 +125,7 @@ function ProjectRegistration() {
 
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("info");
+  const [supervisorId, setSupervisorId] = useState(() => pageData.team?.requestedSupervisorId || pageData.team?.supervisorId || "");
 
   const { student, team, project, teamStatus, isLeader } = pageData;
 
@@ -162,6 +164,11 @@ function ProjectRegistration() {
       return;
     }
 
+    if (!supervisorId || !SUPERVISORS.some((item) => String(item.id) === String(supervisorId))) {
+      showMessage("Please select an academic supervisor.", "error");
+      return;
+    }
+
     const savedProjects = readLocalData(PROJECTS_STORAGE_KEY, []);
 
     if (!Array.isArray(savedProjects)) {
@@ -186,6 +193,9 @@ function ProjectRegistration() {
       title,
       domain: projectDomain,
       description,
+      supervisorId: team.supervisorId || null,
+      requestedSupervisorId: team.requestedSupervisorId || null,
+      supervisorAssignmentStatus: team.supervisorAssignmentStatus || "unassigned",
       registeredBy: student.universityId,
       createdAt: existingProject?.createdAt || now,
       updatedAt: now,
@@ -204,16 +214,27 @@ function ProjectRegistration() {
         JSON.stringify(updatedProjects)
       );
 
+      if (team.supervisorAssignmentStatus !== "accepted") {
+        const result = createAssignmentRequest({ team, project: updatedProject, supervisorId, leader: student });
+        if (result.error) {
+          showMessage(result.error, "error");
+          return;
+        }
+      }
+
       // تحديث حالة الصفحة حتى تظهر البيانات المحفوظة مباشرة.
       setPageData((currentData) => ({
         ...currentData,
-        project: updatedProject,
+        team: currentData.team?.supervisorAssignmentStatus === "accepted"
+          ? currentData.team
+          : { ...currentData.team, requestedSupervisorId: String(supervisorId), supervisorAssignmentStatus: "pending" },
+        project: currentData.team?.supervisorAssignmentStatus === "accepted"
+          ? updatedProject
+          : { ...updatedProject, requestedSupervisorId: String(supervisorId), supervisorAssignmentStatus: "pending" },
       }));
 
       showMessage(
-        existingProject
-          ? "Project information updated successfully."
-          : "Project registered successfully.",
+          "Project saved. Your supervisor assignment request is pending approval.",
         "success"
       );
     } catch {
@@ -336,6 +357,16 @@ function ProjectRegistration() {
                   </option>
                   <option value="Other">Other</option>
                 </select>
+              </div>
+
+              <div className="project-registration-field">
+                <label htmlFor="projectSupervisor">Academic Supervisor</label>
+                <select id="projectSupervisor" value={supervisorId} onChange={(event) => { setSupervisorId(event.target.value); setMessage(""); }} required disabled={team?.supervisorAssignmentStatus === "accepted"}>
+                  <option value="">Select a supervisor</option>
+                  {SUPERVISORS.map((supervisor) => <option key={supervisor.id} value={supervisor.id}>{supervisor.name} · {supervisor.email}{supervisor.department ? ` · ${supervisor.department}` : ""}</option>)}
+                </select>
+                {(team?.supervisorAssignmentStatus === "pending") && <small>Your request is awaiting supervisor approval.</small>}
+                {(team?.supervisorAssignmentStatus === "rejected") && <small>Your previous request was declined. Select a supervisor to request again.</small>}
               </div>
 
               <div className="project-registration-field">
