@@ -518,13 +518,6 @@
   line-height: 1.75;
 }
 
-.notifications-note {
-  margin: 25px 0 0;
-  color: #8a9186;
-  font-size: 0.78rem;
-  line-height: 1.7;
-}
-
 @keyframes notificationsFadeUp {
   from {
     opacity: 0;

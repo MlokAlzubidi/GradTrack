@@ -1,4 +1,4 @@
-import { addNotification } from "./notifications";
+import { addNotification } from "./notifications.js";
 
 export const SUPERVISORS = [{
   id: "demo-supervisor",
@@ -14,6 +14,61 @@ export const SUPERVISORS = [{
   department: "Computer Science",
   role: "supervisor",
 }];
+
+const REGISTERED_SUPERVISORS_KEY = "gradtrack-registered-supervisors";
+
+export function getAllSupervisors() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(REGISTERED_SUPERVISORS_KEY) || "[]");
+    return [...SUPERVISORS, ...(Array.isArray(saved) ? saved : [])];
+  } catch {
+    return [...SUPERVISORS];
+  }
+}
+
+export function authenticateSupervisor(identifier, password) {
+  const normalizedIdentifier = String(identifier || "").trim().toLowerCase();
+  return getAllSupervisors().find((supervisor) =>
+    (String(supervisor.email || "").toLowerCase() === normalizedIdentifier ||
+      String(supervisor.staffId || "").toLowerCase() === normalizedIdentifier) &&
+    supervisor.password === password
+  ) || null;
+}
+
+export function registerSupervisor({ name, email, staffId = "", password }) {
+  const normalizedName = String(name || "").trim();
+  const normalizedEmail = String(email || "").trim().toLowerCase();
+  const normalizedStaffId = String(staffId || "").trim();
+  if (!normalizedName || !normalizedEmail || !password) {
+    return { success: false, message: "Please complete all required fields." };
+  }
+
+  const supervisors = getAllSupervisors();
+  if (supervisors.some((item) => String(item.email || "").toLowerCase() === normalizedEmail)) {
+    return { success: false, message: "An account already uses this university email." };
+  }
+  if (normalizedStaffId && supervisors.some((item) => String(item.staffId || "").toLowerCase() === normalizedStaffId.toLowerCase())) {
+    return { success: false, message: "An account already uses this staff ID." };
+  }
+
+  const account = {
+    id: `supervisor-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    name: normalizedName,
+    email: normalizedEmail,
+    ...(normalizedStaffId ? { staffId: normalizedStaffId } : {}),
+    password,
+    role: "supervisor",
+  };
+
+  try {
+    const existing = JSON.parse(localStorage.getItem(REGISTERED_SUPERVISORS_KEY) || "[]");
+    if (!Array.isArray(existing)) throw new Error("Invalid supervisor account data.");
+    localStorage.setItem(REGISTERED_SUPERVISORS_KEY, JSON.stringify([...existing, account]));
+    return { success: true, supervisor: account };
+  } catch {
+    return { success: false, message: "Could not save your account. Please try again." };
+  }
+}
 
 export const ASSIGNMENT_REQUESTS_KEY = "gradtrack-supervisor-assignment-requests";
 const TEAMS_KEY = "gradtrack-teams";
@@ -67,7 +122,7 @@ export function decideAssignment(requestId, supervisorId, decision) {
   localStorage.setItem(TEAMS_KEY, JSON.stringify(teams.map((team) => sameId(team.id, request.teamId) ? { ...team, supervisorId: status === "accepted" ? String(supervisorId) : null, requestedSupervisorId: null, supervisorAssignmentStatus: status } : team)));
   localStorage.setItem(PROJECTS_KEY, JSON.stringify(readStorageArray(PROJECTS_KEY).map((project) => sameId(project.teamId, request.teamId) ? { ...project, supervisorId: status === "accepted" ? String(supervisorId) : null, requestedSupervisorId: null, supervisorAssignmentStatus: status } : project)));
   localStorage.setItem(ASSIGNMENT_REQUESTS_KEY, JSON.stringify(requests.map((item) => sameId(item.id, requestId) ? { ...item, status, decidedAt: new Date().toISOString() } : item)));
-  const assignedSupervisor = SUPERVISORS.find((item) => sameId(item.id, supervisorId));
+  const assignedSupervisor = getAllSupervisors().find((item) => sameId(item.id, supervisorId));
   addNotification({ id: `${request.id}-${status}`, recipientId: request.leaderId, type: "assignment", title: status === "accepted" ? "Supervisor request accepted" : "Supervisor request declined", message: status === "accepted" ? `${assignedSupervisor?.name || "Your requested supervisor"} accepted your team assignment.` : "Your supervisor request was declined. You can select another supervisor and send a new request.", link: "/student/project-registration", relatedId: request.id });
   return { request, status };
 }

@@ -1,144 +1,119 @@
-
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { ArrowRight, GraduationCap, LockKeyhole } from "lucide-react";
 import { SUPERVISOR_SESSION_KEY } from "../../utils/supervisorAuth";
-import { SUPERVISORS } from "../../utils/supervisorAssignments";
-import "./SupervisorLogin.css";
-
-const DEMO_SUPERVISOR = SUPERVISORS[0];
+import { authenticateSupervisor } from "../../utils/supervisorAssignments";
+import "./Login.css";
 
 function SupervisorLogin() {
   const navigate = useNavigate();
   const location = useLocation();
-
-  const [supervisorEmail, setSupervisorEmail] = useState("");
-  const [supervisorPassword, setSupervisorPassword] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
+  const [identifier, setIdentifier] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
   function handleSubmit(event) {
     event.preventDefault();
-    setErrorMessage("");
+    setError("");
 
-    const email = supervisorEmail.trim();
-    const password = supervisorPassword;
-
-    const matchedSupervisor = SUPERVISORS.find((item) =>
-      item.email.toLowerCase() === email.toLowerCase() && item.password === password
-    );
-    if (!matchedSupervisor) {
-      setErrorMessage(
-        "Invalid demo credentials. Please check the details below."
-      );
+    const supervisor = authenticateSupervisor(identifier, password);
+    if (!supervisor) {
+      setError("Invalid supervisor email or password.");
       return;
     }
 
     const supervisorSession = {
-      id: matchedSupervisor.id,
-      email: matchedSupervisor.email,
-      name: matchedSupervisor.name,
+      id: supervisor.id,
+      email: supervisor.email,
+      name: supervisor.name,
       role: "supervisor",
       loggedInAt: new Date().toISOString(),
     };
 
     try {
-      sessionStorage.setItem(
-        SUPERVISOR_SESSION_KEY,
-        JSON.stringify(supervisorSession)
-      );
-
-      const destination =
-        location.state?.from?.pathname || "/supervisor/dashboard";
-
+      sessionStorage.setItem(SUPERVISOR_SESSION_KEY, JSON.stringify(supervisorSession));
+      const destination = location.state?.from?.pathname || "/supervisor/dashboard";
       navigate(destination, { replace: true });
     } catch {
-      setErrorMessage(
-        "Could not start the session in this browser. Please try again."
-      );
+      setError("Could not start your session. Please try again.");
     }
   }
 
   return (
-    <main className="supervisor-login-page">
-      <section className="supervisor-login-container">
-        <Link to="/" className="supervisor-back-link">
+    <main className="login-page">
+      <div className="login-background-orb login-orb-one" />
+      <div className="login-background-orb login-orb-two" />
+
+      <section className="login-container">
+        <Link to="/" className="login-back-link">
           ← Back to account selection
         </Link>
 
-        <h1>GradTrack</h1>
+        <Link to="/" className="login-brand" aria-label="Return to account selection">
+          <span className="login-brand-icon">
+            <GraduationCap size={27} strokeWidth={1.8} />
+          </span>
+          <span className="login-brand-name">Grad<span>Track</span></span>
+        </Link>
 
-        <p className="supervisor-login-subtitle">
-          Graduation Project Management System
-        </p>
+        <p className="login-subtitle">Graduation Project Management System</p>
 
-        <div className="supervisor-heading">
+        <div className="login-heading">
+          <span className="login-heading-icon"><LockKeyhole size={17} /></span>
           <h2>Academic Supervisor</h2>
-          <p>Sign in to manage and review graduation projects.</p>
         </div>
+        <p className="login-description">Sign in to manage and review graduation projects.</p>
+
+        {location.state?.registrationSuccess && (
+          <p className="login-success-message" role="status">
+            {location.state.registrationSuccess}
+          </p>
+        )}
 
         <form onSubmit={handleSubmit}>
-          <div className="supervisor-form-group">
-            <label htmlFor="supervisorEmail">
-              University Email or Staff ID
-            </label>
-
+          <div className="form-group">
+            <label htmlFor="supervisorIdentifier">University Email or Staff ID</label>
             <input
-              id="supervisorEmail"
-              name="supervisorEmail"
+              id="supervisorIdentifier"
+              name="supervisorIdentifier"
               type="text"
-              value={supervisorEmail}
-              onChange={(event) => {
-                setSupervisorEmail(event.target.value);
-                setErrorMessage("");
-              }}
+              value={identifier}
+              onChange={(event) => { setIdentifier(event.target.value); setError(""); }}
               placeholder="Enter your email or staff ID"
               autoComplete="username"
               required
             />
           </div>
 
-          <div className="supervisor-form-group">
+          <div className="form-group">
             <label htmlFor="supervisorPassword">Password</label>
-
             <input
               id="supervisorPassword"
               name="supervisorPassword"
               type="password"
-              value={supervisorPassword}
-              onChange={(event) => {
-                setSupervisorPassword(event.target.value);
-                setErrorMessage("");
-              }}
+              value={password}
+              onChange={(event) => { setPassword(event.target.value); setError(""); }}
               placeholder="Enter your password"
               autoComplete="current-password"
               required
             />
           </div>
 
-          <div className="supervisor-forgot-link">
+          {error && <p className="error-message" role="alert">{error}</p>}
+
+          <div className="login-links">
             <Link to="/forgot-password">Forgot Password?</Link>
           </div>
 
-          {errorMessage && (
-            <p
-              className="supervisor-login-message"
-              role="alert"
-            >
-              {errorMessage}
-            </p>
-          )}
-
-          <button type="submit">Sign In</button>
+          <button type="submit" className="login-submit-button">
+            <span>Sign In</span>
+            <ArrowRight size={17} />
+          </button>
         </form>
 
-        <aside className="supervisor-demo-credentials">
-          <strong>Demo account — frontend prototype</strong>
-          <p>
-            <span>Email:</span> supervisor@gradtrack.demo
-          </p>
-          <p>
-            <span>Password:</span> Supervisor123!
-          </p>
-        </aside>
+        <p className="register-link">
+          Don&apos;t have an account? <Link to="/supervisor/register">Create an account</Link>
+        </p>
       </section>
     </main>
   );

@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import StudentNavbar from "../../components/layout/StudentNavbar";
-import { SUPERVISORS, createAssignmentRequest } from "../../utils/supervisorAssignments";
+import { getAllSupervisors, createAssignmentRequest } from "../../utils/supervisorAssignments";
 import "./ProjectRegistration.css";
 
 // مفاتيح البيانات المشتركة في GradTrack.
@@ -164,7 +164,7 @@ function ProjectRegistration() {
       return;
     }
 
-    if (!supervisorId || !SUPERVISORS.some((item) => String(item.id) === String(supervisorId))) {
+    if (!supervisorId || !getAllSupervisors().some((item) => String(item.id) === String(supervisorId))) {
       showMessage("Please select an academic supervisor.", "error");
       return;
     }
@@ -363,7 +363,7 @@ function ProjectRegistration() {
                 <label htmlFor="projectSupervisor">Academic Supervisor</label>
                 <select id="projectSupervisor" value={supervisorId} onChange={(event) => { setSupervisorId(event.target.value); setMessage(""); }} required disabled={team?.supervisorAssignmentStatus === "accepted"}>
                   <option value="">Select a supervisor</option>
-                  {SUPERVISORS.map((supervisor) => <option key={supervisor.id} value={supervisor.id}>{supervisor.name} · {supervisor.email}{supervisor.department ? ` · ${supervisor.department}` : ""}</option>)}
+                  {getAllSupervisors().map((supervisor) => <option key={supervisor.id} value={supervisor.id}>{supervisor.name} · {supervisor.email}{supervisor.department ? ` · ${supervisor.department}` : ""}</option>)}
                 </select>
                 {(team?.supervisorAssignmentStatus === "pending") && <small>Your request is awaiting supervisor approval.</small>}
                 {(team?.supervisorAssignmentStatus === "rejected") && <small>Your previous request was declined. Select a supervisor to request again.</small>}

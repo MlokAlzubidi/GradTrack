@@ -77,6 +77,10 @@ function Login() {
       <div className="login-background-orb login-orb-two" />
 
       <section className="login-container">
+        <Link to="/" className="login-back-link">
+          ← Back to account selection
+        </Link>
+
         <Link
           to="/"
           className="login-brand"
@@ -170,11 +174,6 @@ function Login() {
             Create an account
           </Link>
         </p>
-
-        <div className="login-card-footer">
-          <span className="login-footer-dot" />
-          Your graduation journey starts here
-        </div>
       </section>
     </main>
   );

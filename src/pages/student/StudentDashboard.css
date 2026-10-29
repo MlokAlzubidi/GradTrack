@@ -480,14 +480,6 @@
   font-size: 13px;
 }
 
-.student-dashboard .dashboard-demo-note {
-  margin: 17px 0 0;
-  color: #899087;
-  font-size: 10px;
-  line-height: 1.8;
-  text-align: center;
-}
-
 /* Responsive layouts */
 
 @media (max-width: 850px) {

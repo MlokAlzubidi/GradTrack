@@ -7,8 +7,6 @@ function PlaceholderPage({ title }) {
 
       <h2>{title}</h2>
 
-      <p>This page is under development.</p>
-
       <Link to="/login">Back to Login</Link>
     </main>
   );

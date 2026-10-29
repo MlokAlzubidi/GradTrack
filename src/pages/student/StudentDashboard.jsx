@@ -514,10 +514,6 @@ function StudentDashboard() {
           </p>
         </footer>
 
-        <p className="dashboard-demo-note">
-          Development preview: some information is based on local mock
-          data and will be connected to the backend later.
-        </p>
       </main>
     </div>
   );

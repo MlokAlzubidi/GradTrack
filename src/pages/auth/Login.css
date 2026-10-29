@@ -156,6 +156,21 @@
   }
 }
 
+/* Return to account selection */
+
+.login-back-link {
+  display: block;
+  width: fit-content;
+  margin-bottom: 28px;
+  color: #426b50;
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.login-back-link:hover {
+  text-decoration: underline;
+}
+
 /* Brand */
 
 .login-brand {
@@ -481,6 +496,17 @@
   animation: loginErrorAppear 250ms ease both;
 }
 
+.login-success-message {
+  margin: 0 0 18px;
+  padding: 11px 13px;
+  border: 1px solid #d5e3d4;
+  border-radius: 10px;
+  background: #edf4eb;
+  color: #355b43;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
 @keyframes loginErrorAppear {
   from {
     opacity: 0;
@@ -506,37 +532,6 @@
 
 .register-link a {
   white-space: nowrap;
-}
-
-/* Bottom detail */
-
-.login-card-footer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-
-  margin-top: 23px;
-  padding-top: 16px;
-
-  border-top: 1px solid #eff0e9;
-
-  color: #92998e;
-  font-size: 10px;
-  letter-spacing: 0.015em;
-
-  animation: loginContentAppear 550ms 400ms ease both;
-}
-
-.login-footer-dot {
-  width: 6px;
-  height: 6px;
-  flex: 0 0 6px;
-
-  border-radius: 50%;
-  background: #8eae83;
-
-  box-shadow: 0 0 0 3px rgba(142, 174, 131, 0.12);
 }
 
 /* Tablet */
@@ -615,12 +610,6 @@
     font-size: 11px;
   }
 
-  .login-card-footer {
-    margin-top: 19px;
-    padding-top: 13px;
-    font-size: 9px;
-  }
-
   .login-background-orb {
     width: 270px;
     height: 270px;
@@ -652,10 +641,6 @@
   .register-link {
     margin-top: 16px;
   }
-
-  .login-card-footer {
-    margin-top: 15px;
-  }
 }
 
 /* Accessibility */
@@ -669,7 +654,6 @@
   .login-heading,
   .login-description,
   .login-container form,
-  .login-card-footer,
   .error-message {
     animation: none !important;
   }

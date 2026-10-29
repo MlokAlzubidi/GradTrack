@@ -496,13 +496,6 @@
   line-height: 1.6;
 }
 
-.supervisor-dashboard-data-note {
-  margin: 18px 3px 0;
-  color: #8d9689;
-  font-size: 10px;
-  line-height: 1.7;
-}
-
 @media (max-width: 1100px) {
   .supervisor-dashboard-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));

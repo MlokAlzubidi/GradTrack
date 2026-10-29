@@ -591,11 +591,6 @@ function Notifications() {
           </>
         )}
 
-        <p className="notifications-note">
-          Notifications are currently stored in this browser.
-          Automatic event notifications will be connected as the
-          remaining frontend workflows are completed.
-        </p>
       </main>
     </div>
   );

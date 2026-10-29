@@ -728,11 +728,6 @@ function SupervisorProposals() {
         )}
       </section>
 
-      <p className="supervisor-proposals-demo-note">
-        Proposal reviews are currently saved in this browser's local
-        storage. Backend authentication, supervisor assignment, and
-        automated team notifications are not connected yet.
-      </p>
     </div>
   );
 }

@@ -10,6 +10,7 @@ import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
 import RoleSelection from "../pages/auth/RoleSelection";
 import SupervisorLogin from "../pages/auth/SupervisorLogin";
+import SupervisorRegister from "../pages/auth/SupervisorRegister";
 
 import StudentDashboard from "../pages/student/StudentDashboard";
 import CreateTeam from "../pages/student/CreateTeam";
@@ -71,6 +72,11 @@ function AppRoutes() {
         <Route
           path="/supervisor/login"
           element={<SupervisorLogin />}
+        />
+
+        <Route
+          path="/supervisor/register"
+          element={<SupervisorRegister />}
         />
 
         {/* Student Dashboard */}

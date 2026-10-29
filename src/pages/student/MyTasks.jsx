@@ -275,7 +275,7 @@ function MyTasks() {
       setMessages((current) => ({
         ...current,
         [taskId]:
-          "This demo supports files up to 500 KB. Please choose a smaller file.",
+          "Files must be 500 KB or smaller. Please choose a smaller file.",
       }));
       return;
     }
@@ -424,11 +424,6 @@ function MyTasks() {
             and share your completed work with the team.
           </p>
         </header>
-
-        <div className="my-tasks-demo-note">
-          Your tasks are filtered by your team and your account.
-          Files are stored locally for this demo; the upload limit is 500 KB.
-        </div>
 
         {!currentTeam ? (
           <section className="my-task-card">

@@ -764,13 +764,6 @@
   cursor: pointer;
 }
 
-.supervisor-proposals-demo-note {
-  margin: 17px 3px 0;
-  color: #8d9689;
-  font-size: 10px;
-  line-height: 1.7;
-}
-
 @keyframes supervisorReviewReveal {
   from {
     opacity: 0;

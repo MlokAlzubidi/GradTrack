@@ -617,10 +617,6 @@ function TasksProgress() {
           </>
         )}
 
-        <p className="tasks-progress-demo-note">
-          Tasks are separated by team and saved locally in this
-          browser. Backend synchronization will be added later.
-        </p>
       </main>
     </div>
   );

@@ -250,7 +250,7 @@ function SubmitProposal() {
 
     if (proposalFile.size > MAX_FILE_SIZE) {
       showMessage(
-        "This demo supports files up to 500 KB. Please select a smaller document.",
+        "Files must be 500 KB or smaller. Please select a smaller document.",
         "error"
       );
       return;
@@ -812,11 +812,6 @@ function SubmitProposal() {
           </>
         )}
 
-        <p className="submit-proposal-demo-note">
-          Proposal data is stored locally in this browser.
-          Backend synchronization and supervisor review will be
-          connected during backend integration.
-        </p>
       </main>
     </div>
   );

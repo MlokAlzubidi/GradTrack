@@ -1130,16 +1130,6 @@
   transform: translateY(-1px);
 }
 
-.submit-proposal-demo-note {
-  max-width: 680px;
-  margin: 22px auto 0;
-
-  color: #8a9186;
-  font-size: 10px;
-  line-height: 1.8;
-  text-align: center;
-}
-
 /* Focus styles */
 
 .submit-proposal-page a:focus-visible,
@@ -1425,10 +1415,6 @@
     max-width: 100%;
   }
 
-  .submit-proposal-demo-note {
-    padding: 0 5px;
-    font-size: 10px;
-  }
 }
 
 /* Reduced motion accessibility */

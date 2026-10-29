@@ -196,13 +196,6 @@
   line-height: 1.8;
 }
 
-.proposal-status-demo-note {
-  margin: 18px 0 0;
-  color: #7a8079;
-  font-size: 12px;
-  line-height: 1.8;
-}
-
 @media (max-width: 600px) {
   .proposal-status-content {
     width: calc(100% - 32px);
@@ -328,14 +321,6 @@
 
 .proposal-status-page a {
   color: #355b43;
-}
-
-.proposal-status-demo-note {
-  margin-top: 18px;
-  color: #899087;
-  font-size: 10px;
-  line-height: 1.8;
-  text-align: center;
 }
 
 @media (max-width: 600px) {

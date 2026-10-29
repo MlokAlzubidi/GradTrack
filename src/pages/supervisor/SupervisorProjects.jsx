@@ -391,11 +391,6 @@ function SupervisorProjects() {
         )}
       </section>
 
-      <p className="supervisor-projects-demo-note">
-        Project information is currently read from this browser's
-        local storage. Supervisor-specific project assignments and
-        multi-device synchronization have not been implemented yet.
-      </p>
     </div>
   );
 }

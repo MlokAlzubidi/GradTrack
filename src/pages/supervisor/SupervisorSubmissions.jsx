@@ -849,11 +849,6 @@ function SupervisorSubmissions() {
         )}
       </section>
 
-      <p className="supervisor-submissions-demo-note">
-        Task submissions and review feedback are saved in this browser's
-        local storage. Notifications are also stored locally. Backend
-        authentication and multi-device synchronization are not connected.
-      </p>
     </div>
   );
 }

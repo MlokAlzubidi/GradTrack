@@ -9,7 +9,6 @@ import {
   Save,
   X,
   CheckCircle2,
-  GraduationCap,
 } from "lucide-react";
 import {
   getSupervisorSession,
@@ -184,7 +183,7 @@ function SupervisorProfile() {
         <div className="supervisor-profile-section-heading">
           <div>
             <h3>Personal Information</h3>
-            <p>These details identify your current demo account.</p>
+            <p>Update the display name associated with your account.</p>
           </div>
 
           {!isEditing && (
@@ -244,7 +243,7 @@ function SupervisorProfile() {
               </div>
 
               <small>
-                The demo account email cannot be changed here.
+                The university email cannot be changed here.
               </small>
             </div>
 
@@ -320,21 +319,6 @@ function SupervisorProfile() {
         )}
       </section>
 
-      <section className="supervisor-profile-demo-note">
-        <div className="supervisor-profile-note-icon">
-          <GraduationCap size={21} />
-        </div>
-
-        <div>
-          <h3>About this account</h3>
-          <p>
-            GradTrack currently uses a frontend demo session. Your
-            display name is saved in this browser session. University
-            account authentication and permanent profile storage will
-            be connected when the backend is implemented.
-          </p>
-        </div>
-      </section>
     </div>
   );
 }

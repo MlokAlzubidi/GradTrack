@@ -38,17 +38,6 @@
   line-height: 1.8;
 }
 
-.invitations-demo-note {
-  margin: 0 0 24px;
-  padding: 14px 16px;
-  border: 1px solid #e4dfd2;
-  border-radius: 10px;
-  background: #fffefa;
-  color: #707a71;
-  font-size: 13px;
-  line-height: 1.7;
-}
-
 .invitations-message {
   margin: 0 0 20px;
   padding: 14px 16px;
@@ -58,6 +47,18 @@
   color: #294638;
   font-size: 14px;
   line-height: 1.7;
+}
+
+.invitations-message.error {
+  border-color: #ead1c7;
+  background: #f8e9df;
+  color: #8a4c32;
+}
+
+.invitations-message.success {
+  border-color: #d5e3d4;
+  background: #edf4eb;
+  color: #294638;
 }
 
 .invitations-list {

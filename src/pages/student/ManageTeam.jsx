@@ -1,9 +1,10 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import StudentNavbar from "../../components/layout/StudentNavbar";
 import { getAllMockStudents } from "../../data/mockData";
 import "./ManageTeam.css";
 import { addNotification } from "../../utils/notifications";
+import { getTeamMemberIds, prepareInvitation, prepareMemberLeave } from "../../utils/teamInvitationRules";
 
 const TEAMS_STORAGE_KEY = "gradtrack-teams";
 const INVITATIONS_STORAGE_KEY = "gradtrack-invitations";
@@ -54,21 +55,6 @@ function readInvitations() {
   }
 
   return invitations;
-}
-
-// توحيد معرفات أعضاء الفريق ومنع تكرارها.
-function getTeamMemberIds(team) {
-  const ids = [
-    team.leaderId,
-    ...(Array.isArray(team.memberIds) ? team.memberIds : []),
-    ...(Array.isArray(team.members)
-      ? team.members.map(
-          (member) => member.universityId || member.id
-        )
-      : []),
-  ].filter(Boolean);
-
-  return [...new Set(ids)];
 }
 
 // قراءة بيانات الفريق الحالي.
@@ -123,7 +109,7 @@ function loadTeamData() {
 }
 
 function ManageTeam() {
-  const [currentStudent] = useState(readCurrentStudent);
+  const [currentStudent, setCurrentStudent] = useState(readCurrentStudent);
   const [teamData, setTeamData] = useState(loadTeamData);
 
   const [inviteUniversityId, setInviteUniversityId] = useState("");
@@ -144,7 +130,7 @@ function ManageTeam() {
 
   const isLeader =
     Boolean(team) &&
-    team.leaderId === studentId;
+    String(team.leaderId) === String(studentId);
 
   const memberIds = team ? getTeamMemberIds(team) : [];
 
@@ -154,6 +140,18 @@ function ManageTeam() {
       invitation.teamId === team?.id &&
       invitation.status === "pending"
   );
+
+  useEffect(() => {
+    function refreshInvitations() {
+      try { setInvitations(readInvitations()); } catch { /* Keep current view if storage is temporarily invalid. */ }
+    }
+    window.addEventListener("storage", refreshInvitations);
+    window.addEventListener("focus", refreshInvitations);
+    return () => {
+      window.removeEventListener("storage", refreshInvitations);
+      window.removeEventListener("focus", refreshInvitations);
+    };
+  }, []);
 
   function showMessage(text, type = "info") {
     setMessage(text);
@@ -177,16 +175,6 @@ function ManageTeam() {
       return;
     }
 
-    if (targetId === studentId) {
-      showMessage("You cannot invite yourself to your own team.", "error");
-      return;
-    }
-
-    if (memberIds.length >= MAX_TEAM_MEMBERS) {
-      showMessage("Your team is full. A team can have up to four students.", "error");
-      return;
-    }
-
     let students;
     let teams;
     let allInvitations;
@@ -196,7 +184,7 @@ function ManageTeam() {
       teams = readTeams();
       allInvitations = readInvitations();
     } catch {
-      showMessage("Could not read the saved demo data.", "error");
+      showMessage("Could not read the saved team information.", "error");
       return;
     }
 
@@ -214,49 +202,18 @@ function ManageTeam() {
       return;
     }
 
-    // نعتبر سجلات الفرق الفعلية مصدر الحقيقة للعضوية،
-    // ونتجاهل حالة عضوية قديمة لا يشير إليها أي فريق محفوظ.
-    const alreadyInTeam = teams.some((savedTeam) =>
-      getTeamMemberIds(savedTeam).includes(targetId)
-    );
-
-    if (alreadyInTeam) {
-      showMessage(
-        "This student is already a member of a team.",
-        "error"
-      );
+    const prepared = prepareInvitation({
+      team,
+      student: currentStudent,
+      invitedStudent,
+      teams,
+      invitations: allInvitations,
+    });
+    if (prepared.error) {
+      showMessage(prepared.error, "error");
       return;
     }
-
-    // منع تكرار الدعوة المعلّقة لنفس الطالب والفريق.
-    const alreadyInvited = allInvitations.some(
-      (invitation) =>
-        invitation.teamId === team.id &&
-        invitation.invitedStudentId === targetId &&
-        invitation.status === "pending"
-    );
-
-    if (alreadyInvited) {
-      showMessage(
-        "An invitation has already been sent to this student.",
-        "error"
-      );
-      return;
-    }
-
-    const invitation = {
-      id: `inv-${Date.now()}`,
-      teamId: team.id,
-      teamName: team.name,
-      leaderId: studentId,
-      leaderName: currentStudent.name || "Team Leader",
-      invitedStudentId: targetId,
-      invitedStudentName: invitedStudent.name || "Student",
-      memberCount: memberIds.length,
-      maxMembers: MAX_TEAM_MEMBERS,
-      status: "pending",
-      createdAt: new Date().toISOString(),
-    };
+    const invitation = prepared.invitation;
 
     const updatedInvitations = [
       ...allInvitations,
@@ -328,12 +285,12 @@ showMessage(
 
       const updatedTeam = {
         ...team,
-        memberIds: getTeamMemberIds(team).filter(
-          (id) => id !== memberId
+      memberIds: getTeamMemberIds(team).filter(
+          (id) => String(id) !== String(memberId)
         ),
         members: (team.members || []).filter(
           (item) =>
-            (item.universityId || item.id) !== memberId
+            String(item.universityId || item.id) !== String(memberId)
         ),
       };
 
@@ -395,6 +352,47 @@ showMessage(
     }
   }
 
+  function handleLeaveTeam() {
+    if (!team || !studentId) return;
+    if (String(team.leaderId) === String(studentId)) {
+      showMessage("Team Leaders cannot leave while they are responsible for the team. Transfer leadership first; leadership transfer is not available yet.", "error");
+      return;
+    }
+    if (!window.confirm(`Leave ${team.name}? You can accept a pending invitation after leaving.`)) return;
+    try {
+      const teams = readTeams();
+      const prepared = prepareMemberLeave({ teams, student: currentStudent });
+      if (prepared.error) {
+        showMessage(prepared.error, "error");
+        return;
+      }
+      const { teams: updatedTeams, student: updatedStudent } = prepared;
+      const savedOverrides = localStorage.getItem(STUDENT_OVERRIDES_KEY);
+      const overrides = savedOverrides ? JSON.parse(savedOverrides) : {};
+      if (!overrides || typeof overrides !== "object" || Array.isArray(overrides)) throw new Error("Invalid student overrides.");
+      const updatedOverrides = { ...overrides, [studentId]: { ...(overrides[studentId] || {}), teamStatus: "no-team", teamId: null } };
+      const oldTeams = localStorage.getItem(TEAMS_STORAGE_KEY);
+      const oldOverrides = localStorage.getItem(STUDENT_OVERRIDES_KEY);
+      const oldSession = sessionStorage.getItem(CURRENT_STUDENT_KEY);
+      try {
+        localStorage.setItem(TEAMS_STORAGE_KEY, JSON.stringify(updatedTeams));
+        localStorage.setItem(STUDENT_OVERRIDES_KEY, JSON.stringify(updatedOverrides));
+        sessionStorage.setItem(CURRENT_STUDENT_KEY, JSON.stringify(updatedStudent));
+      } catch (error) {
+        if (oldTeams === null) localStorage.removeItem(TEAMS_STORAGE_KEY); else localStorage.setItem(TEAMS_STORAGE_KEY, oldTeams);
+        if (oldOverrides === null) localStorage.removeItem(STUDENT_OVERRIDES_KEY); else localStorage.setItem(STUDENT_OVERRIDES_KEY, oldOverrides);
+        if (oldSession === null) sessionStorage.removeItem(CURRENT_STUDENT_KEY); else sessionStorage.setItem(CURRENT_STUDENT_KEY, oldSession);
+        throw error;
+      }
+      setCurrentStudent(updatedStudent);
+      setTeamData({ team: null, members: [], error: "" });
+      addNotification({ id: `team-member-left-${team.id}-${studentId}-${Date.now()}`, recipientId: team.leaderId, type: "invitation", title: "Team member left", message: `${currentStudent.name || "A student"} left ${team.name}.`, link: "/student/manage-team", relatedId: team.id });
+      showMessage(`You left ${team.name}. Your pending invitations are still available.`, "success");
+    } catch {
+      showMessage("Could not leave the team. No membership changes were saved; please try again.", "error");
+    }
+  }
+
   const teamStatus = team
     ? isLeader
       ? "leader"
@@ -450,6 +448,12 @@ showMessage(
                 <strong>{memberIds.length} / {MAX_TEAM_MEMBERS}</strong>
               </div>
             </section>
+
+            {isLeader ? (
+              <p className="manage-team-leader-leave-note">Team Leaders cannot leave while they are responsible for this team. Leadership transfer is not available.</p>
+            ) : (
+              <button type="button" className="manage-team-leave" onClick={handleLeaveTeam}>Leave Team</button>
+            )}
 
             <section className="manage-team-members">
               <div className="manage-team-section-header">
@@ -586,10 +590,6 @@ showMessage(
           </>
         )}
 
-        <p className="manage-team-demo-note">
-          Invitations and team membership are stored locally for this
-          demo. Cross-device synchronization will require the backend.
-        </p>
       </main>
     </div>
   );

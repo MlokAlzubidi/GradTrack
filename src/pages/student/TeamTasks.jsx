@@ -421,11 +421,6 @@ function TeamTasks() {
           )}
         </section>
 
-        <p className="team-tasks-demo-note">
-          Tasks are separated by team and stored locally in this
-          browser. Sharing data across different devices requires
-          the backend.
-        </p>
       </main>
     </div>
   );

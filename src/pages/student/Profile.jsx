@@ -512,10 +512,6 @@ function Profile() {
               )}
             </section>
 
-            <p className="profile-note">
-              Your account session is kept separate per tab.
-              Team information is shared with your team in this browser.
-            </p>
           </>
         )}
       </main>

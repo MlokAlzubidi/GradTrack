@@ -560,10 +560,6 @@ function SupervisorNotifications() {
         )}
       </section>
 
-      <p className="supervisor-notifications-note">
-        Notifications are saved in this browser for the frontend demo.
-        They are not synchronized between different devices.
-      </p>
     </div>
   );
 }

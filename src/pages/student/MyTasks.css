@@ -38,17 +38,6 @@
   line-height: 1.8;
 }
 
-.my-tasks-demo-note {
-  margin-bottom: 24px;
-  padding: 14px 16px;
-  border: 1px solid #e4dfd2;
-  border-radius: 10px;
-  background: #fffefa;
-  color: #707a71;
-  font-size: 13px;
-  line-height: 1.7;
-}
-
 .my-tasks-list {
   display: grid;
   gap: 20px;

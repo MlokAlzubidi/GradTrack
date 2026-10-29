@@ -753,10 +753,6 @@ if (shouldNotifyAssignee) {
           </>
         )}
 
-        <p className="manage-tasks-demo-note">
-          Tasks are separated by team and saved locally in this
-          browser. Backend synchronization will be added later.
-        </p>
       </main>
     </div>
   );

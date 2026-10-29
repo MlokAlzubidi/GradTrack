@@ -185,13 +185,6 @@
   line-height: 1.7;
 }
 
-.manage-team-demo-note {
-  margin: 18px 0 0;
-  color: #7a8079;
-  font-size: 12px;
-  line-height: 1.7;
-}
-
 .manage-team-remove:focus-visible {
   outline: 2px solid #984b3b;
   outline-offset: 3px;
@@ -368,6 +361,28 @@
 .manage-team-message.error {
   color: #914b37;
   background: #f8e9e2;
+}
+
+.manage-team-leave {
+  margin: 16px 0 0;
+  padding: 10px 16px;
+  border: 1px solid #c9d4c6;
+  border-radius: 9px;
+  background: #fffefa;
+  color: #355b43;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.manage-team-leader-leave-note {
+  margin: 16px 0 0;
+  padding: 12px 14px;
+  border-radius: 9px;
+  background: #f1f0e8;
+  color: #667268;
+  font-size: 13px;
+  line-height: 1.6;
 }
 
 @media (max-width: 600px) {

@@ -1,10 +1,15 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { LogOut } from "lucide-react";
 import StudentNavbar from "../../components/layout/StudentNavbar";
 import { getAllMockStudents } from "../../data/mockData";
+import { addNotification } from "../../utils/notifications";
+import { getTeamMemberIds, prepareMemberLeave } from "../../utils/teamInvitationRules";
 import "./MyTeam.css";
 
 const CURRENT_STUDENT_KEY = "gradtrack-current-student";
 const TEAMS_STORAGE_KEY = "gradtrack-teams";
+const STUDENT_OVERRIDES_KEY = "gradtrack-student-overrides";
 const MAX_TEAM_MEMBERS = 4;
 
 // قراءة الحساب الحالي من التبويب الحالي فقط.
@@ -36,23 +41,9 @@ function readTeams() {
   }
 }
 
-// توحيد معرفات أعضاء الفريق، مع منع تكرار الطالب.
-function getTeamMemberIds(team) {
-  if (!team) return [];
-
-  return [
-    ...new Set(
-      [
-        team.leaderId,
-        ...(Array.isArray(team.memberIds) ? team.memberIds : []),
-        ...(Array.isArray(team.members)
-          ? team.members.map(
-              (member) => member.universityId || member.id
-            )
-          : []),
-      ].filter(Boolean)
-    ),
-  ];
+function restoreLocalStorage(key, value) {
+  if (value === null) localStorage.removeItem(key);
+  else localStorage.setItem(key, value);
 }
 
 function loadMyTeamData() {
@@ -72,11 +63,13 @@ function loadMyTeamData() {
 
   // البحث باستخدام teamId أولًا.
   // وإذا لم يكن محفوظًا، نبحث عن الفريق الذي يحتوي على الرقم الجامعي.
+  const membershipTeams = teams.filter((item) =>
+    getTeamMemberIds(item).includes(String(student.universityId))
+  );
   const team =
-    teams.find((item) => item.id === student.teamId) ||
-    teams.find((item) =>
-      getTeamMemberIds(item).includes(student.universityId)
-    );
+    membershipTeams.find((item) => String(item.id) === String(student.teamId)) ||
+    membershipTeams[0] ||
+    null;
 
   if (!team) {
     return {
@@ -90,7 +83,7 @@ function loadMyTeamData() {
 
   // تحديد حالة الطالب من عضويته الفعلية داخل الفريق.
   const teamStatus =
-    team.leaderId === student.universityId
+    String(team.leaderId) === String(student.universityId)
       ? "leader"
       : "member";
 
@@ -105,14 +98,14 @@ function loadMyTeamData() {
   const members = getTeamMemberIds(team).map((memberId) => {
     const savedMember = savedMembers.find(
       (member) =>
-        (member.universityId || member.id) === memberId
+        String(member.universityId || member.id) === String(memberId)
     );
 
     const account = allStudents.find(
-      (item) => item.universityId === memberId
+      (item) => String(item.universityId) === String(memberId)
     );
 
-    const isLeader = memberId === team.leaderId;
+    const isLeader = String(memberId) === String(team.leaderId);
 
     return {
       id: memberId,
@@ -136,8 +129,99 @@ function loadMyTeamData() {
 }
 
 function MyTeam() {
-  const { student, team, members, teamStatus, error } =
-    loadMyTeamData();
+  const [teamData, setTeamData] = useState(loadMyTeamData);
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("info");
+  const { student, team, members, teamStatus, error } = teamData;
+
+  useEffect(() => {
+    function refreshTeam() {
+      setTeamData(loadMyTeamData());
+    }
+    window.addEventListener("storage", refreshTeam);
+    window.addEventListener("focus", refreshTeam);
+    return () => {
+      window.removeEventListener("storage", refreshTeam);
+      window.removeEventListener("focus", refreshTeam);
+    };
+  }, []);
+
+  function handleLeaveTeam() {
+    const latestStudent = readCurrentStudent();
+    if (!latestStudent?.universityId || String(latestStudent.universityId) !== String(student?.universityId)) {
+      setMessageType("error");
+      setMessage("Your student session changed. Refresh the page before leaving the team.");
+      return;
+    }
+
+    let teams;
+    try {
+      teams = readTeams();
+    } catch {
+      setMessageType("error");
+      setMessage("Could not read the saved team data. Please try again.");
+      return;
+    }
+
+    const prepared = prepareMemberLeave({ teams, student: latestStudent });
+    if (prepared.error) {
+      setMessageType("error");
+      setMessage(prepared.error);
+      return;
+    }
+
+    if (!window.confirm(`Leave ${prepared.team.name || "this team"}? Your pending invitations will remain available.`)) return;
+
+    try {
+      const rawOverrides = localStorage.getItem(STUDENT_OVERRIDES_KEY);
+      const overrides = rawOverrides ? JSON.parse(rawOverrides) : {};
+      if (!overrides || typeof overrides !== "object" || Array.isArray(overrides)) {
+        throw new Error("Invalid student override data.");
+      }
+
+      const updatedOverrides = {
+        ...overrides,
+        [latestStudent.universityId]: {
+          ...(overrides[latestStudent.universityId] || {}),
+          teamStatus: "no-team",
+          teamId: null,
+        },
+      };
+      const previousTeams = localStorage.getItem(TEAMS_STORAGE_KEY);
+      const previousOverrides = localStorage.getItem(STUDENT_OVERRIDES_KEY);
+      const previousSession = sessionStorage.getItem(CURRENT_STUDENT_KEY);
+
+      try {
+        localStorage.setItem(TEAMS_STORAGE_KEY, JSON.stringify(prepared.teams));
+        localStorage.setItem(STUDENT_OVERRIDES_KEY, JSON.stringify(updatedOverrides));
+        sessionStorage.setItem(CURRENT_STUDENT_KEY, JSON.stringify(prepared.student));
+      } catch (storageError) {
+        restoreLocalStorage(TEAMS_STORAGE_KEY, previousTeams);
+        restoreLocalStorage(STUDENT_OVERRIDES_KEY, previousOverrides);
+        if (previousSession === null) sessionStorage.removeItem(CURRENT_STUDENT_KEY);
+        else sessionStorage.setItem(CURRENT_STUDENT_KEY, previousSession);
+        throw storageError;
+      }
+
+      setTeamData(loadMyTeamData());
+      const notificationSaved = addNotification({
+        id: `team-member-left-${prepared.team.id}-${latestStudent.universityId}-${Date.now()}`,
+        recipientId: prepared.team.leaderId,
+        type: "invitation",
+        title: "Team member left",
+        message: `${latestStudent.name || "A student"} left ${prepared.team.name || "your team"}.`,
+        link: "/student/team",
+        relatedId: prepared.team.id,
+      });
+      setMessageType(notificationSaved ? "success" : "error");
+      setMessage(notificationSaved
+        ? `You left ${prepared.team.name || "the team"}. Your pending invitations are still available.`
+        : `You left ${prepared.team.name || "the team"}, but the Team Leader notification could not be saved.`);
+    } catch {
+      setMessageType("error");
+      setMessage("Could not leave the team. No membership changes were saved; please try again.");
+    }
+  }
 
   const leaderName =
     team?.leaderName ||
@@ -159,6 +243,8 @@ function MyTeam() {
             information.
           </p>
         </header>
+
+        {message && <p className={`my-team-feedback ${messageType}`} role="status">{message}</p>}
 
         {error ? (
           <section className="my-team-details">
@@ -227,6 +313,19 @@ function MyTeam() {
                 </strong>
                 .
               </div>
+
+              {teamStatus === "member" && (
+                <button type="button" className="my-team-leave-button" onClick={handleLeaveTeam}>
+                  <LogOut size={16} strokeWidth={2} aria-hidden="true" />
+                  Leave Team
+                </button>
+              )}
+
+              {teamStatus === "leader" && members.length > 1 && (
+                <p className="my-team-leader-leave-note" role="note">
+                  Team Leaders cannot leave while other members depend on them. Transfer leadership before leaving; leadership transfer is not available yet.
+                </p>
+              )}
             </section>
 
             <section className="my-team-members-section">
@@ -275,9 +374,6 @@ function MyTeam() {
           </>
         )}
 
-        <p className="my-team-demo-note">
-          Team information is currently loaded from local demo data.
-        </p>
       </main>
     </div>
   );

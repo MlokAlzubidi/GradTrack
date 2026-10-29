@@ -518,11 +518,6 @@ function SupervisorDashboard() {
         </article>
       </section>
 
-      <p className="supervisor-dashboard-data-note">
-        Figures are calculated from records saved in this browser.
-        Project assignments and multi-device synchronization have not
-        been implemented yet.
-      </p>
     </div>
   );
 }

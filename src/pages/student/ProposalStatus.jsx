@@ -353,11 +353,6 @@ function ProposalStatus() {
           </>
         )}
 
-        <p className="proposal-status-demo-note">
-          Proposal status and feedback are currently read from
-          local demo data. Supervisor review will be connected
-          to the backend later.
-        </p>
       </main>
     </div>
   );
