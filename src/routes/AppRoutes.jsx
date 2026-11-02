@@ -181,6 +181,10 @@ function AppRoutes() {
   path="proposals"
   element={<SupervisorProposals />}
 />
+    <Route
+      path="proposals/:proposalId"
+      element={<SupervisorProposals />}
+    />
 
             <Route
   path="submissions"

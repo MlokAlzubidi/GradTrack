@@ -13,14 +13,17 @@ import {
   ArrowRight,
   FileCheck2,
 } from "lucide-react";
-import { addNotification } from "../../utils/notifications";
+import {
+  notifyAssignedSupervisorOfProposal,
+  PROPOSALS_STORAGE_KEY,
+  PROPOSALS_UPDATED_EVENT,
+  sameId,
+} from "../../utils/supervisorAssignments";
 import "./SubmitProposal.css";
 
 const CURRENT_STUDENT_KEY = "gradtrack-current-student";
 const TEAMS_STORAGE_KEY = "gradtrack-teams";
 const PROJECTS_STORAGE_KEY = "gradtrack-projects";
-const PROPOSALS_STORAGE_KEY = "gradtrack-proposals";
-
 const MAX_FILE_SIZE = 500 * 1024;
 
 // قراءة الحساب الحالي من التبويب الحالي فقط.
@@ -76,7 +79,7 @@ function loadProposalPageData() {
   if (student.teamId) {
     team =
       safeTeams.find(
-        (item) => item.id === student.teamId
+        (item) => sameId(item.id, student.teamId)
       ) || null;
   }
 
@@ -116,13 +119,13 @@ function loadProposalPageData() {
 
   const project = team
     ? safeProjects.find(
-        (item) => item.teamId === team.id
+        (item) => sameId(item.teamId, team.id)
       ) || null
     : null;
 
   const proposal = team
     ? safeProposals.find(
-        (item) => item.teamId === team.id
+        (item) => sameId(item.teamId, team.id)
       ) || null
     : null;
 
@@ -271,7 +274,7 @@ function SubmitProposal() {
       }
 
       const existingProposal = savedProposals.find(
-        (item) => item.teamId === team.id
+        (item) => sameId(item.teamId, team.id)
       );
 
       const now = new Date().toISOString();
@@ -301,7 +304,7 @@ function SubmitProposal() {
         submittedAt: now,
 
         revisionNumber: existingProposal
-          ? (existingProposal.revisionNumber || 1) + 1
+          ? (Number(existingProposal.revisionNumber) || 1) + 1
           : 1,
 
         createdAt: existingProposal?.createdAt || now,
@@ -310,7 +313,7 @@ function SubmitProposal() {
 
       const updatedProposals = existingProposal
         ? savedProposals.map((item) =>
-            item.teamId === team.id
+          sameId(item.teamId, team.id)
               ? updatedProposal
               : item
           )
@@ -321,21 +324,9 @@ function SubmitProposal() {
         JSON.stringify(updatedProposals)
       );
 
-      // Notify the supervisor only after the proposal was saved successfully.
-      // Keep proposal saving successful even if notification storage fails.
-      const supervisorNotificationSaved = addNotification({
-        id: `supervisor-proposal-${updatedProposal.id}-revision-${updatedProposal.revisionNumber}`,
-        recipientId: "demo-supervisor",
-        type: "proposal",
-        title: existingProposal
-          ? "Proposal Resubmitted"
-          : "New Proposal Submitted",
-        message: `${student.name || "A Team Leader"} submitted ${
-          existingProposal ? "a revised proposal" : "a new proposal"
-        } for "${project.title}" from team "${team.name}".`,
-        link: "/supervisor/proposals",
-        relatedId: updatedProposal.id,
-      });
+      window.dispatchEvent(new Event(PROPOSALS_UPDATED_EVENT));
+      const notificationResult =
+        notifyAssignedSupervisorOfProposal(updatedProposal);
 
       setPageData((currentData) => ({
         ...currentData,
@@ -347,13 +338,15 @@ function SubmitProposal() {
       setFileInputKey((currentKey) => currentKey + 1);
 
       const savedMessage = existingProposal
-        ? "Updated proposal saved successfully. It is now pending supervisor review."
-        : "Proposal submitted successfully. It is now pending supervisor review.";
+        ? "Updated proposal saved successfully."
+        : "Proposal submitted successfully.";
 
       showMessage(
-        supervisorNotificationSaved
-          ? `${savedMessage} The supervisor has been notified.`
-          : `${savedMessage} The proposal was saved, but the supervisor notification could not be stored.`,
+        notificationResult.assignmentPending
+          ? `${savedMessage} It will be sent for supervisor review after the assignment is accepted.`
+          : notificationResult.notified
+          ? `${savedMessage} It is now pending supervisor review. The supervisor has been notified.`
+          : `${savedMessage} It is pending supervisor review, but the supervisor notification could not be stored.`,
         "success"
       );
     } catch {

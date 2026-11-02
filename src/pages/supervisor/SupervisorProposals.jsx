@@ -1,5 +1,6 @@
 
 import { useEffect, useMemo, useState } from "react";
+import { useParams } from "react-router-dom";
 import {
   FileCheck2,
   Search,
@@ -17,20 +18,17 @@ import {
 } from "lucide-react";
 import { getSupervisorSession } from "../../utils/supervisorAuth";
 import { addNotification } from "../../utils/notifications";
-import { getAssignedTeamIds } from "../../utils/supervisorAssignments";
+import {
+  PROJECTS_STORAGE_KEY,
+  PROPOSALS_STORAGE_KEY,
+  PROPOSALS_UPDATED_EVENT,
+  SUPERVISOR_ASSIGNMENTS_UPDATED_EVENT,
+  TEAMS_STORAGE_KEY,
+  readStorageArray,
+  sameId,
+  teamIsAssigned,
+} from "../../utils/supervisorAssignments";
 import "./SupervisorProposals.css";
-
-const PROPOSALS_KEY = "gradtrack-proposals";
-
-function readProposals() {
-  try {
-    const saved = localStorage.getItem(PROPOSALS_KEY);
-    const parsed = saved ? JSON.parse(saved) : [];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
 
 function getProposalRecipientIds(proposal) {
   const recipientIds = new Set();
@@ -40,11 +38,9 @@ function getProposalRecipientIds(proposal) {
   }
 
   try {
-    const savedTeams = localStorage.getItem("gradtrack-teams");
-    const parsedTeams = savedTeams ? JSON.parse(savedTeams) : [];
-    const teams = Array.isArray(parsedTeams) ? parsedTeams : [];
+    const teams = readStorageArray(TEAMS_STORAGE_KEY);
     const team = teams.find(
-      (item) => String(item.id) === String(proposal?.teamId)
+      (item) => sameId(item.id, proposal?.teamId)
     );
 
     if (team) {
@@ -109,13 +105,50 @@ function getStatusClass(status) {
 }
 
 function SupervisorProposals() {
+  const { proposalId } = useParams();
   const supervisor = getSupervisorSession();
-  const [allProposals, setProposals] = useState(readProposals);
-  const assignedIds = getAssignedTeamIds(supervisor?.id);
-  const proposals = allProposals.filter((item) => assignedIds.has(String(item.teamId)));
+  const [allProposals, setProposals] = useState(() => readStorageArray(PROPOSALS_STORAGE_KEY));
+  const [teams, setTeams] = useState(() => readStorageArray(TEAMS_STORAGE_KEY));
+  const [projects, setProjects] = useState(() => readStorageArray(PROJECTS_STORAGE_KEY));
+  const assignedProposals = useMemo(() => {
+    const teamsById = new Map(teams.filter(Boolean).map((team) => [String(team.id), team]));
+    const projectsByTeamId = new Map(projects.filter(Boolean).map((project) => [String(project.teamId), project]));
+
+    return allProposals.flatMap((proposal) => {
+      if (!proposal?.teamId) return [];
+      const team = teamsById.get(String(proposal.teamId));
+      if (!teamIsAssigned(team, supervisor?.id)) return [];
+
+      const project = projectsByTeamId.get(String(proposal.teamId));
+      return [{
+        ...proposal,
+        teamName: team.name || proposal.teamName,
+        projectTitle: project?.title || proposal.projectTitle,
+        projectDomain: project?.domain || proposal.projectDomain,
+        submittedByName:
+          proposal.submittedByName ||
+          (sameId(proposal.submittedBy, team.leaderId)
+            ? team.leaderName
+            : proposal.submittedBy) ||
+          "Team Leader",
+      }];
+    });
+  }, [allProposals, teams, projects, supervisor?.id]);
+  const proposals = useMemo(() => {
+    if (!proposalId) return assignedProposals;
+    return assignedProposals.filter(
+      (proposal) =>
+        sameId(proposal.id, proposalId) ||
+        (!proposal.id && sameId(proposal.teamId, proposalId))
+    );
+  }, [assignedProposals, proposalId]);
+  const targetProposalKey = proposals[0]
+    ? proposals[0].id || proposals[0].teamId
+    : null;
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [expandedId, setExpandedId] = useState(null);
+  const [collapsedProposalId, setCollapsedProposalId] = useState(null);
   const [feedbackById, setFeedbackById] = useState({});
   const [savingId, setSavingId] = useState(null);
   const [errorById, setErrorById] = useState({});
@@ -123,22 +156,31 @@ function SupervisorProposals() {
   const [generalError, setGeneralError] = useState("");
 
   function refreshProposals() {
-    setProposals(readProposals());
+    setProposals(readStorageArray(PROPOSALS_STORAGE_KEY));
+    setTeams(readStorageArray(TEAMS_STORAGE_KEY));
+    setProjects(readStorageArray(PROJECTS_STORAGE_KEY));
   }
 
   useEffect(() => {
     function refreshOnStorage(event) {
-      if (!event.key || event.key === PROPOSALS_KEY) {
+      if (
+        !event.key ||
+        [PROPOSALS_STORAGE_KEY, TEAMS_STORAGE_KEY, PROJECTS_STORAGE_KEY].includes(event.key)
+      ) {
         refreshProposals();
       }
     }
 
     window.addEventListener("storage", refreshOnStorage);
     window.addEventListener("focus", refreshProposals);
+    window.addEventListener(PROPOSALS_UPDATED_EVENT, refreshProposals);
+    window.addEventListener(SUPERVISOR_ASSIGNMENTS_UPDATED_EVENT, refreshProposals);
 
     return () => {
       window.removeEventListener("storage", refreshOnStorage);
       window.removeEventListener("focus", refreshProposals);
+      window.removeEventListener(PROPOSALS_UPDATED_EVENT, refreshProposals);
+      window.removeEventListener(SUPERVISOR_ASSIGNMENTS_UPDATED_EVENT, refreshProposals);
     };
   }, []);
 
@@ -202,10 +244,19 @@ function SupervisorProposals() {
 
   function toggleReview(proposal) {
     const proposalId = proposal.id || proposal.teamId;
+    const isExpanded =
+      expandedId === proposalId ||
+      (targetProposalKey === proposalId &&
+        collapsedProposalId !== proposalId);
 
-    setExpandedId((current) =>
-      current === proposalId ? null : proposalId
-    );
+    if (targetProposalKey === proposalId) {
+      setCollapsedProposalId(isExpanded ? proposalId : null);
+      setExpandedId(isExpanded ? null : proposalId);
+    } else {
+      setExpandedId((current) =>
+        current === proposalId ? null : proposalId
+      );
+    }
 
     setSuccessMessage("");
     setGeneralError("");
@@ -229,12 +280,12 @@ function SupervisorProposals() {
     setGeneralError("");
 
     try {
-      const latestProposals = readProposals();
+      const latestProposals = readStorageArray(PROPOSALS_STORAGE_KEY);
 
       const proposalIndex = latestProposals.findIndex(
         (item) =>
-          (proposal.id && item.id === proposal.id) ||
-          String(item.teamId) === String(proposal.teamId)
+          (proposal.id && sameId(item.id, proposal.id)) ||
+          sameId(item.teamId, proposal.teamId)
       );
 
       if (proposalIndex === -1) {
@@ -247,7 +298,7 @@ function SupervisorProposals() {
 
       const currentProposal = latestProposals[proposalIndex];
 
-      if (currentProposal.status !== "Pending Review") {
+      if ((currentProposal.status || "Pending Review") !== "Pending Review") {
         setGeneralError(
           "This proposal is no longer pending review. Refresh the list to see its latest status."
         );
@@ -272,9 +323,10 @@ function SupervisorProposals() {
       updatedProposals[proposalIndex] = updatedProposal;
 
       localStorage.setItem(
-        PROPOSALS_KEY,
+        PROPOSALS_STORAGE_KEY,
         JSON.stringify(updatedProposals)
       );
+      window.dispatchEvent(new Event(PROPOSALS_UPDATED_EVENT));
 
       setProposals(updatedProposals);
       setExpandedId(null);
@@ -515,7 +567,10 @@ function SupervisorProposals() {
           <div className="supervisor-proposals-list">
             {filteredProposals.map((proposal) => {
               const proposalId = proposal.id || proposal.teamId;
-              const isExpanded = expandedId === proposalId;
+              const isExpanded =
+                expandedId === proposalId ||
+                (targetProposalKey === proposalId &&
+                  collapsedProposalId !== proposalId);
               const isPending =
                 (proposal.status || "Pending Review") === "Pending Review";
               const isSaving = savingId === proposalId;

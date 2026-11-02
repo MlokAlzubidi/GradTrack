@@ -74,13 +74,24 @@ function getNotificationIcon(type) {
 }
 
 function getNotificationLink(notification) {
+  if (notification.type === "proposal") {
+    const proposalId = notification.relatedId;
+    if (proposalId) {
+      return `/supervisor/proposals/${encodeURIComponent(proposalId)}`;
+    }
+
+    if (notification.link?.startsWith("/supervisor/proposals/")) {
+      return notification.link;
+    }
+
+    return "/supervisor/proposals";
+  }
+
   if (notification.link?.startsWith("/supervisor/")) {
     return notification.link;
   }
 
   switch (notification.type) {
-    case "proposal":
-      return "/supervisor/proposals";
     case "task":
     case "submission":
       return "/supervisor/submissions";

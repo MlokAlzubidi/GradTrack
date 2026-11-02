@@ -71,8 +71,11 @@ export function registerSupervisor({ name, email, staffId = "", password }) {
 }
 
 export const ASSIGNMENT_REQUESTS_KEY = "gradtrack-supervisor-assignment-requests";
-const TEAMS_KEY = "gradtrack-teams";
-const PROJECTS_KEY = "gradtrack-projects";
+export const TEAMS_STORAGE_KEY = "gradtrack-teams";
+export const PROJECTS_STORAGE_KEY = "gradtrack-projects";
+export const PROPOSALS_STORAGE_KEY = "gradtrack-proposals";
+export const PROPOSALS_UPDATED_EVENT = "gradtrack-proposals-updated";
+export const SUPERVISOR_ASSIGNMENTS_UPDATED_EVENT = "gradtrack-supervisor-assignments-updated";
 
 export const sameId = (a, b) => a != null && b != null && String(a) === String(b);
 
@@ -84,7 +87,7 @@ export function readStorageArray(key) {
 }
 
 export function getAssignedTeamIds(supervisorId) {
-  return new Set(readStorageArray(TEAMS_KEY)
+  return new Set(readStorageArray(TEAMS_STORAGE_KEY)
     .filter((team) => team.supervisorAssignmentStatus === "accepted" && sameId(team.supervisorId, supervisorId))
     .map((team) => String(team.id)));
 }
@@ -93,8 +96,40 @@ export function teamIsAssigned(team, supervisorId) {
   return team?.supervisorAssignmentStatus === "accepted" && sameId(team.supervisorId, supervisorId);
 }
 
+export function notifyAssignedSupervisorOfProposal(proposal) {
+  const team = readStorageArray(TEAMS_STORAGE_KEY)
+    .find((item) => sameId(item.id, proposal?.teamId));
+
+  if (!teamIsAssigned(team, team?.supervisorId)) {
+    return { notified: false, assignmentPending: true };
+  }
+
+  const revisionNumber = Number(proposal.revisionNumber) || 1;
+  const proposalId = proposal.id || `proposal-${proposal.teamId}`;
+  const title = revisionNumber > 1 ? "Proposal Resubmitted" : "Proposal Submitted";
+  const saved = addNotification({
+    id: `supervisor-proposal-${proposalId}-revision-${revisionNumber}`,
+    recipientId: team.supervisorId,
+    type: "proposal",
+    title,
+    message: `${proposal.submittedByName || "A Team Leader"} submitted ${
+      revisionNumber > 1 ? "a revised proposal" : "a new proposal"
+    } for "${proposal.projectTitle || "Untitled Project"}" from team "${team.name || proposal.teamName || "Student team"}".`,
+    link: `/supervisor/proposals/${encodeURIComponent(proposalId)}`,
+    relatedId: proposalId,
+  });
+
+  return { notified: saved, assignmentPending: false };
+}
+
+function dispatchAssignmentUpdate() {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event(SUPERVISOR_ASSIGNMENTS_UPDATED_EVENT));
+  }
+}
+
 export function createAssignmentRequest({ team, project, supervisorId, leader }) {
-  const teams = readStorageArray(TEAMS_KEY);
+  const teams = readStorageArray(TEAMS_STORAGE_KEY);
   const existingTeam = teams.find((item) => sameId(item.id, team.id));
   if (!existingTeam || !supervisorId) return { error: "Team or supervisor information is missing." };
   if (teamIsAssigned(existingTeam, supervisorId)) return { error: "This supervisor is already assigned to your team." };
@@ -104,11 +139,12 @@ export function createAssignmentRequest({ team, project, supervisorId, leader })
   if (existingTeam.supervisorAssignmentStatus === "accepted") return { error: "Your team already has an assigned supervisor." };
   const request = { id: `assignment-${team.id}-${Date.now()}`, teamId: team.id, teamName: team.name, leaderId: leader.universityId, leaderName: leader.name, projectId: project.id, projectTitle: project.title, supervisorId: String(supervisorId), status: "pending", createdAt: new Date().toISOString() };
   const updatedTeams = teams.map((item) => sameId(item.id, team.id) ? { ...item, requestedSupervisorId: String(supervisorId), supervisorAssignmentStatus: "pending" } : item);
-  const projects = readStorageArray(PROJECTS_KEY).map((item) => sameId(item.teamId, team.id) ? { ...item, requestedSupervisorId: String(supervisorId), supervisorAssignmentStatus: "pending" } : item);
-  localStorage.setItem(TEAMS_KEY, JSON.stringify(updatedTeams));
-  localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
+  const projects = readStorageArray(PROJECTS_STORAGE_KEY).map((item) => sameId(item.teamId, team.id) ? { ...item, requestedSupervisorId: String(supervisorId), supervisorAssignmentStatus: "pending" } : item);
+  localStorage.setItem(TEAMS_STORAGE_KEY, JSON.stringify(updatedTeams));
+  localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projects));
   localStorage.setItem(ASSIGNMENT_REQUESTS_KEY, JSON.stringify([...requests, request]));
   addNotification({ id: `${request.id}-supervisor`, recipientId: supervisorId, type: "assignment", title: "New team assignment request", message: `${team.name} requested you as its supervisor.`, link: "/supervisor/assignments", relatedId: request.id });
+  dispatchAssignmentUpdate();
   return { request };
 }
 
@@ -117,11 +153,17 @@ export function decideAssignment(requestId, supervisorId, decision) {
   const request = requests.find((item) => sameId(item.id, requestId));
   if (!request || request.status !== "pending" || !sameId(request.supervisorId, supervisorId)) return { error: "This request is unavailable." };
   const status = decision === "accepted" ? "accepted" : "rejected";
-  const teams = readStorageArray(TEAMS_KEY);
+  const teams = readStorageArray(TEAMS_STORAGE_KEY);
   if (!teams.some((team) => sameId(team.id, request.teamId))) return { error: "The requesting team could not be found." };
-  localStorage.setItem(TEAMS_KEY, JSON.stringify(teams.map((team) => sameId(team.id, request.teamId) ? { ...team, supervisorId: status === "accepted" ? String(supervisorId) : null, requestedSupervisorId: null, supervisorAssignmentStatus: status } : team)));
-  localStorage.setItem(PROJECTS_KEY, JSON.stringify(readStorageArray(PROJECTS_KEY).map((project) => sameId(project.teamId, request.teamId) ? { ...project, supervisorId: status === "accepted" ? String(supervisorId) : null, requestedSupervisorId: null, supervisorAssignmentStatus: status } : project)));
+  localStorage.setItem(TEAMS_STORAGE_KEY, JSON.stringify(teams.map((team) => sameId(team.id, request.teamId) ? { ...team, supervisorId: status === "accepted" ? String(supervisorId) : null, requestedSupervisorId: null, supervisorAssignmentStatus: status } : team)));
+  localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(readStorageArray(PROJECTS_STORAGE_KEY).map((project) => sameId(project.teamId, request.teamId) ? { ...project, supervisorId: status === "accepted" ? String(supervisorId) : null, requestedSupervisorId: null, supervisorAssignmentStatus: status } : project)));
   localStorage.setItem(ASSIGNMENT_REQUESTS_KEY, JSON.stringify(requests.map((item) => sameId(item.id, requestId) ? { ...item, status, decidedAt: new Date().toISOString() } : item)));
+  if (status === "accepted") {
+    readStorageArray(PROPOSALS_STORAGE_KEY)
+      .filter((proposal) => sameId(proposal.teamId, request.teamId) && (proposal.status || "Pending Review") === "Pending Review")
+      .forEach((proposal) => notifyAssignedSupervisorOfProposal(proposal));
+  }
+  dispatchAssignmentUpdate();
   const assignedSupervisor = getAllSupervisors().find((item) => sameId(item.id, supervisorId));
   addNotification({ id: `${request.id}-${status}`, recipientId: request.leaderId, type: "assignment", title: status === "accepted" ? "Supervisor request accepted" : "Supervisor request declined", message: status === "accepted" ? `${assignedSupervisor?.name || "Your requested supervisor"} accepted your team assignment.` : "Your supervisor request was declined. You can select another supervisor and send a new request.", link: "/student/project-registration", relatedId: request.id });
   return { request, status };
