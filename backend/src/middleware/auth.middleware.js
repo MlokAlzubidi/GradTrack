@@ -60,7 +60,15 @@ export const protect = async (req, res, next) => {
             });
         }
 
-        // 9. Attach authenticated user to request
+        // 9. Verify token version
+if (decoded.tokenVersion !== user.tokenVersion) {
+    return res.status(401).json({
+        success: false,
+        message: "Session expired. Please login again."
+    });
+}
+
+        // 10. Attach authenticated user to request
         req.user = {
             userId: user._id.toString(),
             role: user.role,

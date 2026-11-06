@@ -272,15 +272,16 @@ export const login = async (req, res) => {
 
         // 8. Generate JWT Token
         const token = jwt.sign(
-            {
-                userId: user._id.toString(),
-                role: user.role
-            },
-            process.env.JWT_SECRET,
-            {
-                expiresIn: process.env.JWT_EXPIRES_IN || "1d"
-            }
-        );
+    {
+        userId: user._id.toString(),
+        role: user.role,
+        tokenVersion: user.tokenVersion
+    },
+    process.env.JWT_SECRET,
+    {
+        expiresIn: process.env.JWT_EXPIRES_IN || "1d"
+    }
+);
 
         // 9. Prepare safe user response
         const userResponse = user.toObject();
@@ -303,3 +304,42 @@ export const login = async (req, res) => {
         });
     }
 };
+
+
+
+// Logout from all devices
+export const logout = async (req, res) => {
+    try {
+        // Increment token version to invalidate all existing tokens
+        const user = await User.findByIdAndUpdate(
+            req.user.userId,
+            {
+                $inc: { tokenVersion: 1 }
+            },
+            {
+                new: true
+            }
+        );
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found."
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Logged out from all devices successfully."
+        });
+
+    } catch (error) {
+        console.error("Logout error:", error.message);
+
+        return res.status(500).json({
+            success: false,
+            message: "Logout failed. Please try again."
+        });
+    }
+};
+

@@ -56,10 +56,15 @@ const userSchema = new mongoose.Schema(
             required: true
         },
 
-        isActive: {
-            type: Boolean,
-            default: true
-        }
+       isActive: {
+    type: Boolean,
+    default: true
+},
+
+tokenVersion: {
+    type: Number,
+    default: 0
+}
     },
     {
         timestamps: true
@@ -73,7 +78,11 @@ userSchema.index(
         unique: true,
         partialFilterExpression: { role: "student" }
     }
+    
+ 
 );
+
+
 
 // Unique staff ID for supervisors
 userSchema.index(
