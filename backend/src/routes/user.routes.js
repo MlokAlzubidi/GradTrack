@@ -6,13 +6,30 @@ import {
 } from "../controllers/user.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 
+import { validate } from "../middleware/validate.middleware.js";
+
+import {
+    updateProfileSchema,
+    changePasswordSchema
+} from "../validators/user.validator.js";
+
 const router = express.Router();
 
 // Get current user's profile
 router.get("/me", protect, getMe);
 
-router.patch("/me", protect, updateMe);
+router.patch(
+    "/me",
+    protect,
+    validate(updateProfileSchema),
+    updateMe
+);
 
-router.patch("/me/password", protect, changePassword);
+router.patch(
+    "/me/password",
+    protect,
+    validate(changePasswordSchema),
+    changePassword
+);
 
 export default router;
