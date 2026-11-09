@@ -1,3 +1,4 @@
+
 import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
 
@@ -17,7 +18,6 @@ export const protect = async (req, res, next) => {
         // 2. Get Authorization header
         const authHeader = req.headers.authorization;
 
-        // 3. Check if token exists
         if (!authHeader || !authHeader.startsWith("Bearer ")) {
             return res.status(401).json({
                 success: false,
@@ -25,8 +25,8 @@ export const protect = async (req, res, next) => {
             });
         }
 
-        // 4. Extract token
-        const token = authHeader.split(" ")[1];
+        // 3. Extract token
+        const token = authHeader.slice(7).trim();
 
         if (!token) {
             return res.status(401).json({
@@ -35,16 +35,15 @@ export const protect = async (req, res, next) => {
             });
         }
 
-        // 5. Verify JWT
+        // 4. Verify JWT
         const decoded = jwt.verify(
             token,
             process.env.JWT_SECRET
         );
 
-        // 6. Find user in database
+        // 5. Find user in database
         const user = await User.findById(decoded.userId);
 
-        // 7. Check if user exists and is active
         if (!user || !user.isActive) {
             return res.status(401).json({
                 success: false,
@@ -52,7 +51,7 @@ export const protect = async (req, res, next) => {
             });
         }
 
-        // 8. Verify role consistency
+        // 6. Verify role consistency
         if (user.role !== decoded.role) {
             return res.status(401).json({
                 success: false,
@@ -60,38 +59,35 @@ export const protect = async (req, res, next) => {
             });
         }
 
-        // 9. Verify token version
-if (decoded.tokenVersion !== user.tokenVersion) {
-    return res.status(401).json({
-        success: false,
-        message: "Session expired. Please login again."
-    });
-}
+        // 7. Verify token version
+        const currentTokenVersion = user.tokenVersion ?? 0;
+        const tokenVersion = decoded.tokenVersion ?? 0;
 
-        // 10. Attach authenticated user to request
+        if (tokenVersion !== currentTokenVersion) {
+            return res.status(401).json({
+                success: false,
+                message: "Session expired. Please login again."
+            });
+        }
+
+        // 8. Attach authenticated user to request
         req.user = {
             userId: user._id.toString(),
             role: user.role,
             fullName: user.fullName
         };
 
-        // 10. Continue to next middleware
         next();
 
     } catch (error) {
-
-        if (error.name === "TokenExpiredError") {
+        if (
+            error.name === "TokenExpiredError" ||
+            error.name === "JsonWebTokenError" ||
+            error.name === "CastError"
+        ) {
             return res.status(401).json({
                 success: false,
-                message: "Token has expired. Please login again."
-            });
-        }
-
-        if (error.name === "JsonWebTokenError" ||
-            error.name === "CastError") {
-            return res.status(401).json({
-                success: false,
-                message: "Invalid authentication token."
+                message: "Invalid or expired authentication token."
             });
         }
 

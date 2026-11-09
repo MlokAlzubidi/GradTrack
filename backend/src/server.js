@@ -36,6 +36,26 @@ app.get("/", (req, res) => {
     });
 });
 
+// Handle Not Found Routes
+app.use((req, res) => {
+    res.status(404).json({
+        success: false,
+        message: `Route not found: ${req.method} ${req.originalUrl}`
+    });
+});
+
+// Global Error Handler
+app.use((error, req, res, next) => {
+    console.error("Server Error:", error);
+
+    res.status(error.statusCode || 500).json({
+        success: false,
+        message: error.statusCode
+            ? error.message
+            : "Internal Server Error"
+    });
+});
+
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {

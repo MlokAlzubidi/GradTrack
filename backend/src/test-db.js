@@ -3,22 +3,19 @@ import mongoose from "mongoose";
 import connectDB from "./config/db.js";
 
 const runTest = async () => {
-    await connectDB();
-
-    const collection = mongoose.connection.collection("connection_tests");
-
-    const testDocument = {
-        message: "GradTrack database test",
-        createdAt: new Date()
-    };
-
     try {
-        // 1. Insert document
-        const insertResult = await collection.insertOne(testDocument);
+        await connectDB();
 
+        const collection = mongoose.connection.collection("connection_tests");
+
+        const testDocument = {
+            message: "GradTrack database test",
+            createdAt: new Date()
+        };
+
+        const insertResult = await collection.insertOne(testDocument);
         console.log("Document inserted:", insertResult.insertedId);
 
-        // 2. Retrieve document
         const savedDocument = await collection.findOne({
             _id: insertResult.insertedId
         });
@@ -28,7 +25,6 @@ const runTest = async () => {
             savedDocument ? "SUCCESS" : "FAILED"
         );
 
-        // 3. Delete test document
         const deleteResult = await collection.deleteOne({
             _id: insertResult.insertedId
         });
@@ -43,8 +39,11 @@ const runTest = async () => {
         process.exitCode = 1;
 
     } finally {
-        await mongoose.disconnect();
-        console.log("MongoDB connection closed");
+        if (mongoose.connection.readyState !== 0) {
+            await mongoose.disconnect();
+        }
+
+        console.log("MongoDB connection closed.");
     }
 };
 
