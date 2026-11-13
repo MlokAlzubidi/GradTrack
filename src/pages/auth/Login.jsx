@@ -1,8 +1,9 @@
+
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { GraduationCap, ArrowRight, LockKeyhole } from "lucide-react";
 import "./Login.css";
-import { getAllMockStudents } from "../../data/mockData";
+import api from "../../services/api";
 
 function Login() {
   const navigate = useNavigate();
@@ -12,63 +13,45 @@ function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
     setError("");
 
-    const students = getAllMockStudents();
-
-    const student = students.find(
-      (student) =>
-        student.universityId === universityId.trim() &&
-        student.password === password
-    );
-
-    if (!student) {
-      setError("Invalid university ID or password.");
-      return;
-    }
-
-    let savedProfileName = student.name;
-
     try {
-      const savedOverrides = localStorage.getItem(
-        "gradtrack-student-profile-overrides"
+      const response = await api.post("/auth/login", {
+        identifier: universityId.trim(),
+        password,
+        role: "student",
+      });
+
+      const { token, user } = response.data;
+
+      // Save JWT token
+      sessionStorage.setItem("gradtrack-token", token);
+
+      // Save current student information
+      const currentStudent = {
+        id: user._id,
+        universityId: user.universityId,
+        name: user.fullName,
+        role: user.role,
+      };
+
+      sessionStorage.setItem(
+        "gradtrack-current-student",
+        JSON.stringify(currentStudent)
       );
 
-      const profileOverrides = savedOverrides
-        ? JSON.parse(savedOverrides)
-        : {};
+      const destination =
+        location.state?.from?.pathname || "/student/dashboard";
 
-      const editedName =
-        profileOverrides?.[student.universityId]?.name;
-
-      if (
-        typeof editedName === "string" &&
-        editedName.trim()
-      ) {
-        savedProfileName = editedName.trim();
-      }
-    } catch {
-      // Use the original account name if the saved override cannot be read.
+      navigate(destination, { replace: true });
+    } catch (error) {
+      setError(
+        error.response?.data?.message ||
+          "Login failed. Please try again."
+      );
     }
-
-    const currentStudent = {
-      universityId: student.universityId,
-      name: savedProfileName,
-      role: student.role,
-      teamStatus: student.teamStatus,
-      teamId: student.teamId,
-    };
-
-    // Keep the signed-in account isolated to this browser tab.
-    sessionStorage.setItem(
-      "gradtrack-current-student",
-      JSON.stringify(currentStudent)
-    );
-
-    const destination = location.state?.from?.pathname || "/student/dashboard";
-    navigate(destination, { replace: true });
   }
 
   return (

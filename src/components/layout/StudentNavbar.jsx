@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
@@ -8,6 +9,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
+import api from "../../services/api";
 import "./StudentNavbar.css";
 
 const NOTIFICATIONS_STORAGE_KEY = "gradtrack-notifications";
@@ -208,9 +210,17 @@ function StudentNavbar({ teamStatus = "no-team" }) {
     setMobileMenuOpen(!mobileMenuOpen);
   }
 
-  function handleLogout() {
-    sessionStorage.removeItem(CURRENT_STUDENT_KEY);
-    navigate("/");
+  async function handleLogout() {
+    try {
+      await api.post("/auth/logout");
+    } catch (error) {
+      console.error("Logout request failed:", error);
+    } finally {
+      sessionStorage.removeItem("gradtrack-token");
+      sessionStorage.removeItem(CURRENT_STUDENT_KEY);
+
+      navigate("/", { replace: true });
+    }
   }
 
   return (
@@ -226,8 +236,8 @@ function StudentNavbar({ teamStatus = "no-team" }) {
         onClick={closeMenu}
       >
         <span className="student-brand-icon">
-  <GraduationCap size={25} strokeWidth={1.8} />
-</span>
+          <GraduationCap size={25} strokeWidth={1.8} />
+        </span>
 
         <span className="student-sidebar-brand-text">
           Grad<span>Track</span>

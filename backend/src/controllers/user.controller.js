@@ -1,5 +1,6 @@
 
 import User from "../models/user.model.js";
+import generateToken from "../utils/generateToken.js";
 
 // Get the currently authenticated user's profile
 export const getMe = async (req, res) => {
@@ -129,13 +130,19 @@ export const changePassword = async (req, res) => {
             });
         }
 
-        // Update password
+        // Update password and invalidate old tokens
         user.password = newPassword;
+        user.tokenVersion += 1;
+
         await user.save();
+
+        // Generate a new token for the current session
+        const token = generateToken(user);
 
         return res.status(200).json({
             success: true,
-            message: "Password changed successfully."
+            message: "Password changed successfully.",
+            token
         });
 
     } catch (error) {
@@ -143,7 +150,7 @@ export const changePassword = async (req, res) => {
 
         return res.status(500).json({
             success: false,
-            message: "Failed to change password."
+            message: "Failed to change user password."
         });
     }
 };

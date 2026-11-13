@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -11,14 +12,15 @@ import {
   CheckCircle2,
   AlertCircle,
   ArrowRight,
+  LockKeyhole,
 } from "lucide-react";
 import StudentNavbar from "../../components/layout/StudentNavbar";
+import api from "../../services/api";
 import "./Profile.css";
 
 const CURRENT_STUDENT_KEY = "gradtrack-current-student";
+const TOKEN_KEY = "gradtrack-token";
 const TEAMS_STORAGE_KEY = "gradtrack-teams";
-const REGISTERED_STUDENTS_KEY = "gradtrack-registered-students";
-const PROFILE_OVERRIDES_KEY = "gradtrack-student-profile-overrides";
 
 function readCurrentStudent() {
   try {
@@ -36,18 +38,6 @@ function readLocalArray(key) {
     return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
-  }
-}
-
-function readLocalObject(key) {
-  try {
-    const saved = localStorage.getItem(key);
-    const parsed = saved ? JSON.parse(saved) : {};
-    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
-      ? parsed
-      : {};
-  } catch {
-    return {};
   }
 }
 
@@ -78,12 +68,24 @@ function Profile() {
   const [team, setTeam] = useState(() =>
     getCurrentTeam(readCurrentStudent())
   );
+
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(
     () => readCurrentStudent()?.name || ""
   );
+
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("success");
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+
+  // Change password states
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState("");
+  const [passwordMessageType, setPasswordMessageType] =
+    useState("success");
 
   const studentId = student?.universityId || "";
   const isLeader = Boolean(team && team.leaderId === studentId);
@@ -95,6 +97,7 @@ function Profile() {
     : "no-team";
 
   const studentName = student?.name?.trim() || "Student";
+
   const initials =
     studentName
       .split(/\s+/)
@@ -115,7 +118,8 @@ function Profile() {
     setMessage("");
   }
 
-  function handleSave(event) {
+  // Update profile through the backend
+  async function handleSave(event) {
     event.preventDefault();
     setMessage("");
 
@@ -134,42 +138,16 @@ function Profile() {
     }
 
     try {
+      setIsSavingProfile(true);
+
+      const response = await api.patch("/users/me", {
+        fullName: trimmedName,
+      });
+
       const updatedStudent = {
         ...student,
-        name: trimmedName,
+        name: response.data.user.fullName,
       };
-
-      // Save the profile override so mock accounts retain edited names.
-      const profileOverrides = readLocalObject(PROFILE_OVERRIDES_KEY);
-
-      localStorage.setItem(
-        PROFILE_OVERRIDES_KEY,
-        JSON.stringify({
-          ...profileOverrides,
-          [studentId]: {
-            ...(profileOverrides[studentId] || {}),
-            name: trimmedName,
-            updatedAt: new Date().toISOString(),
-          },
-        })
-      );
-
-      // Keep registered student data consistent when this is a registered account.
-      const registeredStudents = readLocalArray(
-        REGISTERED_STUDENTS_KEY
-      );
-
-      const updatedRegisteredStudents = registeredStudents.map(
-        (item) =>
-          item.universityId === studentId
-            ? { ...item, name: trimmedName }
-            : item
-      );
-
-      localStorage.setItem(
-        REGISTERED_STUDENTS_KEY,
-        JSON.stringify(updatedRegisteredStudents)
-      );
 
       // Update the member and leader names in the shared team record.
       const teams = readLocalArray(TEAMS_STORAGE_KEY);
@@ -199,7 +177,7 @@ function Profile() {
         JSON.stringify(updatedTeams)
       );
 
-      // The current session is tab-specific.
+      // Update current student session.
       sessionStorage.setItem(
         CURRENT_STUDENT_KEY,
         JSON.stringify(updatedStudent)
@@ -211,11 +189,69 @@ function Profile() {
       setIsEditing(false);
       setMessage("Your profile has been updated successfully.");
       setMessageType("success");
-    } catch {
+    } catch (error) {
       setMessage(
-        "Could not save your changes. Please try again."
+        error.response?.data?.message ||
+          "Could not save your changes. Please try again."
       );
       setMessageType("error");
+    } finally {
+      setIsSavingProfile(false);
+    }
+  }
+
+  // Change password through the backend
+  async function handleChangePassword(event) {
+    event.preventDefault();
+    setPasswordMessage("");
+
+    if (newPassword.length < 8) {
+      setPasswordMessage(
+        "New password must be at least 8 characters."
+      );
+      setPasswordMessageType("error");
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      setPasswordMessage("New passwords do not match.");
+      setPasswordMessageType("error");
+      return;
+    }
+
+    if (currentPassword === newPassword) {
+      setPasswordMessage(
+        "New password must be different from your current password."
+      );
+      setPasswordMessageType("error");
+      return;
+    }
+
+    try {
+      setIsChangingPassword(true);
+
+      const response = await api.patch("/users/me/password", {
+        currentPassword,
+        newPassword,
+      });
+
+      // Store the new token because the backend invalidates old tokens.
+      sessionStorage.setItem(TOKEN_KEY, response.data.token);
+
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmNewPassword("");
+
+      setPasswordMessage("Your password has been changed successfully.");
+      setPasswordMessageType("success");
+    } catch (error) {
+      setPasswordMessage(
+        error.response?.data?.message ||
+          "Could not change your password. Please try again."
+      );
+      setPasswordMessageType("error");
+    } finally {
+      setIsChangingPassword(false);
     }
   }
 
@@ -312,6 +348,7 @@ function Profile() {
               </div>
             )}
 
+            {/* Personal Information */}
             <section className="profile-section profile-reveal">
               <div className="profile-section-heading">
                 <div>
@@ -369,15 +406,20 @@ function Profile() {
                   </div>
 
                   <div className="profile-form-actions">
-                    <button className="profile-save-button" type="submit">
+                    <button
+                      className="profile-save-button"
+                      type="submit"
+                      disabled={isSavingProfile}
+                    >
                       <Save size={16} />
-                      Save Changes
+                      {isSavingProfile ? "Saving..." : "Save Changes"}
                     </button>
 
                     <button
                       className="profile-cancel-button"
                       type="button"
                       onClick={cancelEditing}
+                      disabled={isSavingProfile}
                     >
                       <X size={16} />
                       Cancel
@@ -443,6 +485,115 @@ function Profile() {
               )}
             </section>
 
+            {/* Change Password */}
+            <section className="profile-section profile-reveal">
+              <div className="profile-section-heading">
+                <div>
+                  <span className="profile-section-kicker">
+                    ACCOUNT SECURITY
+                  </span>
+                  <h2>Change Password</h2>
+                  <p>
+                    Update your password to keep your account secure.
+                  </p>
+                </div>
+
+                <div className="profile-section-icon">
+                  <LockKeyhole size={21} />
+                </div>
+              </div>
+
+              {passwordMessage && (
+                <div
+                  className={`profile-feedback ${passwordMessageType}`}
+                  role="status"
+                  aria-live="polite"
+                >
+                  {passwordMessageType === "success" ? (
+                    <CheckCircle2 size={18} />
+                  ) : (
+                    <AlertCircle size={18} />
+                  )}
+                  <span>{passwordMessage}</span>
+                </div>
+              )}
+
+              <form
+                className="profile-edit-form"
+                onSubmit={handleChangePassword}
+              >
+                <div className="profile-field">
+                  <label htmlFor="currentPassword">
+                    Current Password
+                  </label>
+                  <input
+                    id="currentPassword"
+                    name="currentPassword"
+                    type="password"
+                    value={currentPassword}
+                    onChange={(event) =>
+                      setCurrentPassword(event.target.value)
+                    }
+                    autoComplete="current-password"
+                    required
+                  />
+                </div>
+
+                <div className="profile-field">
+                  <label htmlFor="newPassword">
+                    New Password
+                  </label>
+                  <input
+                    id="newPassword"
+                    name="newPassword"
+                    type="password"
+                    value={newPassword}
+                    onChange={(event) =>
+                      setNewPassword(event.target.value)
+                    }
+                    autoComplete="new-password"
+                    minLength={8}
+                    required
+                  />
+                  <span className="profile-field-hint">
+                    Password must contain at least 8 characters.
+                  </span>
+                </div>
+
+                <div className="profile-field">
+                  <label htmlFor="confirmNewPassword">
+                    Confirm New Password
+                  </label>
+                  <input
+                    id="confirmNewPassword"
+                    name="confirmNewPassword"
+                    type="password"
+                    value={confirmNewPassword}
+                    onChange={(event) =>
+                      setConfirmNewPassword(event.target.value)
+                    }
+                    autoComplete="new-password"
+                    minLength={8}
+                    required
+                  />
+                </div>
+
+                <div className="profile-form-actions">
+                  <button
+                    className="profile-save-button"
+                    type="submit"
+                    disabled={isChangingPassword}
+                  >
+                    <LockKeyhole size={16} />
+                    {isChangingPassword
+                      ? "Changing Password..."
+                      : "Change Password"}
+                  </button>
+                </div>
+              </form>
+            </section>
+
+            {/* Team Information */}
             <section className="profile-section profile-reveal">
               <div className="profile-section-heading">
                 <div>
@@ -454,6 +605,7 @@ function Profile() {
                     Your current graduation project team.
                   </p>
                 </div>
+
                 <div className="profile-section-icon">
                   <Users size={21} />
                 </div>
@@ -511,7 +663,6 @@ function Profile() {
                 </div>
               )}
             </section>
-
           </>
         )}
       </main>

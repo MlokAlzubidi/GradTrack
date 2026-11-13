@@ -9,11 +9,14 @@ import {
   Save,
   X,
   CheckCircle2,
+  AlertCircle,
+  LockKeyhole,
 } from "lucide-react";
 import {
   getSupervisorSession,
   SUPERVISOR_SESSION_KEY,
 } from "../../utils/supervisorAuth";
+import api from "../../services/api";
 import "./SupervisorProfile.css";
 
 function formatDate(value) {
@@ -43,8 +46,19 @@ function SupervisorProfile() {
   const [editedName, setEditedName] = useState(
     supervisor?.name || ""
   );
+
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Change password states
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState("");
+  const [passwordMessageType, setPasswordMessageType] =
+    useState("success");
 
   function handleEdit() {
     setEditedName(supervisor?.name || "");
@@ -59,7 +73,8 @@ function SupervisorProfile() {
     setIsEditing(false);
   }
 
-  function handleSave(event) {
+  // Update supervisor profile through the backend
+  async function handleSave(event) {
     event.preventDefault();
 
     setErrorMessage("");
@@ -82,9 +97,15 @@ function SupervisorProfile() {
     }
 
     try {
+      setIsSaving(true);
+
+      const response = await api.patch("/users/me", {
+        fullName: trimmedName,
+      });
+
       const updatedSupervisor = {
         ...supervisor,
-        name: trimmedName,
+        name: response.data.user.fullName,
       };
 
       sessionStorage.setItem(
@@ -93,7 +114,7 @@ function SupervisorProfile() {
       );
 
       setSupervisor(updatedSupervisor);
-      setEditedName(trimmedName);
+      setEditedName(updatedSupervisor.name);
       setIsEditing(false);
       setSuccessMessage("Your profile name has been updated.");
 
@@ -103,10 +124,74 @@ function SupervisorProfile() {
           detail: updatedSupervisor,
         })
       );
-    } catch {
+    } catch (error) {
       setErrorMessage(
-        "Could not save your profile. Please try again."
+        error.response?.data?.message ||
+          "Could not save your profile. Please try again."
       );
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  // Change password through the backend
+  async function handleChangePassword(event) {
+    event.preventDefault();
+
+    setPasswordMessage("");
+
+    if (newPassword.length < 8) {
+      setPasswordMessage(
+        "New password must be at least 8 characters."
+      );
+      setPasswordMessageType("error");
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      setPasswordMessage("New passwords do not match.");
+      setPasswordMessageType("error");
+      return;
+    }
+
+    if (currentPassword === newPassword) {
+      setPasswordMessage(
+        "New password must be different from your current password."
+      );
+      setPasswordMessageType("error");
+      return;
+    }
+
+    try {
+      setIsChangingPassword(true);
+
+      const response = await api.patch("/users/me/password", {
+        currentPassword,
+        newPassword,
+      });
+
+      // Save the new token because old tokens are invalidated.
+      sessionStorage.setItem(
+        "gradtrack-token",
+        response.data.token
+      );
+
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmNewPassword("");
+
+      setPasswordMessage(
+        "Your password has been changed successfully."
+      );
+      setPasswordMessageType("success");
+    } catch (error) {
+      setPasswordMessage(
+        error.response?.data?.message ||
+          "Could not change your password. Please try again."
+      );
+      setPasswordMessageType("error");
+    } finally {
+      setIsChangingPassword(false);
     }
   }
 
@@ -158,6 +243,7 @@ function SupervisorProfile() {
           className="supervisor-profile-alert error"
           role="alert"
         >
+          <AlertCircle size={18} />
           <span>{errorMessage}</span>
         </div>
       )}
@@ -220,6 +306,7 @@ function SupervisorProfile() {
                   }
                   placeholder="Enter your display name"
                   maxLength={80}
+                  minLength={2}
                   autoComplete="name"
                   required
                 />
@@ -252,6 +339,7 @@ function SupervisorProfile() {
                 type="button"
                 className="supervisor-profile-cancel-button"
                 onClick={handleCancel}
+                disabled={isSaving}
               >
                 <X size={16} />
                 Cancel
@@ -260,9 +348,10 @@ function SupervisorProfile() {
               <button
                 type="submit"
                 className="supervisor-profile-save-button"
+                disabled={isSaving}
               >
                 <Save size={16} />
-                Save changes
+                {isSaving ? "Saving..." : "Save changes"}
               </button>
             </div>
           </form>
@@ -317,8 +406,116 @@ function SupervisorProfile() {
             </article>
           </div>
         )}
-      </section>
 
+        {/* Change Password */}
+        <div className="supervisor-profile-section-heading">
+          <div>
+            <h3>Change Password</h3>
+            <p>Update your password to keep your account secure.</p>
+          </div>
+
+          <div className="supervisor-profile-header-icon">
+            <LockKeyhole size={21} />
+          </div>
+        </div>
+
+        {passwordMessage && (
+          <div
+            className={`supervisor-profile-alert ${passwordMessageType}`}
+            role="status"
+            aria-live="polite"
+          >
+            {passwordMessageType === "success" ? (
+              <CheckCircle2 size={18} />
+            ) : (
+              <AlertCircle size={18} />
+            )}
+            <span>{passwordMessage}</span>
+          </div>
+        )}
+
+        <form
+          className="supervisor-profile-form"
+          onSubmit={handleChangePassword}
+        >
+          <div className="supervisor-profile-field">
+            <label htmlFor="supervisorCurrentPassword">
+              Current Password
+            </label>
+
+            <div className="supervisor-profile-input-wrap">
+              <LockKeyhole size={18} />
+              <input
+                id="supervisorCurrentPassword"
+                type="password"
+                value={currentPassword}
+                onChange={(event) =>
+                  setCurrentPassword(event.target.value)
+                }
+                autoComplete="current-password"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="supervisor-profile-field">
+            <label htmlFor="supervisorNewPassword">
+              New Password
+            </label>
+
+            <div className="supervisor-profile-input-wrap">
+              <LockKeyhole size={18} />
+              <input
+                id="supervisorNewPassword"
+                type="password"
+                value={newPassword}
+                onChange={(event) =>
+                  setNewPassword(event.target.value)
+                }
+                autoComplete="new-password"
+                minLength={8}
+                required
+              />
+            </div>
+
+            <small>Password must contain at least 8 characters.</small>
+          </div>
+
+          <div className="supervisor-profile-field">
+            <label htmlFor="supervisorConfirmPassword">
+              Confirm New Password
+            </label>
+
+            <div className="supervisor-profile-input-wrap">
+              <LockKeyhole size={18} />
+              <input
+                id="supervisorConfirmPassword"
+                type="password"
+                value={confirmNewPassword}
+                onChange={(event) =>
+                  setConfirmNewPassword(event.target.value)
+                }
+                autoComplete="new-password"
+                minLength={8}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="supervisor-profile-form-actions">
+            <button
+              type="submit"
+              className="supervisor-profile-save-button"
+              disabled={isChangingPassword}
+            >
+              <LockKeyhole size={16} />
+              {isChangingPassword
+                ? "Changing Password..."
+                : "Change Password"}
+            </button>
+          </div>
+        </form>
+      </section>
     </div>
   );
 }

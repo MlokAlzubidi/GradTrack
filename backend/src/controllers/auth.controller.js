@@ -1,27 +1,20 @@
 
 import mongoose from "mongoose";
-import jwt from "jsonwebtoken";
 
 import User from "../models/user.model.js";
 import ApprovedSupervisor from "../models/approvedSupervisor.model.js";
+import generateToken from "../utils/generateToken.js";
 
-// Generate JWT Token
-const generateToken = (user) => {
-    if (!process.env.JWT_SECRET) {
-        throw new Error("JWT_SECRET is not configured.");
-    }
+// Prepare safe user response
+const createUserResponse = (user) => {
+    const userResponse = user.toObject();
 
-    return jwt.sign(
-        {
-            userId: user._id.toString(),
-            role: user.role,
-            tokenVersion: user.tokenVersion
-        },
-        process.env.JWT_SECRET,
-        {
-            expiresIn: process.env.JWT_EXPIRES_IN || "1d"
-        }
-    );
+    delete userResponse.password;
+    delete userResponse.tokenVersion;
+    delete userResponse.isActive;
+    delete userResponse.__v;
+
+    return userResponse;
 };
 
 // Register a new user
@@ -109,14 +102,10 @@ export const register = async (req, res) => {
             });
         }
 
-        const userResponse = newUser.toObject();
-
-        delete userResponse.password;
-
         return res.status(201).json({
             success: true,
             message: "User registered successfully.",
-            user: userResponse
+            user: createUserResponse(newUser)
         });
 
     } catch (error) {
@@ -153,6 +142,7 @@ export const register = async (req, res) => {
         }
     }
 };
+
 
 // Login an existing user
 export const login = async (req, res) => {
@@ -198,14 +188,11 @@ export const login = async (req, res) => {
 
         const token = generateToken(user);
 
-        const userResponse = user.toObject();
-        delete userResponse.password;
-
         return res.status(200).json({
             success: true,
             message: "Login successful.",
             token,
-            user: userResponse
+            user: createUserResponse(user)
         });
 
     } catch (error) {
@@ -217,6 +204,7 @@ export const login = async (req, res) => {
         });
     }
 };
+
 
 // Logout from all devices
 export const logout = async (req, res) => {

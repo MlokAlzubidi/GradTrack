@@ -25,6 +25,7 @@ import {
   clearSupervisorSession,
   getSupervisorSession,
 } from "../../utils/supervisorAuth";
+import api from "../../services/api";
 import "./SupervisorLayout.css";
 
 const NOTIFICATIONS_KEY = "gradtrack-notifications";
@@ -124,10 +125,19 @@ function SupervisorLayout() {
     setReviewsOpen(false);
   }, [location.pathname]);
 
-  function handleLogout() {
-    clearSupervisorSession();
-    setMobileMenuOpen(false);
-    navigate("/supervisor/login", { replace: true });
+  // Logout supervisor
+  async function handleLogout() {
+    try {
+      await api.post("/auth/logout");
+    } catch (error) {
+      console.error("Logout request failed:", error);
+    } finally {
+      sessionStorage.removeItem("gradtrack-token");
+      clearSupervisorSession();
+
+      setMobileMenuOpen(false);
+      navigate("/supervisor/login", { replace: true });
+    }
   }
 
   function closeMenus() {
@@ -158,8 +168,9 @@ function SupervisorLayout() {
           </span>
 
           <span className="supervisor-brand-name">
-  <span className="supervisor-brand-grad">Grad</span><span className="supervisor-brand-track">Track</span>
-</span>
+            <span className="supervisor-brand-grad">Grad</span>
+            <span className="supervisor-brand-track">Track</span>
+          </span>
         </Link>
 
         <nav
@@ -201,8 +212,19 @@ function SupervisorLayout() {
             <span>Projects</span>
           </NavLink>
 
-          <NavLink to="/supervisor/assignments" onClick={closeMenus} className={({ isActive }) => `supervisor-nav-link ${isActive ? "active" : ""}`}>
-            <ClipboardList className="supervisor-mobile-nav-icon" size={17} />
+          <NavLink
+            to="/supervisor/assignments"
+            onClick={closeMenus}
+            className={({ isActive }) =>
+              `supervisor-nav-link ${
+                isActive ? "active" : ""
+              }`
+            }
+          >
+            <ClipboardList
+              className="supervisor-mobile-nav-icon"
+              size={17}
+            />
             <span>Requests</span>
           </NavLink>
 
@@ -262,7 +284,7 @@ function SupervisorLayout() {
             </div>
           </div>
 
-          {/* These links remain available in the mobile menu too. */}
+          {/* Mobile notifications */}
           <NavLink
             to="/supervisor/notifications"
             onClick={closeMenus}
@@ -285,6 +307,7 @@ function SupervisorLayout() {
             )}
           </NavLink>
 
+          {/* Mobile profile */}
           <NavLink
             to="/supervisor/profile"
             onClick={closeMenus}
@@ -301,6 +324,7 @@ function SupervisorLayout() {
             <span>Profile</span>
           </NavLink>
 
+          {/* Mobile logout */}
           <button
             type="button"
             className="supervisor-nav-link supervisor-mobile-logout"
@@ -315,48 +339,43 @@ function SupervisorLayout() {
         </nav>
 
         <div className="supervisor-topbar-actions">
-         
+          <div className="supervisor-bell-clean">
+            <NavLink
+              to="/supervisor/notifications"
+              className="supervisor-bell-clean__link"
+              aria-label="Notifications"
+              title={
+                unreadCount > 0
+                  ? `${unreadCount} unread notifications`
+                  : "Notifications"
+              }
+            >
+              <span
+                className={`supervisor-bell-clean__orb ${
+                  unreadCount > 0 ? "has-unread" : ""
+                }`}
+              >
+                {unreadCount > 0 && (
+                  <span
+                    className="supervisor-bell-clean__aura"
+                    aria-hidden="true"
+                  />
+                )}
 
+                <Bell
+                  className="supervisor-bell-clean__icon"
+                  size={19}
+                  strokeWidth={2}
+                />
+              </span>
+            </NavLink>
 
-<div className="supervisor-bell-clean">
-  <NavLink
-    to="/supervisor/notifications"
-    className="supervisor-bell-clean__link"
-    aria-label="Notifications"
-    title={
-      unreadCount > 0
-        ? `${unreadCount} unread notifications`
-        : "Notifications"
-    }
-  >
-    <span
-      className={`supervisor-bell-clean__orb ${
-        unreadCount > 0 ? "has-unread" : ""
-      }`}
-    >
-      {unreadCount > 0 && (
-        <span
-          className="supervisor-bell-clean__aura"
-          aria-hidden="true"
-        />
-      )}
-
-      <Bell
-        className="supervisor-bell-clean__icon"
-        size={19}
-        strokeWidth={2}
-      />
-    </span>
-  </NavLink>
-
-  {unreadCount > 0 && (
-    <span className="supervisor-bell-clean__badge">
-      {unreadCount > 99 ? "99+" : unreadCount}
-    </span>
-  )}
-</div>
-
-
+            {unreadCount > 0 && (
+              <span className="supervisor-bell-clean__badge">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
+          </div>
 
           <NavLink
             to="/supervisor/profile"

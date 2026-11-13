@@ -4,7 +4,8 @@ import rateLimit from "express-rate-limit";
 // Limit repeated login attempts
 export const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    limit: 5, // Maximum 5 attempts
+    limit: 10, // Maximum 10 failed attempts
+    skipSuccessfulRequests: true,
     standardHeaders: "draft-8",
     legacyHeaders: false,
     message: {
@@ -16,7 +17,8 @@ export const loginLimiter = rateLimit({
 // Limit repeated registration attempts
 export const registerLimiter = rateLimit({
     windowMs: 60 * 60 * 1000, // 1 hour
-    limit: 10, // Maximum 10 attempts
+    limit: 15, // Maximum 15 failed attempts
+    skipSuccessfulRequests: true,
     standardHeaders: "draft-8",
     legacyHeaders: false,
     message: {
