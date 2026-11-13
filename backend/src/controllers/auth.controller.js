@@ -71,7 +71,7 @@ export const register = async (req, res) => {
                             }
                         },
                         {
-                            new: true,
+                            returnDocument: "after",
                             session
                         }
                     );
@@ -169,13 +169,7 @@ export const login = async (req, res) => {
             });
         }
 
-        if (!user.isActive) {
-            return res.status(403).json({
-                success: false,
-                message: "Your account is inactive."
-            });
-        }
-
+        // Verify password before checking account status
         const isPasswordCorrect =
             await user.comparePassword(password);
 
@@ -183,6 +177,14 @@ export const login = async (req, res) => {
             return res.status(401).json({
                 success: false,
                 message: "Invalid credentials."
+            });
+        }
+
+        // Check account status after password verification
+        if (!user.isActive) {
+            return res.status(403).json({
+                success: false,
+                message: "Your account is inactive."
             });
         }
 
@@ -215,7 +217,7 @@ export const logout = async (req, res) => {
                 $inc: { tokenVersion: 1 }
             },
             {
-                new: true
+                returnDocument: "after"
             }
         );
 

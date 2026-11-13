@@ -1,3 +1,4 @@
+
 import { z } from "zod";
 
 // Login Validation
@@ -5,7 +6,7 @@ export const loginSchema = z.object({
     identifier: z.string().trim().min(1, "Identifier is required"),
     password: z.string().min(1, "Password is required"),
     role: z.enum(["student", "supervisor"])
-});
+}).strict();
 
 // Register Validation
 export const registerSchema = z.object({
@@ -31,4 +32,4 @@ export const registerSchema = z.object({
             message: "Staff ID is required for supervisors"
         });
     }
-});
+}).strict();

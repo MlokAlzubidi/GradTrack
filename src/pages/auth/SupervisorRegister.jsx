@@ -51,7 +51,8 @@ function SupervisorRegister() {
       });
     } catch (error) {
       setError(
-        error.response?.data?.message ||
+        error.response?.data?.errors?.[0]?.message ||
+          error.response?.data?.message ||
           "Registration failed. Please try again."
       );
     }

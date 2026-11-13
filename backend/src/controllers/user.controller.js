@@ -2,12 +2,22 @@
 import User from "../models/user.model.js";
 import generateToken from "../utils/generateToken.js";
 
+// Prepare safe user response
+const createUserResponse = (user) => {
+    const userResponse = user.toObject();
+
+    delete userResponse.password;
+    delete userResponse.tokenVersion;
+    delete userResponse.isActive;
+    delete userResponse.__v;
+
+    return userResponse;
+};
+
 // Get the currently authenticated user's profile
 export const getMe = async (req, res) => {
     try {
-        const user = await User.findById(req.user.userId).select(
-            "fullName email universityId staffId role isActive createdAt"
-        );
+        const user = await User.findById(req.user.userId);
 
         if (!user) {
             return res.status(404).json({
@@ -19,7 +29,7 @@ export const getMe = async (req, res) => {
         return res.status(200).json({
             success: true,
             message: "Profile retrieved successfully.",
-            user
+            user: createUserResponse(user)
         });
 
     } catch (error) {
@@ -63,14 +73,10 @@ export const updateMe = async (req, res) => {
         // Save changes with Mongoose validation
         await user.save();
 
-        const userResponse = await User.findById(user._id).select(
-            "fullName email universityId staffId role isActive createdAt"
-        );
-
         return res.status(200).json({
             success: true,
             message: "Profile updated successfully.",
-            user: userResponse
+            user: createUserResponse(user)
         });
 
     } catch (error) {
@@ -84,7 +90,11 @@ export const updateMe = async (req, res) => {
         if (error.name === "ValidationError") {
             return res.status(400).json({
                 success: false,
-                message: "Invalid profile data."
+                message: "Invalid profile data.",
+                errors: Object.values(error.errors).map((item) => ({
+                    field: item.path,
+                    message: item.message
+                }))
             });
         }
 
@@ -132,7 +142,7 @@ export const changePassword = async (req, res) => {
 
         // Update password and invalidate old tokens
         user.password = newPassword;
-        user.tokenVersion += 1;
+        user.tokenVersion = (user.tokenVersion ?? 0) + 1;
 
         await user.save();
 

@@ -48,7 +48,8 @@ function Login() {
       navigate(destination, { replace: true });
     } catch (error) {
       setError(
-        error.response?.data?.message ||
+        error.response?.data?.errors?.[0]?.message ||
+          error.response?.data?.message ||
           "Login failed. Please try again."
       );
     }
@@ -90,9 +91,11 @@ function Login() {
           <h2>Welcome Back</h2>
         </div>
 
-        <p className="login-description">
-          Sign in to continue to your account.
-        </p>
+        {location.state?.registrationSuccess && (
+          <p className="login-success-message" role="status">
+            {location.state.registrationSuccess}
+          </p>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">

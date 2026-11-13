@@ -51,7 +51,8 @@ function SupervisorLogin() {
       navigate(destination, { replace: true });
     } catch (error) {
       setError(
-        error.response?.data?.message ||
+        error.response?.data?.errors?.[0]?.message ||
+          error.response?.data?.message ||
           "Login failed. Please try again."
       );
     }
