@@ -64,6 +64,7 @@ const runTest = async () => {
 
         console.log("Supervisor password hashed: SUCCESS");
 
+        
         // 6. Check supervisor password comparison
         const supervisorPasswordValid =
             await supervisor.comparePassword("Supervisor123");
