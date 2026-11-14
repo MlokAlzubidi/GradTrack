@@ -1,6 +1,8 @@
 
 import "dotenv/config";
 import mongoose from "mongoose";
+import assert from "node:assert/strict";
+
 import connectDB from "./config/db.js";
 import User from "./models/user.model.js";
 
@@ -10,9 +12,12 @@ const runTest = async () => {
     const studentId = `TEST-STU-${testSuffix}`;
     const supervisorId = `TEST-STAFF-${testSuffix}`;
 
+    let connected = false;
+
     try {
         // Connect to MongoDB
         await connectDB();
+        connected = true;
 
         // Ensure database indexes are created
         await User.init();
@@ -30,19 +35,17 @@ const runTest = async () => {
         console.log("Student created:", student.fullName);
 
         // 2. Check password hashing
-        console.log(
-            "Password hashed:",
-            student.password !== "Student123" ? "SUCCESS" : "FAILED"
-        );
+        assert.notEqual(student.password, "Student123");
+
+        console.log("Password hashed: SUCCESS");
 
         // 3. Check password comparison
         const studentPasswordValid =
             await student.comparePassword("Student123");
 
-        console.log(
-            "Password comparison:",
-            studentPasswordValid ? "SUCCESS" : "FAILED"
-        );
+        assert.equal(studentPasswordValid, true);
+
+        console.log("Password comparison: SUCCESS");
 
         console.log("\n--- Testing Supervisor Creation ---");
 
@@ -57,14 +60,21 @@ const runTest = async () => {
         console.log("Supervisor created:", supervisor.fullName);
 
         // 5. Check supervisor password hashing
-        console.log(
-            "Supervisor password hashed:",
-            supervisor.password !== "Supervisor123" ? "SUCCESS" : "FAILED"
-        );
+        assert.notEqual(supervisor.password, "Supervisor123");
+
+        console.log("Supervisor password hashed: SUCCESS");
+
+        // 6. Check supervisor password comparison
+        const supervisorPasswordValid =
+            await supervisor.comparePassword("Supervisor123");
+
+        assert.equal(supervisorPasswordValid, true);
+
+        console.log("Supervisor password comparison: SUCCESS");
 
         console.log("\n--- Testing Duplicate University ID ---");
 
-        // 6. Try creating duplicate Student
+        // 7. Try creating duplicate Student
         let duplicateRejected = false;
 
         try {
@@ -82,28 +92,52 @@ const runTest = async () => {
             }
         }
 
-        console.log(
-            "Duplicate university ID rejected:",
-            duplicateRejected ? "SUCCESS" : "FAILED"
-        );
+        assert.equal(duplicateRejected, true);
+
+        console.log("Duplicate university ID rejected: SUCCESS");
+
+        console.log("\nAll User Model tests passed successfully!");
 
     } catch (error) {
-        console.error("User Model Test Failed:", error.message);
+        console.error("\nUser Model Test Failed:", error.message);
         process.exitCode = 1;
 
     } finally {
-        if (mongoose.connection.readyState === 1) {
-            await User.deleteMany({
-                $or: [
-                    { role: "student", universityId: studentId },
-                    { role: "supervisor", staffId: supervisorId }
-                ]
-            });
+        try {
+            if (connected && mongoose.connection.readyState !== 0) {
+                // Clean up test data
+                await User.deleteMany({
+                    $or: [
+                        { role: "student", universityId: studentId },
+                        { role: "supervisor", staffId: supervisorId }
+                    ]
+                });
 
-            console.log("\nTest data cleaned up.");
+                console.log("\nTest data cleaned up.");
+            }
+        } catch (cleanupError) {
+            console.error(
+                "Test data cleanup failed:",
+                cleanupError.message
+            );
 
-            await mongoose.disconnect();
-            console.log("MongoDB connection closed.");
+            process.exitCode = 1;
+
+        } finally {
+            // Always close the database connection
+            if (mongoose.connection.readyState !== 0) {
+                try {
+                    await mongoose.disconnect();
+                    console.log("MongoDB connection closed.");
+                } catch (disconnectError) {
+                    console.error(
+                        "MongoDB disconnection failed:",
+                        disconnectError.message
+                    );
+
+                    process.exitCode = 1;
+                }
+            }
         }
     }
 };
