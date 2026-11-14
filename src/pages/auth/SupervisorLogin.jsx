@@ -13,10 +13,15 @@ function SupervisorLogin() {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   async function handleSubmit(event) {
     event.preventDefault();
+
+    if (isLoading) return;
+
     setError("");
+    setIsLoading(true);
 
     try {
       const response = await api.post("/auth/login", {
@@ -27,8 +32,16 @@ function SupervisorLogin() {
 
       const { token, user } = response.data;
 
+      // Verify login response
+      if (!token || !user?._id || user.role !== "supervisor") {
+        throw new Error("Invalid login response from server.");
+      }
+
       // Save JWT token
       sessionStorage.setItem("gradtrack-token", token);
+
+      // Remove any previous student session
+      sessionStorage.removeItem("gradtrack-current-student");
 
       // Preserve the existing supervisor session structure
       const supervisorSession = {
@@ -45,16 +58,25 @@ function SupervisorLogin() {
         JSON.stringify(supervisorSession)
       );
 
+      // Allow only supervisor dashboard destinations
+      const requestedPath = location.state?.from?.pathname;
+
       const destination =
-        location.state?.from?.pathname || "/supervisor/dashboard";
+        requestedPath?.startsWith("/supervisor/")
+          ? requestedPath
+          : "/supervisor/dashboard";
 
       navigate(destination, { replace: true });
+
     } catch (error) {
       setError(
         error.response?.data?.errors?.[0]?.message ||
           error.response?.data?.message ||
+          error.message ||
           "Login failed. Please try again."
       );
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -151,9 +173,13 @@ function SupervisorLogin() {
             <Link to="/forgot-password">Forgot Password?</Link>
           </div>
 
-          <button type="submit" className="login-submit-button">
-            <span>Sign In</span>
-            <ArrowRight size={17} />
+          <button
+            type="submit"
+            className="login-submit-button"
+            disabled={isLoading}
+          >
+            <span>{isLoading ? "Signing In..." : "Sign In"}</span>
+            {!isLoading && <ArrowRight size={17} />}
           </button>
         </form>
 

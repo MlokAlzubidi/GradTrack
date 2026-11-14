@@ -25,18 +25,17 @@ api.interceptors.response.use(
 
   (error) => {
     const status = error.response?.status;
-    const requestUrl = error.config?.url || "";
+    const requestUrl = (error.config?.url || "").split("?")[0];
 
     // Do not clear the session for expected authentication errors
     const excludedUrls = [
       "/auth/login",
       "/auth/register",
-      "/auth/logout",
       "/users/me/password",
     ];
 
-    const shouldExclude = excludedUrls.some((url) =>
-      requestUrl.includes(url)
+    const shouldExclude = excludedUrls.some(
+      (url) => requestUrl === url || requestUrl.endsWith(url)
     );
 
     if (status === 401 && !shouldExclude) {

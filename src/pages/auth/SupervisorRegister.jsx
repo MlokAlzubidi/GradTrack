@@ -14,9 +14,13 @@ function SupervisorRegister() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   async function handleSubmit(event) {
     event.preventDefault();
+
+    if (isLoading) return;
+
     setError("");
 
     const trimmedName = name.trim();
@@ -28,10 +32,17 @@ function SupervisorRegister() {
       return;
     }
 
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
       return;
     }
+
+    setIsLoading(true);
 
     try {
       await api.post("/auth/register", {
@@ -49,12 +60,15 @@ function SupervisorRegister() {
             "Your supervisor account is ready. Sign in to continue.",
         },
       });
+
     } catch (error) {
       setError(
         error.response?.data?.errors?.[0]?.message ||
           error.response?.data?.message ||
           "Registration failed. Please try again."
       );
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -187,9 +201,13 @@ function SupervisorRegister() {
             </p>
           )}
 
-          <button type="submit" className="login-submit-button">
-            <span>Create Account</span>
-            <ArrowRight size={17} />
+          <button
+            type="submit"
+            className="login-submit-button"
+            disabled={isLoading}
+          >
+            <span>{isLoading ? "Creating Account..." : "Create Account"}</span>
+            {!isLoading && <ArrowRight size={17} />}
           </button>
         </form>
 

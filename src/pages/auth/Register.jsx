@@ -7,37 +7,42 @@ import "./Register.css";
 function Register() {
   const navigate = useNavigate();
 
-  // Student information
   const [name, setName] = useState("");
   const [universityId, setUniversityId] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // Error message
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Handle registration form submission
   async function handleSubmit(event) {
     event.preventDefault();
+
+    if (isLoading) return;
+
     setError("");
 
     const trimmedName = name.trim();
     const trimmedUniversityId = universityId.trim();
 
-    // Validate name and university ID
     if (!trimmedName || !trimmedUniversityId) {
       setError("Please enter your full name and university ID.");
       return;
     }
 
-    // Check password confirmation
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
       return;
     }
 
+    setIsLoading(true);
+
     try {
-      // Send registration data to Backend
       await api.post("/auth/register", {
         fullName: trimmedName,
         universityId: trimmedUniversityId,
@@ -45,7 +50,6 @@ function Register() {
         role: "student",
       });
 
-      // Redirect to login after successful registration
       navigate("/login", {
         replace: true,
         state: {
@@ -55,17 +59,15 @@ function Register() {
       });
 
     } catch (error) {
-      // Read detailed validation errors from Backend
       const responseData = error.response?.data;
 
-      const validationMessage =
-        responseData?.errors?.[0]?.message;
-
       setError(
-        validationMessage ||
+        responseData?.errors?.[0]?.message ||
           responseData?.message ||
           "Registration failed. Please try again."
       );
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -83,7 +85,6 @@ function Register() {
         <p>Register to get started with GradTrack.</p>
 
         <form onSubmit={handleSubmit}>
-          {/* Full Name */}
           <div className="form-group">
             <label htmlFor="fullName">Full Name</label>
 
@@ -94,12 +95,14 @@ function Register() {
               placeholder="Enter your full name"
               autoComplete="name"
               value={name}
-              onChange={(event) => setName(event.target.value)}
+              onChange={(event) => {
+                setName(event.target.value);
+                setError("");
+              }}
               required
             />
           </div>
 
-          {/* University ID */}
           <div className="form-group">
             <label htmlFor="universityId">University ID</label>
 
@@ -110,14 +113,14 @@ function Register() {
               placeholder="Enter your university ID"
               autoComplete="username"
               value={universityId}
-              onChange={(event) =>
-                setUniversityId(event.target.value)
-              }
+              onChange={(event) => {
+                setUniversityId(event.target.value);
+                setError("");
+              }}
               required
             />
           </div>
 
-          {/* Password */}
           <div className="form-group">
             <label htmlFor="password">Password</label>
 
@@ -128,12 +131,14 @@ function Register() {
               placeholder="Create a password"
               autoComplete="new-password"
               value={password}
-              onChange={(event) => setPassword(event.target.value)}
+              onChange={(event) => {
+                setPassword(event.target.value);
+                setError("");
+              }}
               required
             />
           </div>
 
-          {/* Confirm Password */}
           <div className="form-group">
             <label htmlFor="confirmPassword">
               Confirm Password
@@ -146,27 +151,25 @@ function Register() {
               placeholder="Re-enter your password"
               autoComplete="new-password"
               value={confirmPassword}
-              onChange={(event) =>
-                setConfirmPassword(event.target.value)
-              }
+              onChange={(event) => {
+                setConfirmPassword(event.target.value);
+                setError("");
+              }}
               required
             />
           </div>
 
-          {/* Error Message */}
           {error && (
             <p className="error-message" role="alert">
               {error}
             </p>
           )}
 
-          {/* Submit */}
-          <button type="submit">
-            Create Account
+          <button type="submit" disabled={isLoading}>
+            {isLoading ? "Creating Account..." : "Create Account"}
           </button>
         </form>
 
-        {/* Login Link */}
         <p className="login-link">
           Already have an account?{" "}
           <Link to="/login">Sign In</Link>

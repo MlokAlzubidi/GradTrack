@@ -12,10 +12,15 @@ function Login() {
   const [universityId, setUniversityId] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   async function handleSubmit(event) {
     event.preventDefault();
+
+    if (isLoading) return;
+
     setError("");
+    setIsLoading(true);
 
     try {
       const response = await api.post("/auth/login", {
@@ -26,8 +31,16 @@ function Login() {
 
       const { token, user } = response.data;
 
+      // Verify login response
+      if (!token || !user?._id || user.role !== "student") {
+        throw new Error("Invalid login response from server.");
+      }
+
       // Save JWT token
       sessionStorage.setItem("gradtrack-token", token);
+
+      // Remove any previous supervisor session
+      sessionStorage.removeItem("gradtrack-current-supervisor");
 
       // Save current student information
       const currentStudent = {
@@ -42,16 +55,25 @@ function Login() {
         JSON.stringify(currentStudent)
       );
 
+      // Allow only student dashboard destinations
+      const requestedPath = location.state?.from?.pathname;
+
       const destination =
-        location.state?.from?.pathname || "/student/dashboard";
+        requestedPath?.startsWith("/student/")
+          ? requestedPath
+          : "/student/dashboard";
 
       navigate(destination, { replace: true });
+
     } catch (error) {
       setError(
         error.response?.data?.errors?.[0]?.message ||
           error.response?.data?.message ||
+          error.message ||
           "Login failed. Please try again."
       );
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -148,9 +170,13 @@ function Login() {
             </Link>
           </div>
 
-          <button type="submit" className="login-submit-button">
-            <span>Sign In</span>
-            <ArrowRight size={17} />
+          <button
+            type="submit"
+            className="login-submit-button"
+            disabled={isLoading}
+          >
+            <span>{isLoading ? "Signing In..." : "Sign In"}</span>
+            {!isLoading && <ArrowRight size={17} />}
           </button>
         </form>
 

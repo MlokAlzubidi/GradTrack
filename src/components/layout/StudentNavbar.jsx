@@ -219,7 +219,8 @@ function StudentNavbar({ teamStatus = "no-team" }) {
       sessionStorage.removeItem("gradtrack-token");
       sessionStorage.removeItem(CURRENT_STUDENT_KEY);
 
-      navigate("/", { replace: true });
+      closeMenu();
+      navigate("/login", { replace: true });
     }
   }
 
@@ -250,7 +251,9 @@ function StudentNavbar({ teamStatus = "no-team" }) {
         className="student-mobile-menu-toggle"
         onClick={toggleMobileMenu}
         aria-label={
-          mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"
+          mobileMenuOpen
+            ? "Close navigation menu"
+            : "Open navigation menu"
         }
         aria-expanded={mobileMenuOpen}
         aria-controls="student-navigation"
