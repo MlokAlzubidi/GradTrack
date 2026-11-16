@@ -7,7 +7,9 @@ const userSchema = new mongoose.Schema(
         fullName: {
             type: String,
             required: true,
-            trim: true
+            trim: true,
+            minlength: 2,
+            maxlength: 100
         },
 
         email: {
@@ -17,6 +19,7 @@ const userSchema = new mongoose.Schema(
             default: undefined,
             trim: true,
             lowercase: true,
+            maxlength: 254,
             set: (value) => {
                 if (typeof value !== "string") {
                     return value ?? undefined;
@@ -34,6 +37,7 @@ const userSchema = new mongoose.Schema(
         universityId: {
             type: String,
             trim: true,
+            match: [/^\d{10}$/, "University ID must contain exactly 10 digits"],
             required: function () {
                 return this.role === "student";
             }
@@ -42,7 +46,7 @@ const userSchema = new mongoose.Schema(
         staffId: {
             type: String,
             trim: true,
-            uppercase: true,
+            match: [/^\d{6}$/, "Staff ID must contain exactly 6 digits"],
             required: function () {
                 return this.role === "supervisor";
             }

@@ -4,10 +4,12 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { GraduationCap, ArrowRight, LockKeyhole } from "lucide-react";
 import "./Login.css";
 import api from "../../services/api";
+import { useAuth } from "../../context/AuthContext.jsx";
 
 function Login() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { setSession } = useAuth();
 
   const [universityId, setUniversityId] = useState("");
   const [password, setPassword] = useState("");
@@ -54,6 +56,7 @@ function Login() {
         "gradtrack-current-student",
         JSON.stringify(currentStudent)
       );
+      setSession(token, user);
 
       // Allow only student dashboard destinations
       const requestedPath = location.state?.from?.pathname;

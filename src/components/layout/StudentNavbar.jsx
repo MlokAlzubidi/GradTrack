@@ -9,7 +9,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import api from "../../services/api";
+import { useAuth } from "../../context/AuthContext.jsx";
 import "./StudentNavbar.css";
 
 const NOTIFICATIONS_STORAGE_KEY = "gradtrack-notifications";
@@ -163,6 +163,7 @@ function NavigationGroup({
 
 function StudentNavbar({ teamStatus = "no-team" }) {
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const [openGroup, setOpenGroup] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -211,17 +212,9 @@ function StudentNavbar({ teamStatus = "no-team" }) {
   }
 
   async function handleLogout() {
-    try {
-      await api.post("/auth/logout");
-    } catch (error) {
-      console.error("Logout request failed:", error);
-    } finally {
-      sessionStorage.removeItem("gradtrack-token");
-      sessionStorage.removeItem(CURRENT_STUDENT_KEY);
-
-      closeMenu();
-      navigate("/login", { replace: true });
-    }
+    await logout();
+    closeMenu();
+    navigate("/login", { replace: true });
   }
 
   return (

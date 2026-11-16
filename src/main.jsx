@@ -5,6 +5,7 @@ import { BrowserRouter } from "react-router-dom";
 import "./index.css";
 import App from "./App.jsx";
 import { ensureDemoDataInitialized } from "./data/mockData";
+import { AuthProvider } from "./context/AuthContext.jsx";
 
 // Initialize browser demo data once before the first React render.
 ensureDemoDataInitialized();
@@ -12,7 +13,9 @@ ensureDemoDataInitialized();
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <BrowserRouter>
-      <App />
+      <AuthProvider>
+        <App />
+      </AuthProvider>
     </BrowserRouter>
   </StrictMode>
 );

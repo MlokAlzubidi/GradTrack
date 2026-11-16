@@ -1,34 +1,20 @@
 import { Navigate, useLocation } from "react-router-dom";
-
-const CURRENT_STUDENT_KEY = "gradtrack-current-student";
-
-function readCurrentStudent() {
-  try {
-    const savedStudent = sessionStorage.getItem(CURRENT_STUDENT_KEY);
-    const student = savedStudent ? JSON.parse(savedStudent) : null;
-
-    return student?.role === "student" && student?.universityId
-      ? student
-      : null;
-  } catch {
-    return null;
-  }
-}
+import { useAuth } from "../../context/AuthContext.jsx";
 
 function RequireStudent({ children }) {
   const location = useLocation();
-  const student = readCurrentStudent();
+  const { user, isAuthenticated, isLoading, authCheckError, refreshUser } = useAuth();
 
-  if (!student) {
-    return (
-      <Navigate
-        to="/login"
-        replace
-        state={{ from: location }}
-      />
-    );
+  if (isLoading) return <div role="status" aria-live="polite">Checking your session…</div>;
+  if (authCheckError) {
+    return <div role="alert">{authCheckError} <button type="button" onClick={refreshUser}>Retry</button></div>;
   }
-
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace state={{ from: location }} />;
+  }
+  if (user.role !== "student") {
+    return <Navigate to="/supervisor/dashboard" replace />;
+  }
   return children;
 }
 

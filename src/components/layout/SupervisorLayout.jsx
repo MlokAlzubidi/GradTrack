@@ -21,11 +21,8 @@ import {
   ChevronDown,
   ClipboardList,
 } from "lucide-react";
-import {
-  clearSupervisorSession,
-  getSupervisorSession,
-} from "../../utils/supervisorAuth";
-import api from "../../services/api";
+import { getSupervisorSession } from "../../utils/supervisorAuth";
+import { useAuth } from "../../context/AuthContext.jsx";
 import "./SupervisorLayout.css";
 
 const NOTIFICATIONS_KEY = "gradtrack-notifications";
@@ -51,6 +48,7 @@ function readSupervisorNotifications(supervisor) {
 
 function SupervisorLayout() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const location = useLocation();
 
   const [supervisor, setSupervisor] = useState(
@@ -127,17 +125,9 @@ function SupervisorLayout() {
 
   // Logout supervisor
   async function handleLogout() {
-    try {
-      await api.post("/auth/logout");
-    } catch (error) {
-      console.error("Logout request failed:", error);
-    } finally {
-      sessionStorage.removeItem("gradtrack-token");
-      clearSupervisorSession();
-
-      setMobileMenuOpen(false);
-      navigate("/supervisor/login", { replace: true });
-    }
+    await logout();
+    setMobileMenuOpen(false);
+    navigate("/supervisor/login", { replace: true });
   }
 
   function closeMenus() {

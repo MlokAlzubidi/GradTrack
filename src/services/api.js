@@ -37,25 +37,15 @@ api.interceptors.response.use(
     const shouldExclude = excludedUrls.some(
       (url) => requestUrl === url || requestUrl.endsWith(url)
     );
+    const requestToken = error.config?.headers?.Authorization?.replace(/^Bearer\s+/i, "");
 
-    if (status === 401 && !shouldExclude) {
-      const isSupervisor = window.location.pathname.startsWith(
-        "/supervisor"
-      );
-
-      // Clear authentication data
-      sessionStorage.removeItem("gradtrack-token");
-      sessionStorage.removeItem("gradtrack-current-student");
-      sessionStorage.removeItem("gradtrack-current-supervisor");
-
-      // Redirect to the correct login page
-      const loginPath = isSupervisor
-        ? "/supervisor/login"
-        : "/login";
-
-      if (window.location.pathname !== loginPath) {
-        window.location.replace(loginPath);
-      }
+    if (
+      status === 401 &&
+      !shouldExclude &&
+      requestToken &&
+      requestToken === sessionStorage.getItem("gradtrack-token")
+    ) {
+      window.dispatchEvent(new Event("gradtrack-session-invalid"));
     }
 
     return Promise.reject(error);

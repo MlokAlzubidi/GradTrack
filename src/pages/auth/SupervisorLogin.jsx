@@ -4,11 +4,13 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ArrowRight, GraduationCap, LockKeyhole } from "lucide-react";
 import api from "../../services/api";
 import { SUPERVISOR_SESSION_KEY } from "../../utils/supervisorAuth";
+import { useAuth } from "../../context/AuthContext.jsx";
 import "./Login.css";
 
 function SupervisorLogin() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { setSession } = useAuth();
 
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -57,6 +59,7 @@ function SupervisorLogin() {
         SUPERVISOR_SESSION_KEY,
         JSON.stringify(supervisorSession)
       );
+      setSession(token, user);
 
       // Allow only supervisor dashboard destinations
       const requestedPath = location.state?.from?.pathname;

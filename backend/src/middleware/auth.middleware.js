@@ -35,10 +35,13 @@ export const protect = async (req, res, next) => {
             });
         }
 
-        // 4. Verify JWT
+        // 4. Verify JWT using HS256 only
         const decoded = jwt.verify(
             token,
-            process.env.JWT_SECRET
+            process.env.JWT_SECRET,
+            {
+                algorithms: ["HS256"]
+            }
         );
 
         // 5. Find user in database
