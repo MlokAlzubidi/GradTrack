@@ -13,6 +13,7 @@ import {
 
 import User from "../models/user.model.js";
 import ApprovedSupervisor from "../models/approvedSupervisor.model.js";
+import { registerSchema, loginSchema } from "../validators/auth.validator.js";
 import jwt from "jsonwebtoken";
 import {
     approvedStaffData,
@@ -175,7 +176,7 @@ test("Student cannot login with an unknown university ID", async () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-            identifier: "9999999999",
+            identifier: "99999999999",
             password: studentData.password,
             role: "student"
         })
@@ -188,6 +189,39 @@ test("Student cannot login with an unknown university ID", async () => {
     assert.equal(body.success, false);
     assert.equal(body.message, "Invalid credentials.");
     assert.equal(body.token, undefined);
+});
+
+test("Login rejects student and supervisor identifiers with the wrong lengths", async () => {
+    const invalidCredentials = [
+        {
+            identifier: "2026000001",
+            password: studentData.password,
+            role: "student",
+            expectedMessage: "University ID must contain exactly 11 digits"
+        },
+        {
+            identifier: "900001",
+            password: supervisorData.password,
+            role: "supervisor",
+            expectedMessage: "Staff ID must contain exactly 5 digits"
+        }
+    ];
+
+    for (const credentials of invalidCredentials) {
+        const { expectedMessage, ...requestBody } = credentials;
+        const response = await fetch(`${baseURL}/api/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(requestBody)
+        });
+
+        assert.equal(response.status, 400);
+        const body = await response.json();
+        assert.equal(body.success, false);
+        assert.ok(body.errors.some((error) =>
+            error.field === "identifier" && error.message === expectedMessage
+        ));
+    }
 });
 
 test("Registration rejects invalid student data", async () => {
@@ -203,6 +237,117 @@ test("Registration rejects invalid student data", async () => {
     assert.equal(body.message, "Validation failed");
     assert.ok(body.errors.length > 0);
     assert.equal(await User.countDocuments(), 0);
+});
+
+test("Student registration rejects a university ID that is not exactly 11 digits", async () => {
+    const response = await fetch(`${baseURL}/api/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...studentData, universityId: "2026000001" })
+    });
+
+    assert.equal(response.status, 400);
+    const body = await response.json();
+    assert.equal(body.success, false);
+    assert.ok(body.errors.some((error) =>
+        error.field === "universityId" &&
+        error.message === "University ID must contain exactly 11 digits"
+    ));
+    assert.equal(await User.countDocuments(), 0);
+});
+
+test("Supervisor registration rejects a staff ID that is not exactly 5 digits", async () => {
+    const response = await fetch(`${baseURL}/api/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...supervisorData, staffId: "900001" })
+    });
+
+    assert.equal(response.status, 400);
+    const body = await response.json();
+    assert.equal(body.success, false);
+    assert.ok(body.errors.some((error) =>
+        error.field === "staffId" &&
+        error.message === "Staff ID must contain exactly 5 digits"
+    ));
+    assert.equal(await User.countDocuments(), 0);
+});
+
+test("Registration and login schemas require ASCII digits and exact ID lengths", async () => {
+    assert.equal(registerSchema.safeParse(studentData).success, true);
+    assert.equal(registerSchema.safeParse(supervisorData).success, true);
+    assert.equal(loginSchema.safeParse({
+        identifier: studentData.universityId,
+        password: studentData.password,
+        role: "student"
+    }).success, true);
+    assert.equal(loginSchema.safeParse({
+        identifier: supervisorData.staffId,
+        password: supervisorData.password,
+        role: "supervisor"
+    }).success, true);
+
+    const invalidStudentIds = [
+        "2026000001",
+        "202600000001",
+        "2026000000a",
+        "2026000000!",
+        "20260 00001",
+        " 20260000001"
+    ];
+    for (const universityId of invalidStudentIds) {
+        assert.equal(registerSchema.safeParse({ ...studentData, universityId }).success, false);
+        assert.equal(loginSchema.safeParse({
+            identifier: universityId,
+            password: studentData.password,
+            role: "student"
+        }).success, false);
+    }
+
+    const invalidStaffIds = [
+        "9001",
+        "900001",
+        "90a01",
+        "90!01",
+        "90 01",
+        " 90001"
+    ];
+    for (const staffId of invalidStaffIds) {
+        assert.equal(registerSchema.safeParse({ ...supervisorData, staffId }).success, false);
+        assert.equal(loginSchema.safeParse({
+            identifier: staffId,
+            password: supervisorData.password,
+            role: "supervisor"
+        }).success, false);
+    }
+});
+
+test("User and approved supervisor models reject malformed IDs", async () => {
+    for (const universityId of ["2026000001", "2026000000a", "20260000001 "]) {
+        const invalidStudent = new User({ ...studentData, universityId });
+        await assert.rejects(
+            invalidStudent.validate(),
+            (error) => error.errors?.universityId?.message === "University ID must contain exactly 11 digits"
+        );
+    }
+
+    for (const staffId of ["900001", "9a001", "90001 "]) {
+        const invalidSupervisor = new User({ ...supervisorData, staffId });
+        await assert.rejects(
+            invalidSupervisor.validate(),
+            (error) => error.errors?.staffId?.message === "Staff ID must contain exactly 5 digits"
+        );
+
+        const invalidApprovedId = new ApprovedSupervisor({ staffId });
+        await assert.rejects(
+            invalidApprovedId.validate(),
+            (error) => error.errors?.staffId?.message === "Staff ID must contain exactly 5 digits"
+        );
+    }
+
+    await new User(studentData).validate();
+    await new User(supervisorData).validate();
+    await new ApprovedSupervisor({ staffId: supervisorData.staffId }).validate();
 });
 
 test("Supervisor registration rejects an unapproved staff ID", async () => {
@@ -520,7 +665,7 @@ test("A valid student token can only retrieve the authenticated profile", async 
     const user = await User.create(studentData);
     await User.create({
         ...studentData,
-        universityId: "2026000002",
+        universityId: "20260000002",
         email: "other.student@example.com"
     });
     const loginResponse = await fetch(`${baseURL}/api/auth/login`, {
@@ -531,7 +676,7 @@ test("A valid student token can only retrieve the authenticated profile", async 
     const { token } = await loginResponse.json();
 
     const response = await fetch(`${baseURL}/api/users/me`, {
-        headers: { ...authenticate(token), "X-User-Id": "2026000002" }
+        headers: { ...authenticate(token), "X-User-Id": "20260000002" }
     });
     assert.equal(response.status, 200);
     assert.equal((await response.json()).user._id, user._id.toString());

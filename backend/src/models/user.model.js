@@ -36,8 +36,7 @@ const userSchema = new mongoose.Schema(
 
         universityId: {
             type: String,
-            trim: true,
-            match: [/^\d{10}$/, "University ID must contain exactly 10 digits"],
+            match: [/^\d{11}$/, "University ID must contain exactly 11 digits"],
             required: function () {
                 return this.role === "student";
             }
@@ -45,8 +44,7 @@ const userSchema = new mongoose.Schema(
 
         staffId: {
             type: String,
-            trim: true,
-            match: [/^\d{6}$/, "Staff ID must contain exactly 6 digits"],
+            match: [/^\d{5}$/, "Staff ID must contain exactly 5 digits"],
             required: function () {
                 return this.role === "supervisor";
             }

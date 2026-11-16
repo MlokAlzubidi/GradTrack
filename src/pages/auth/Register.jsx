@@ -23,10 +23,15 @@ function Register() {
     setError("");
 
     const trimmedName = name.trim();
-    const trimmedUniversityId = universityId.trim();
+    const submittedUniversityId = universityId;
 
-    if (!trimmedName || !trimmedUniversityId) {
+    if (!trimmedName || !submittedUniversityId) {
       setError("Please enter your full name and university ID.");
+      return;
+    }
+
+    if (!/^\d{11}$/.test(submittedUniversityId)) {
+      setError("University ID must contain exactly 11 digits.");
       return;
     }
 
@@ -45,7 +50,7 @@ function Register() {
     try {
       await api.post("/auth/register", {
         fullName: trimmedName,
-        universityId: trimmedUniversityId,
+        universityId: submittedUniversityId,
         password,
         role: "student",
       });
@@ -110,8 +115,12 @@ function Register() {
               id="universityId"
               name="universityId"
               type="text"
-              placeholder="Enter your university ID"
+              placeholder="Enter your 11-digit university ID"
               autoComplete="username"
+              inputMode="numeric"
+              maxLength={11}
+              pattern="[0-9]{11}"
+              title="Enter exactly 11 digits (0–9)."
               value={universityId}
               onChange={(event) => {
                 setUniversityId(event.target.value);

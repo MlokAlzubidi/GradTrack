@@ -16,10 +16,24 @@ export const passwordSchema = z
 
 // Login Validation
 export const loginSchema = z.object({
-    identifier: z.string().trim().min(1, "Identifier is required"),
+    identifier: z.string().min(1, "Identifier is required"),
     password: passwordSchema,
     role: z.enum(["student", "supervisor"])
-}).strict();
+}).strict().superRefine(({ identifier, role }, ctx) => {
+    const isValidIdentifier = role === "student"
+        ? /^\d{11}$/.test(identifier)
+        : /^\d{5}$/.test(identifier);
+
+    if (!isValidIdentifier) {
+        ctx.addIssue({
+            code: "custom",
+            path: ["identifier"],
+            message: role === "student"
+                ? "University ID must contain exactly 11 digits"
+                : "Staff ID must contain exactly 5 digits"
+        });
+    }
+});
 
 // Register Validation
 export const registerSchema = z.object({
@@ -34,11 +48,11 @@ export const registerSchema = z.object({
     ]).optional(),
 
     universityId: z.string()
-        .regex(/^\d{10}$/, "University ID must contain exactly 10 digits")
+        .regex(/^\d{11}$/, "University ID must contain exactly 11 digits")
         .optional(),
 
     staffId: z.string()
-        .regex(/^\d{6}$/, "Staff ID must contain exactly 6 digits")
+        .regex(/^\d{5}$/, "Staff ID must contain exactly 5 digits")
         .optional(),
 
     password: passwordSchema.refine(

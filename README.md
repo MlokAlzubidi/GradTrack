@@ -27,9 +27,9 @@ Student demo accounts:
 
 | University ID | Password | Demo state |
 | --- | --- | --- |
-| `2023001` | `123456` | No team |
-| `2023002` | `123456` | Member of the GradTrack Demo Team |
-| `2023003` | `123456` | Team Leader of the GradTrack Demo Team |
+| `20230000001` | `123456` | No team |
+| `20230000002` | `123456` | Member of the GradTrack Demo Team |
+| `20230000003` | `123456` | Team Leader of the GradTrack Demo Team |
 
 Supervisor demo account:
 

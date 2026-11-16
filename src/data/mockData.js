@@ -1,6 +1,6 @@
 export const mockStudents = [
   {
-    universityId: "2023001",
+    universityId: "20230000001",
     password: "123456",
     name: "Student One",
     role: "student",
@@ -8,7 +8,7 @@ export const mockStudents = [
     teamId: null,
   },
   {
-    universityId: "2023002",
+    universityId: "20230000002",
     password: "123456",
     name: "Student Two",
     role: "student",
@@ -16,7 +16,7 @@ export const mockStudents = [
     teamId: "team-001",
   },
   {
-    universityId: "2023003",
+    universityId: "20230000003",
     password: "123456",
     name: "Malak Mohammad",
     role: "student",
@@ -129,26 +129,26 @@ export function ensureDemoDataInitialized() {
       }
     }
 
-    // The built-in demo accounts 2023002 and 2023003 reference team-001.
+    // The built-in demo accounts 20230000002 and 20230000003 reference team-001.
     // Ensure that team record exists so My Team, Manage Tasks, and proposal pages agree.
     if (!safeTeams.some((team) => String(team.id) === "team-001")) {
       const demoTeam = {
         id: "team-001",
         name: "GradTrack Demo Team",
-        leaderId: "2023003",
+        leaderId: "20230000003",
         leaderName: "Malak Mohammad",
-        memberIds: ["2023003", "2023002"],
+        memberIds: ["20230000003", "20230000002"],
         members: [
           {
-            id: "2023003",
-            universityId: "2023003",
+            id: "20230000003",
+            universityId: "20230000003",
             name: "Malak Mohammad",
             role: "leader",
             joinedAt: "2026-10-28T00:00:00.000Z",
           },
           {
-            id: "2023002",
-            universityId: "2023002",
+            id: "20230000002",
+            universityId: "20230000002",
             name: "Student Two",
             role: "member",
             joinedAt: "2026-10-28T00:00:00.000Z",
@@ -175,11 +175,11 @@ export function ensureDemoDataInitialized() {
           title: "Research Project Requirements",
           description:
             "Research the problem and prepare the initial requirements document.",
-          assigneeId: "2023002",
+          assigneeId: "20230000002",
           assigneeName: "Student Two",
           dueDate: "2026-11-05",
           status: "In Progress",
-          createdBy: "2023003",
+          createdBy: "20230000003",
           createdAt: "2026-10-28T00:00:00.000Z",
           requiresSubmission: true,
           requiresSupervisorReview: true,
@@ -192,11 +192,11 @@ export function ensureDemoDataInitialized() {
           title: "Prepare Project Documentation",
           description:
             "Organize the project documentation and key decisions.",
-          assigneeId: "2023003",
+          assigneeId: "20230000003",
           assigneeName: "Malak Mohammad",
           dueDate: "2026-11-12",
           status: "To Do",
-          createdBy: "2023003",
+          createdBy: "20230000003",
           createdAt: "2026-10-28T00:00:00.000Z",
           requiresSubmission: true,
           requiresSupervisorReview: false,

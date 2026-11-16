@@ -541,7 +541,7 @@ showMessage(
                       type="text"
                       inputMode="numeric"
                       autoComplete="off"
-                      placeholder="e.g. 2023002"
+                      placeholder="e.g. 20230000002"
                       value={inviteUniversityId}
                       onChange={(event) => {
                         setInviteUniversityId(event.target.value);

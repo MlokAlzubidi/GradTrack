@@ -23,11 +23,17 @@ function SupervisorLogin() {
     if (isLoading) return;
 
     setError("");
+
+    if (!/^\d{5}$/.test(identifier)) {
+      setError("Staff ID must contain exactly 5 digits.");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
       const response = await api.post("/auth/login", {
-        identifier: identifier.trim(),
+        identifier,
         password,
         role: "supervisor",
       });
@@ -142,8 +148,12 @@ function SupervisorLogin() {
                 setIdentifier(event.target.value);
                 setError("");
               }}
-              placeholder="Enter your staff ID"
+              placeholder="Enter your 5-digit staff ID"
               autoComplete="username"
+              inputMode="numeric"
+              maxLength={5}
+              pattern="[0-9]{5}"
+              title="Enter exactly 5 digits (0–9)."
               required
             />
           </div>

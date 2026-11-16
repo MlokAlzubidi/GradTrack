@@ -7,8 +7,7 @@ const approvedSupervisorSchema = new mongoose.Schema(
             type: String,
             required: true,
             unique: true,
-            trim: true,
-            uppercase: true
+            match: [/^\d{5}$/, "Staff ID must contain exactly 5 digits"]
         },
 
         isUsed: {

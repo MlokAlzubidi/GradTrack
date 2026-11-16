@@ -25,10 +25,15 @@ function SupervisorRegister() {
 
     const trimmedName = name.trim();
     const trimmedEmail = email.trim();
-    const trimmedStaffId = staffId.trim();
+    const submittedStaffId = staffId;
 
-    if (!trimmedName || !trimmedStaffId) {
+    if (!trimmedName || !submittedStaffId) {
       setError("Please enter your full name and staff ID.");
+      return;
+    }
+
+    if (!/^\d{5}$/.test(submittedStaffId)) {
+      setError("Staff ID must contain exactly 5 digits.");
       return;
     }
 
@@ -48,7 +53,7 @@ function SupervisorRegister() {
       await api.post("/auth/register", {
         fullName: trimmedName,
         email: trimmedEmail || undefined,
-        staffId: trimmedStaffId,
+        staffId: submittedStaffId,
         password,
         role: "supervisor",
       });
@@ -153,8 +158,12 @@ function SupervisorRegister() {
                 setStaffId(event.target.value);
                 setError("");
               }}
-              placeholder="Enter your staff ID"
+              placeholder="Enter your 5-digit staff ID"
               autoComplete="username"
+              inputMode="numeric"
+              maxLength={5}
+              pattern="[0-9]{5}"
+              title="Enter exactly 5 digits (0–9)."
               required
             />
           </div>

@@ -45,14 +45,14 @@ export const register = async (req, res) => {
 
         // Student Registration
         if (role === "student") {
-            userData.universityId = universityId.trim();
+            userData.universityId = universityId;
 
             newUser = await User.create(userData);
         }
 
         // Supervisor Registration
         else {
-            userData.staffId = staffId.trim().toUpperCase();
+            userData.staffId = staffId;
 
             session = await mongoose.startSession();
 
@@ -154,8 +154,8 @@ export const login = async (req, res) => {
 
         const normalizedIdentifier =
             role === "supervisor"
-                ? identifier.trim().toUpperCase()
-                : identifier.trim();
+                ? identifier.toUpperCase()
+                : identifier;
 
         const user = await User.findOne({
             [searchField]: normalizedIdentifier,

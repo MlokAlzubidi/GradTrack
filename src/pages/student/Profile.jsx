@@ -1,8 +1,9 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   UserRound,
+  Mail,
   Pencil,
   Save,
   X,
@@ -16,6 +17,7 @@ import {
 } from "lucide-react";
 import StudentNavbar from "../../components/layout/StudentNavbar";
 import api from "../../services/api";
+import { useAuth } from "../../context/AuthContext.jsx";
 import "./Profile.css";
 
 const CURRENT_STUDENT_KEY = "gradtrack-current-student";
@@ -63,16 +65,28 @@ function getCurrentTeam(student) {
   );
 }
 
+function getApiErrorMessage(error, fallback) {
+  const responseData = error.response?.data;
+  const validationErrors = responseData?.errors
+    ?.map((item) => `${item.field}: ${item.message}`)
+    .join(" ");
+
+  return [responseData?.message, validationErrors].filter(Boolean).join(" ") || fallback;
+}
+
 function Profile() {
-  const [student, setStudent] = useState(readCurrentStudent);
+  const { user: authUser, setSession } = useAuth();
+  const [student, setStudent] = useState(null);
   const [team, setTeam] = useState(() =>
     getCurrentTeam(readCurrentStudent())
   );
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [profileError, setProfileError] = useState("");
+  const [profileRetry, setProfileRetry] = useState(0);
 
   const [isEditing, setIsEditing] = useState(false);
-  const [editedName, setEditedName] = useState(
-    () => readCurrentStudent()?.name || ""
-  );
+  const [editedName, setEditedName] = useState("");
+  const [editedEmail, setEditedEmail] = useState("");
 
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("success");
@@ -86,6 +100,54 @@ function Profile() {
   const [passwordMessage, setPasswordMessage] = useState("");
   const [passwordMessageType, setPasswordMessageType] =
     useState("success");
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    async function loadProfile() {
+      setIsLoadingProfile(true);
+      setProfileError("");
+
+      try {
+        const response = await api.get("/users/me");
+        const profile = response.data?.user;
+
+        if (!profile?._id || profile.role !== "student") {
+          throw new Error("The server returned an invalid student profile.");
+        }
+        if (!isCurrent) return;
+
+        const activeToken = sessionStorage.getItem(TOKEN_KEY);
+        if (activeToken) setSession(activeToken, profile);
+
+        const currentStudent = {
+          id: profile._id,
+          universityId: profile.universityId,
+          name: profile.fullName,
+          email: profile.email || "",
+          role: profile.role,
+        };
+        setStudent(currentStudent);
+        setTeam(getCurrentTeam(currentStudent));
+        setEditedName(currentStudent.name || "");
+        setEditedEmail(currentStudent.email);
+      } catch (error) {
+        if (isCurrent) {
+          setProfileError(getApiErrorMessage(
+            error,
+            error.message || "Could not load your profile. Please try again."
+          ));
+        }
+      } finally {
+        if (isCurrent) setIsLoadingProfile(false);
+      }
+    }
+
+    loadProfile();
+    return () => {
+      isCurrent = false;
+    };
+  }, [profileRetry, setSession]);
 
   const studentId = student?.universityId || "";
   const isLeader = Boolean(team && team.leaderId === studentId);
@@ -108,12 +170,14 @@ function Profile() {
 
   function startEditing() {
     setEditedName(student?.name || "");
+    setEditedEmail(student?.email || "");
     setMessage("");
     setIsEditing(true);
   }
 
   function cancelEditing() {
     setEditedName(student?.name || "");
+    setEditedEmail(student?.email || "");
     setIsEditing(false);
     setMessage("");
   }
@@ -142,11 +206,18 @@ function Profile() {
 
       const response = await api.patch("/users/me", {
         fullName: trimmedName,
+        email: editedEmail.trim(),
       });
+
+      const activeToken = sessionStorage.getItem(TOKEN_KEY);
+      if (!setSession(activeToken, response.data.user)) {
+        throw new Error("Your session expired. Please sign in again.");
+      }
 
       const updatedStudent = {
         ...student,
         name: response.data.user.fullName,
+        email: response.data.user.email || "",
       };
 
       // Update the member and leader names in the shared team record.
@@ -186,14 +257,12 @@ function Profile() {
       setStudent(updatedStudent);
       setTeam(getCurrentTeam(updatedStudent));
       setEditedName(trimmedName);
+      setEditedEmail(updatedStudent.email);
       setIsEditing(false);
       setMessage("Your profile has been updated successfully.");
       setMessageType("success");
     } catch (error) {
-      setMessage(
-        error.response?.data?.message ||
-          "Could not save your changes. Please try again."
-      );
+      setMessage(getApiErrorMessage(error, "Could not save your changes. Please try again."));
       setMessageType("error");
     } finally {
       setIsSavingProfile(false);
@@ -235,8 +304,10 @@ function Profile() {
         newPassword,
       });
 
-      // Store the new token because the backend invalidates old tokens.
-      sessionStorage.setItem(TOKEN_KEY, response.data.token);
+      // Keep the AuthContext token in sync with the token returned by the API.
+      if (!setSession(response.data.token, authUser)) {
+        throw new Error("Your session could not be refreshed. Please sign in again.");
+      }
 
       setCurrentPassword("");
       setNewPassword("");
@@ -245,10 +316,7 @@ function Profile() {
       setPasswordMessage("Your password has been changed successfully.");
       setPasswordMessageType("success");
     } catch (error) {
-      setPasswordMessage(
-        error.response?.data?.message ||
-          "Could not change your password. Please try again."
-      );
+      setPasswordMessage(getApiErrorMessage(error, "Could not change your password. Please try again."));
       setPasswordMessageType("error");
     } finally {
       setIsChangingPassword(false);
@@ -275,7 +343,23 @@ function Profile() {
           </div>
         </header>
 
-        {!student ? (
+        {isLoadingProfile && !student ? (
+          <section className="profile-empty-card profile-reveal" role="status" aria-live="polite">
+            <h2>Loading your profile…</h2>
+          </section>
+        ) : profileError && !student ? (
+          <section className="profile-empty-card profile-reveal" role="alert">
+            <h2>Could not load your profile</h2>
+            <p>{profileError}</p>
+            <button
+              className="profile-primary-link"
+              type="button"
+              onClick={() => setProfileRetry((attempt) => attempt + 1)}
+            >
+              Try again
+            </button>
+          </section>
+        ) : !student ? (
           <section className="profile-empty-card profile-reveal">
             <div className="profile-empty-icon">
               <UserRound size={28} />
@@ -348,6 +432,13 @@ function Profile() {
               </div>
             )}
 
+            {profileError && (
+              <div className="profile-feedback error" role="alert">
+                <AlertCircle size={18} />
+                <span>{profileError}</span>
+              </div>
+            )}
+
             {/* Personal Information */}
             <section className="profile-section profile-reveal">
               <div className="profile-section-heading">
@@ -405,6 +496,19 @@ function Profile() {
                     </span>
                   </div>
 
+                  <div className="profile-field">
+                    <label htmlFor="profileEmail">Email</label>
+                    <input
+                      id="profileEmail"
+                      name="profileEmail"
+                      type="email"
+                      value={editedEmail}
+                      onChange={(event) => setEditedEmail(event.target.value)}
+                      autoComplete="email"
+                      maxLength={254}
+                    />
+                  </div>
+
                   <div className="profile-form-actions">
                     <button
                       className="profile-save-button"
@@ -449,6 +553,16 @@ function Profile() {
                         University ID
                       </span>
                       <strong>{studentId}</strong>
+                    </div>
+                  </article>
+
+                  <article className="profile-info-card">
+                    <span className="profile-info-icon">
+                      <Mail size={18} />
+                    </span>
+                    <div>
+                      <span className="profile-info-label">Email</span>
+                      <strong>{student.email || "Not provided"}</strong>
                     </div>
                   </article>
 

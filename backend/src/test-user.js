@@ -9,8 +9,8 @@ import User from "./models/user.model.js";
 const runTest = async () => {
     const testSuffix = Date.now().toString();
 
-    const studentId = `TEST-STU-${testSuffix}`;
-    const supervisorId = `TEST-STAFF-${testSuffix}`;
+    const studentId = `9${testSuffix.slice(-10)}`;
+    const supervisorId = testSuffix.slice(-5);
 
     let connected = false;
 

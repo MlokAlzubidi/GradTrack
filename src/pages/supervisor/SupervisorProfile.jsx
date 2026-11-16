@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   UserRound,
   Mail,
@@ -17,6 +17,7 @@ import {
   SUPERVISOR_SESSION_KEY,
 } from "../../utils/supervisorAuth";
 import api from "../../services/api";
+import { useAuth } from "../../context/AuthContext.jsx";
 import "./SupervisorProfile.css";
 
 function formatDate(value) {
@@ -37,15 +38,25 @@ function formatDate(value) {
   }).format(date);
 }
 
+function getApiErrorMessage(error, fallback) {
+  const responseData = error.response?.data;
+  const validationErrors = responseData?.errors
+    ?.map((item) => `${item.field}: ${item.message}`)
+    .join(" ");
+
+  return [responseData?.message, validationErrors].filter(Boolean).join(" ") || fallback;
+}
+
 function SupervisorProfile() {
-  const [supervisor, setSupervisor] = useState(
-    getSupervisorSession
-  );
+  const { user: authUser, setSession } = useAuth();
+  const [supervisor, setSupervisor] = useState(null);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [profileError, setProfileError] = useState("");
+  const [profileRetry, setProfileRetry] = useState(0);
 
   const [isEditing, setIsEditing] = useState(false);
-  const [editedName, setEditedName] = useState(
-    supervisor?.name || ""
-  );
+  const [editedName, setEditedName] = useState("");
+  const [editedEmail, setEditedEmail] = useState("");
 
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -60,8 +71,58 @@ function SupervisorProfile() {
   const [passwordMessageType, setPasswordMessageType] =
     useState("success");
 
+  useEffect(() => {
+    let isCurrent = true;
+
+    async function loadProfile() {
+      setIsLoadingProfile(true);
+      setProfileError("");
+
+      try {
+        const response = await api.get("/users/me");
+        const profile = response.data?.user;
+
+        if (!profile?._id || profile.role !== "supervisor") {
+          throw new Error("The server returned an invalid supervisor profile.");
+        }
+        if (!isCurrent) return;
+
+        const activeToken = sessionStorage.getItem("gradtrack-token");
+        if (activeToken) setSession(activeToken, profile);
+
+        const currentSession = getSupervisorSession();
+        const currentSupervisor = {
+          ...currentSession,
+          id: profile._id,
+          email: profile.email || "",
+          staffId: profile.staffId,
+          name: profile.fullName,
+          role: profile.role,
+        };
+        setSupervisor(currentSupervisor);
+        setEditedName(currentSupervisor.name || "");
+        setEditedEmail(currentSupervisor.email);
+      } catch (error) {
+        if (isCurrent) {
+          setProfileError(getApiErrorMessage(
+            error,
+            error.message || "Could not load your profile. Please try again."
+          ));
+        }
+      } finally {
+        if (isCurrent) setIsLoadingProfile(false);
+      }
+    }
+
+    loadProfile();
+    return () => {
+      isCurrent = false;
+    };
+  }, [profileRetry, setSession]);
+
   function handleEdit() {
     setEditedName(supervisor?.name || "");
+    setEditedEmail(supervisor?.email || "");
     setErrorMessage("");
     setSuccessMessage("");
     setIsEditing(true);
@@ -69,6 +130,7 @@ function SupervisorProfile() {
 
   function handleCancel() {
     setEditedName(supervisor?.name || "");
+    setEditedEmail(supervisor?.email || "");
     setErrorMessage("");
     setIsEditing(false);
   }
@@ -101,10 +163,18 @@ function SupervisorProfile() {
 
       const response = await api.patch("/users/me", {
         fullName: trimmedName,
+        email: editedEmail.trim(),
       });
+
+      const activeToken = sessionStorage.getItem("gradtrack-token");
+      if (!setSession(activeToken, response.data.user)) {
+        throw new Error("Your session expired. Please sign in again.");
+      }
 
       const updatedSupervisor = {
         ...supervisor,
+        email: response.data.user.email || "",
+        staffId: response.data.user.staffId,
         name: response.data.user.fullName,
       };
 
@@ -115,6 +185,7 @@ function SupervisorProfile() {
 
       setSupervisor(updatedSupervisor);
       setEditedName(updatedSupervisor.name);
+      setEditedEmail(updatedSupervisor.email);
       setIsEditing(false);
       setSuccessMessage("Your profile name has been updated.");
 
@@ -125,10 +196,7 @@ function SupervisorProfile() {
         })
       );
     } catch (error) {
-      setErrorMessage(
-        error.response?.data?.message ||
-          "Could not save your profile. Please try again."
-      );
+      setErrorMessage(getApiErrorMessage(error, "Could not save your profile. Please try again."));
     } finally {
       setIsSaving(false);
     }
@@ -170,11 +238,10 @@ function SupervisorProfile() {
         newPassword,
       });
 
-      // Save the new token because old tokens are invalidated.
-      sessionStorage.setItem(
-        "gradtrack-token",
-        response.data.token
-      );
+      // Keep AuthContext synchronized with the new token issued by the API.
+      if (!setSession(response.data.token, authUser)) {
+        throw new Error("Your session could not be refreshed. Please sign in again.");
+      }
 
       setCurrentPassword("");
       setNewPassword("");
@@ -185,14 +252,35 @@ function SupervisorProfile() {
       );
       setPasswordMessageType("success");
     } catch (error) {
-      setPasswordMessage(
-        error.response?.data?.message ||
-          "Could not change your password. Please try again."
-      );
+      setPasswordMessage(getApiErrorMessage(error, "Could not change your password. Please try again."));
       setPasswordMessageType("error");
     } finally {
       setIsChangingPassword(false);
     }
+  }
+
+  if (isLoadingProfile && !supervisor) {
+    return (
+      <div className="supervisor-profile-page">
+        <section className="supervisor-profile-empty" role="status" aria-live="polite">
+          <h2>Loading your profile…</h2>
+        </section>
+      </div>
+    );
+  }
+
+  if (profileError && !supervisor) {
+    return (
+      <div className="supervisor-profile-page">
+        <section className="supervisor-profile-empty" role="alert">
+          <h2>Could not load your profile</h2>
+          <p>{profileError}</p>
+          <button type="button" onClick={() => setProfileRetry((attempt) => attempt + 1)}>
+            Try again
+          </button>
+        </section>
+      </div>
+    );
   }
 
   if (!supervisor) {
@@ -248,6 +336,13 @@ function SupervisorProfile() {
         </div>
       )}
 
+      {profileError && (
+        <div className="supervisor-profile-alert error" role="alert">
+          <AlertCircle size={18} />
+          <span>{profileError}</span>
+        </div>
+      )}
+
       <section className="supervisor-profile-card">
         <div className="supervisor-profile-banner">
           <div className="supervisor-profile-avatar">
@@ -269,7 +364,7 @@ function SupervisorProfile() {
         <div className="supervisor-profile-section-heading">
           <div>
             <h3>Personal Information</h3>
-            <p>Update the display name associated with your account.</p>
+              <p>Update the name and email associated with your account.</p>
           </div>
 
           {!isEditing && (
@@ -324,14 +419,20 @@ function SupervisorProfile() {
                 <input
                   id="supervisorProfileEmail"
                   type="email"
-                  value={supervisor.email || ""}
-                  readOnly
+                  value={editedEmail}
+                  onChange={(event) => setEditedEmail(event.target.value)}
+                  autoComplete="email"
+                  maxLength={254}
                 />
               </div>
+            </div>
 
-              <small>
-                The university email cannot be changed here.
-              </small>
+            <div className="supervisor-profile-field">
+              <label htmlFor="supervisorProfileStaffId">Staff ID</label>
+              <div className="supervisor-profile-input-wrap read-only">
+                <ShieldCheck size={18} />
+                <input id="supervisorProfileStaffId" value={supervisor.staffId || ""} readOnly />
+              </div>
             </div>
 
             <div className="supervisor-profile-form-actions">
@@ -378,6 +479,17 @@ function SupervisorProfile() {
               <div>
                 <span>University email</span>
                 <strong>{supervisor.email || "Not provided"}</strong>
+              </div>
+            </article>
+
+            <article className="supervisor-profile-info-item">
+              <div className="supervisor-profile-info-icon">
+                <ShieldCheck size={19} />
+              </div>
+
+              <div>
+                <span>Staff ID</span>
+                <strong>{supervisor.staffId || "Not provided"}</strong>
               </div>
             </article>
 

@@ -1,6 +1,6 @@
 const approvedStaffIds = [
-    "TEST-ST-001",
-    "TEST-ST-002"
+    "90001",
+    "90002"
 ];
 
 export default approvedStaffIds;
