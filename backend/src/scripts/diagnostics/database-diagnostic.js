@@ -1,10 +1,10 @@
-import "dotenv/config";
 import mongoose from "mongoose";
-import connectDB from "./config/db.js";
+import { connectTestDB, disconnectTestDB } from "../../tests/testSetup.js";
 
 const runTest = async () => {
     try {
-        await connectDB();
+        // Diagnostics may only use the guarded gradtrack_test connection.
+        await connectTestDB();
 
         const collection = mongoose.connection.collection("connection_tests");
 
@@ -40,7 +40,7 @@ const runTest = async () => {
 
     } finally {
         if (mongoose.connection.readyState !== 0) {
-            await mongoose.disconnect();
+            await disconnectTestDB();
         }
 
         console.log("MongoDB connection closed.");

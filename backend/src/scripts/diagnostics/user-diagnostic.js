@@ -1,10 +1,9 @@
 
-import "dotenv/config";
 import mongoose from "mongoose";
 import assert from "node:assert/strict";
 
-import connectDB from "./config/db.js";
-import User from "./models/user.model.js";
+import { connectTestDB, disconnectTestDB } from "../../tests/testSetup.js";
+import User from "../../models/user.model.js";
 
 const runTest = async () => {
     const testSuffix = Date.now().toString();
@@ -15,8 +14,8 @@ const runTest = async () => {
     let connected = false;
 
     try {
-        // Connect to MongoDB
-        await connectDB();
+        // Diagnostics may only use the guarded gradtrack_test connection.
+        await connectTestDB();
         connected = true;
 
         // Ensure database indexes are created
@@ -105,7 +104,11 @@ const runTest = async () => {
 
     } finally {
         try {
-            if (connected && mongoose.connection.readyState !== 0) {
+            if (
+                connected &&
+                mongoose.connection.readyState !== 0 &&
+                mongoose.connection.name === "gradtrack_test"
+            ) {
                 // Clean up test data
                 await User.deleteMany({
                     $or: [
@@ -128,7 +131,7 @@ const runTest = async () => {
             // Always close the database connection
             if (mongoose.connection.readyState !== 0) {
                 try {
-                    await mongoose.disconnect();
+                    await disconnectTestDB();
                     console.log("MongoDB connection closed.");
                 } catch (disconnectError) {
                     console.error(

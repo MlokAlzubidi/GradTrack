@@ -3,7 +3,7 @@ import test, { before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import mongoose from "mongoose";
 
-import createTestApp from "./testApp.js";
+import createApp from "../app.js";
 
 import {
     connectTestDB,
@@ -22,7 +22,7 @@ import {
     supervisorData
 } from "./testData.js";
 
-const app = createTestApp();
+const app = createApp();
 
 let server;
 let baseURL;
