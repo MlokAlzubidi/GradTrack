@@ -39,6 +39,8 @@ import SupervisorProposals from "../pages/supervisor/SupervisorProposals";
 
 import SupervisorSubmissions from "../pages/supervisor/SupervisorSubmissions";
 import SupervisorDashboard from "../pages/supervisor/SupervisorDashboard";
+import SupervisorTeams from "../pages/supervisor/SupervisorTeams";
+import SupervisorTeamDetails from "../pages/supervisor/SupervisorTeamDetails";
 
 import SupervisorProfile from "../pages/supervisor/SupervisorProfile";
 import SupervisorNotifications from "../pages/supervisor/SupervisorNotifications";
@@ -170,6 +172,16 @@ function AppRoutes() {
   path="dashboard"
   element={<SupervisorDashboard />}
 />
+
+            <Route
+              path="teams"
+              element={<SupervisorTeams />}
+            />
+
+            <Route
+              path="teams/:teamId"
+              element={<SupervisorTeamDetails />}
+            />
 
             <Route
   path="projects"

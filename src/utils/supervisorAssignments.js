@@ -1,34 +1,34 @@
 import { addNotification } from "./notifications.js";
-
-export const SUPERVISORS = [{
-  id: "demo-supervisor",
-  email: "supervisor@gradtrack.demo",
-  password: "Supervisor123!",
-  name: "Academic Supervisor",
-  role: "supervisor",
-}, {
-  id: "demo-supervisor-2",
-  email: "supervisor2@gradtrack.demo",
-  password: "Supervisor123!",
-  name: "Dr. Samira Hassan",
-  department: "Computer Science",
-  role: "supervisor",
-}];
+import { DEMO_SUPERVISORS } from "./demoSupervisors.js";
 
 const REGISTERED_SUPERVISORS_KEY = "gradtrack-registered-supervisors";
 
-export function getAllSupervisors() {
+function getRegisteredSupervisors() {
   try {
     const saved = JSON.parse(localStorage.getItem(REGISTERED_SUPERVISORS_KEY) || "[]");
-    return [...SUPERVISORS, ...(Array.isArray(saved) ? saved : [])];
+    return Array.isArray(saved) ? saved : [];
   } catch {
-    return [...SUPERVISORS];
+    return [];
   }
+}
+
+export function getAllSupervisors() {
+  const demoProfiles = DEMO_SUPERVISORS.map(
+    ({ id, staffId, name, department, role, isDemo }) => ({
+      id,
+      staffId,
+      name,
+      ...(department ? { department } : {}),
+      role,
+      isDemo,
+    })
+  );
+  return [...demoProfiles, ...getRegisteredSupervisors()];
 }
 
 export function authenticateSupervisor(identifier, password) {
   const normalizedIdentifier = String(identifier || "").trim().toLowerCase();
-  return getAllSupervisors().find((supervisor) =>
+  return getRegisteredSupervisors().find((supervisor) =>
     (String(supervisor.email || "").toLowerCase() === normalizedIdentifier ||
       String(supervisor.staffId || "").toLowerCase() === normalizedIdentifier) &&
     supervisor.password === password

@@ -1,5 +1,11 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import api from "../services/api";
+import {
+  DEMO_SUPERVISOR_SESSION_KEY,
+  getDemoSupervisorById,
+  getDemoSupervisorSession,
+  toDemoSupervisorProfile,
+} from "../utils/demoSupervisors.js";
 
 export const TOKEN_KEY = "gradtrack-token";
 export const STUDENT_SESSION_KEY = "gradtrack-current-student";
@@ -12,6 +18,7 @@ function clearStoredSession() {
   sessionStorage.removeItem(TOKEN_KEY);
   sessionStorage.removeItem(STUDENT_SESSION_KEY);
   sessionStorage.removeItem(SUPERVISOR_SESSION_KEY);
+  sessionStorage.removeItem(DEMO_SUPERVISOR_SESSION_KEY);
 }
 
 function syncRoleSession(user) {
@@ -19,6 +26,8 @@ function syncRoleSession(user) {
     clearStoredSession();
     return;
   }
+
+  sessionStorage.removeItem(DEMO_SUPERVISOR_SESSION_KEY);
 
   if (user.role === "student") {
     sessionStorage.removeItem(SUPERVISOR_SESSION_KEY);
@@ -50,6 +59,11 @@ function syncRoleSession(user) {
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => sessionStorage.getItem(TOKEN_KEY));
   const [user, setUser] = useState(null);
+  const [demoUser, setDemoUser] = useState(() =>
+    sessionStorage.getItem(TOKEN_KEY)
+      ? null
+      : getDemoSupervisorSession()
+  );
   const [isLoading, setIsLoading] = useState(Boolean(sessionStorage.getItem(TOKEN_KEY)));
   const [authCheckError, setAuthCheckError] = useState(null);
   const requestGeneration = useRef(0);
@@ -59,6 +73,7 @@ export function AuthProvider({ children }) {
     clearStoredSession();
     setToken(null);
     setUser(null);
+    setDemoUser(null);
     setIsLoading(false);
     setAuthCheckError(null);
   }, []);
@@ -73,14 +88,37 @@ export function AuthProvider({ children }) {
     syncRoleSession(newUser);
     setToken(newToken);
     setUser(newUser);
+    setDemoUser(null);
     setIsLoading(false);
     setAuthCheckError(null);
     return true;
   }, [endSession]);
 
+  const startDemoSession = useCallback((demoSupervisor) => {
+    const verifiedSupervisor = getDemoSupervisorById(
+      demoSupervisor?.id
+    );
+    if (!verifiedSupervisor) return false;
+
+    const demoProfile = toDemoSupervisorProfile(verifiedSupervisor);
+    requestGeneration.current += 1;
+    clearStoredSession();
+    sessionStorage.setItem(
+      DEMO_SUPERVISOR_SESSION_KEY,
+      JSON.stringify(demoProfile)
+    );
+    setToken(null);
+    setUser(null);
+    setDemoUser(demoProfile);
+    setIsLoading(false);
+    setAuthCheckError(null);
+    return true;
+  }, []);
+
   const refreshUser = useCallback(async () => {
     const activeToken = sessionStorage.getItem(TOKEN_KEY);
     if (!activeToken) {
+      if (demoUser) return demoUser;
       endSession();
       return null;
     }
@@ -101,6 +139,7 @@ export function AuthProvider({ children }) {
         syncRoleSession(currentUser);
         setToken(activeToken);
         setUser(currentUser);
+        setDemoUser(null);
         return currentUser;
       } catch (error) {
         if (requestGeneration.current === generation && sessionStorage.getItem(TOKEN_KEY) === activeToken) {
@@ -123,11 +162,11 @@ export function AuthProvider({ children }) {
       }
     })();
     return profileRequest;
-  }, [endSession]);
+  }, [demoUser, endSession]);
 
   useEffect(() => {
     if (token) refreshUser();
-    else endSession();
+    else if (!demoUser) endSession();
   // Bootstrap once; login updates state through setSession.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -148,16 +187,18 @@ export function AuthProvider({ children }) {
     }
   }, [endSession]);
 
+  const currentUser = user || demoUser;
   const value = useMemo(() => ({
-    user,
+    user: currentUser,
     token,
-    isAuthenticated: Boolean(user && token),
+    isAuthenticated: Boolean((user && token) || demoUser),
     isLoading,
     authCheckError,
     logout,
     refreshUser,
     setSession,
-  }), [user, token, isLoading, authCheckError, logout, refreshUser, setSession]);
+    startDemoSession,
+  }), [currentUser, user, token, demoUser, isLoading, authCheckError, logout, refreshUser, setSession, startDemoSession]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

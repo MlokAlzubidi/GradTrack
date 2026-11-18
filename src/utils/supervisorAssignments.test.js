@@ -9,9 +9,17 @@ import {
   notifyAssignedSupervisorOfProposal,
   PROPOSALS_STORAGE_KEY,
   registerSupervisor,
-  SUPERVISORS,
   TEAMS_STORAGE_KEY,
 } from "./supervisorAssignments.js";
+import {
+  authenticateDemoSupervisor,
+  DEMO_SUPERVISOR_SESSION_KEY,
+  DEMO_SUPERVISORS,
+} from "./demoSupervisors.js";
+import {
+  getSupervisorSession,
+  SUPERVISOR_SESSION_KEY,
+} from "./supervisorAuth.js";
 
 class MemoryStorage {
   values = new Map();
@@ -26,11 +34,85 @@ function withStorage(callback) {
   try { callback(); } finally { globalThis.localStorage = originalStorage; }
 }
 
-test("existing demo supervisors still authenticate", () => {
+function withSessionStorage(callback) {
+  const originalStorage = globalThis.sessionStorage;
+  globalThis.sessionStorage = new MemoryStorage();
+  try { callback(); } finally { globalThis.sessionStorage = originalStorage; }
+}
+
+test("all five demo supervisors authenticate by Staff ID and reject wrong passwords", () => {
+  assert.deepEqual(
+    DEMO_SUPERVISORS.map((supervisor) => supervisor.staffId),
+    ["00001", "00002", "00003", "00004", "00005"]
+  );
+  assert.deepEqual(
+    DEMO_SUPERVISORS.slice(0, 2).map((supervisor) => supervisor.id),
+    ["demo-supervisor", "demo-supervisor-2"]
+  );
+
+  for (const account of DEMO_SUPERVISORS) {
+    assert.equal(
+      authenticateDemoSupervisor(account.staffId, "12345678")?.id,
+      account.id
+    );
+    assert.equal(
+      authenticateDemoSupervisor(account.staffId, "incorrect"),
+      null
+    );
+  }
+
+  assert.equal(
+    authenticateDemoSupervisor(
+      "supervisor@gradtrack.demo",
+      "12345678"
+    ),
+    null
+  );
+});
+
+test("demo account profiles stay separate from registered supervisor authentication", () => {
   withStorage(() => {
-    for (const account of SUPERVISORS) {
-      assert.equal(authenticateSupervisor(account.email, account.password)?.id, account.id);
-    }
+    const demoProfiles = getAllSupervisors().filter(
+      (supervisor) => supervisor.isDemo
+    );
+
+    assert.equal(demoProfiles.length, 5);
+    assert.ok(
+      demoProfiles.every(
+        (supervisor) => !("password" in supervisor)
+      )
+    );
+    assert.equal(
+      authenticateSupervisor("00001", "12345678"),
+      null
+    );
+  });
+});
+
+test("demo sessions use a separate key and restore a canonical supervisor identity", () => {
+  withSessionStorage(() => {
+    const account = DEMO_SUPERVISORS[2];
+    sessionStorage.setItem(
+      DEMO_SUPERVISOR_SESSION_KEY,
+      JSON.stringify({
+        id: account.id,
+        staffId: "99999",
+        name: "Untrusted Name",
+        role: "student",
+      })
+    );
+
+    assert.deepEqual(getSupervisorSession(), {
+      id: account.id,
+      staffId: account.staffId,
+      name: account.name,
+      role: "supervisor",
+      isDemo: true,
+    });
+    assert.equal(
+      sessionStorage.getItem(SUPERVISOR_SESSION_KEY),
+      null
+    );
   });
 });
 
@@ -57,7 +139,7 @@ test("duplicate email and staff IDs are rejected", () => {
 
 test("proposal notifications go only to the team's accepted supervisor", () => {
   withStorage(() => {
-    const supervisorA = SUPERVISORS[0];
+    const supervisorA = DEMO_SUPERVISORS[0];
     localStorage.setItem(TEAMS_STORAGE_KEY, JSON.stringify([{
       id: "team-A",
       name: "Team A",
@@ -92,7 +174,7 @@ test("proposal notifications go only to the team's accepted supervisor", () => {
 
 test("pending proposals stay saved and notify the supervisor after assignment acceptance", () => {
   withStorage(() => {
-    const supervisorA = SUPERVISORS[0];
+    const supervisorA = DEMO_SUPERVISORS[0];
     const proposal = {
       id: "proposal-team-A",
       teamId: "team-A",
@@ -140,14 +222,28 @@ test("pending proposals stay saved and notify the supervisor after assignment ac
 
 test("accepted assignment filtering isolates each supervisor and excludes pending requests", () => {
   withStorage(() => {
-    const [supervisorA, supervisorB] = SUPERVISORS;
+    const assignedTeams = DEMO_SUPERVISORS.map(
+      (supervisor, index) => ({
+        id: `team-${index + 1}`,
+        supervisorId: supervisor.id,
+        supervisorAssignmentStatus: "accepted",
+      })
+    );
     localStorage.setItem(TEAMS_STORAGE_KEY, JSON.stringify([
-      { id: "team-A", supervisorId: supervisorA.id, supervisorAssignmentStatus: "accepted" },
-      { id: "team-B", supervisorId: supervisorB.id, supervisorAssignmentStatus: "accepted" },
-      { id: "team-pending", supervisorId: null, requestedSupervisorId: supervisorA.id, supervisorAssignmentStatus: "pending" },
+      ...assignedTeams,
+      {
+        id: "team-pending",
+        supervisorId: DEMO_SUPERVISORS[0].id,
+        requestedSupervisorId: DEMO_SUPERVISORS[0].id,
+        supervisorAssignmentStatus: "pending",
+      },
     ]));
 
-    assert.deepEqual([...getAssignedTeamIds(supervisorA.id)], ["team-A"]);
-    assert.deepEqual([...getAssignedTeamIds(supervisorB.id)], ["team-B"]);
+    DEMO_SUPERVISORS.forEach((supervisor, index) => {
+      assert.deepEqual(
+        [...getAssignedTeamIds(supervisor.id)],
+        [`team-${index + 1}`]
+      );
+    });
   });
 });

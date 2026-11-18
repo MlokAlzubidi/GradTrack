@@ -5,12 +5,16 @@ import { ArrowRight, GraduationCap, LockKeyhole } from "lucide-react";
 import api from "../../services/api";
 import { SUPERVISOR_SESSION_KEY } from "../../utils/supervisorAuth";
 import { useAuth } from "../../context/AuthContext.jsx";
+import {
+  authenticateDemoSupervisor,
+  getDemoSupervisorByStaffId,
+} from "../../utils/demoSupervisors.js";
 import "./Login.css";
 
 function SupervisorLogin() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { setSession } = useAuth();
+  const { setSession, startDemoSession } = useAuth();
 
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -32,6 +36,31 @@ function SupervisorLogin() {
     setIsLoading(true);
 
     try {
+      const demoSupervisor = getDemoSupervisorByStaffId(identifier);
+
+      if (demoSupervisor) {
+        const authenticatedDemoSupervisor =
+          authenticateDemoSupervisor(identifier, password);
+
+        if (!authenticatedDemoSupervisor) {
+          setError("Invalid Staff ID or password.");
+          return;
+        }
+
+        if (!startDemoSession(authenticatedDemoSupervisor)) {
+          throw new Error("Could not start the demo supervisor session.");
+        }
+
+        const requestedPath = location.state?.from?.pathname;
+        const destination =
+          requestedPath?.startsWith("/supervisor/")
+            ? requestedPath
+            : "/supervisor/dashboard";
+
+        navigate(destination, { replace: true });
+        return;
+      }
+
       const response = await api.post("/auth/login", {
         identifier,
         password,

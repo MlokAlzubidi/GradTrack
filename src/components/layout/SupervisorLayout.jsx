@@ -10,6 +10,7 @@ import {
 import {
   GraduationCap,
   LayoutDashboard,
+  UsersRound,
   FolderKanban,
   FileCheck2,
   Files,
@@ -184,6 +185,22 @@ function SupervisorLayout() {
               size={17}
             />
             <span>Dashboard</span>
+          </NavLink>
+
+          <NavLink
+            to="/supervisor/teams"
+            onClick={closeMenus}
+            className={({ isActive }) =>
+              `supervisor-nav-link ${
+                isActive ? "active" : ""
+              }`
+            }
+          >
+            <UsersRound
+              className="supervisor-mobile-nav-icon"
+              size={17}
+            />
+            <span>Teams</span>
           </NavLink>
 
           <NavLink
